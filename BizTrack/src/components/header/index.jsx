@@ -1,11 +1,12 @@
 import React from 'react';
-import { Dropdown, Menu, Avatar } from 'antd';
+import { Dropdown, Menu, Avatar, Button } from 'antd';
 import {
   UserOutlined,
   BoxPlotOutlined,
   LogoutOutlined,
 } from '@ant-design/icons';
 import ListNotification from '../ListNotification';
+import { useNavigate } from 'react-router-dom';
 
 export default function Header() {
   const menu = (
@@ -70,10 +71,26 @@ export default function Header() {
       ]}
     />
   );
-
+  const navigate = useNavigate()
   return (
     <div className="flex justify-end items-center shadow-lg h-20 px-4">
       <div className="flex px-3 items-center">
+        <div className="flex gap-4">
+          <Button
+            type="primary"
+            className="bg-blue-500 hover:bg-blue-600"
+            onClick={() => navigate("/login")}
+          >
+            Đăng nhập
+          </Button>
+          <Button
+            type="default"
+            className="border-blue-500 text-blue-500 hover:bg-blue-50"
+            onClick={() => navigate("/register")}
+          >
+            Đăng ký
+          </Button>
+        </div>
         <div>
           <ListNotification />
         </div>

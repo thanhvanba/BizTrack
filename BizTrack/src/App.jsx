@@ -13,6 +13,7 @@ import CustomerManagement from "./pages/customer-management"
 import OrderManagement from "./pages/order-management"
 import "./index.css"
 import Header from "./components/header"
+import MainRouter from "./routes"
 
 const { Content } = Layout
 
@@ -69,48 +70,9 @@ function App() {
   }
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.defaultAlgorithm,
-        token: {
-          colorPrimary: "#3b82f6",
-          borderRadius: 8,
-        },
-      }}
-    >
-      <Layout className="min-h-screen bg-gray-50">
-        <>
-          {/* Desktop Sidebar */}
-          {!mobileView && <Sidebar collapsed={collapsed} activeTab={activeTab} setActiveTab={handleMenuClick} />}
-          {/* 
-          {/* Mobile Drawer Sidebar 
-          {mobileView && (
-            <Drawer
-              placement="left"
-              onClose={toggleMobileDrawer}
-              open={mobileDrawerOpen}
-              width={280}
-              bodyStyle={{ padding: 0 }}
-              headerStyle={{ display: "none" }}
-              className="sidebar-drawer"
-            >
-              <Sidebar activeTab={activeTab} setActiveTab={handleMenuClick} collapsed={false} />
-            </Drawer>
-          )} */}
-
-        </>
-        <Layout className="relative">
-          <div className="bg-white sticky top-0 z-10 h-auto">
-            <Header />
-          </div>
-          <Content className="p-3 md:p-6">
-            <div className="p-3 md:p-6 transition-all duration-300 animate-fadeIn">
-              {renderContent()}
-            </div>
-          </Content>
-        </Layout>
-      </Layout>
-    </ConfigProvider>
+    <>
+      <MainRouter />
+    </>
   )
 }
 
