@@ -10,31 +10,36 @@ import {
   LeftOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from "react-router-dom";
+import authService from "../../service/authService";
+import useToastNotify from "../../utils/useToastNotify";
 // import Link from "next/link"
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const onFinish = async (values) => {
+    console.log("🚀 ~ onFinish ~ values:", values)
     try {
       setLoading(true)
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
-
+      const registerResponse = await authService.register(values);
       console.log("Register values:", values)
-      message.success("Đăng ký tài khoản thành công!")
+      if (registerResponse) {
+        useToastNotify('Đăng ký tài khoản thành công!', 'success')
+      }
 
       // Redirect to login page after successful registration
       window.location.href = "/"
     } catch (error) {
-      message.error("Đăng ký thất bại. Vui lòng thử lại sau.")
+      useToastNotify('Đăng ký thất bại. Vui lòng thử lại sau.', 'error')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center pt-3 sm:px-6 lg:px-8">
       <div
         onClick={() => navigate('/')}
         className="flex gap-2 font-bold   text-blue-500 hover:text-blue-500/80 cursor-pointer"
@@ -55,7 +60,7 @@ export default function RegisterPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <Form name="register" className="space-y-6" onFinish={onFinish} size="large" scrollToFirstError>
-            <Form.Item
+            {/* <Form.Item
               name="fullName"
               rules={[
                 {
@@ -65,7 +70,7 @@ export default function RegisterPage() {
               ]}
             >
               <Input prefix={<UserSwitchOutlined className="site-form-item-icon" />} placeholder="Họ và tên" />
-            </Form.Item>
+            </Form.Item> */}
 
             <Form.Item
               name="username"
@@ -116,7 +121,7 @@ export default function RegisterPage() {
               <Input.Password prefix={<LockOutlined className="site-form-item-icon" />} placeholder="Mật khẩu" />
             </Form.Item>
 
-            <Form.Item
+            {/* <Form.Item
               name="confirmPassword"
               dependencies={["password"]}
               hasFeedback
@@ -139,7 +144,7 @@ export default function RegisterPage() {
                 prefix={<LockOutlined className="site-form-item-icon" />}
                 placeholder="Xác nhận mật khẩu"
               />
-            </Form.Item>
+            </Form.Item> */}
 
             <Form.Item>
               <Button

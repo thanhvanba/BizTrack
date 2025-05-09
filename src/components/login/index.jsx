@@ -8,31 +8,38 @@ import {
   LeftOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from "react-router-dom";
+import authService from "../../service/authService";
+import useToastNotify from "../../utils/useToastNotify";
 // import Link from "next/link"  
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-  const onFinish = async (valuesy) => {
+  const onFinish = async (values) => {
     try {
       setLoading(true)
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
-
+      const loginResponse = await authService.logIn(values);
       console.log("Login values:", values)
-      message.success("Đăng nhập thành công!")
+      if (loginResponse) {
+        asyncLocalStorage.setLocalStorage(access_token, loginResponse.data.access_token);
+        asyncLocalStorage.setLocalStorage(refresh_token, loginResponse.data.refresh_token);
+        useToastNotify('Đăng nhập thành công !', 'success');
+        navigate(PATH_AFTER_LOGIN);
+      }
 
       // Redirect to dashboard after successful login
-      window.location.href = "/dashboard"
+      // window.location.href = "/dashboard"
     } catch (error) {
-      message.error("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.")
+      useToastNotify('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.', 'error');
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center pt-3 sm:px-6 lg:px-8">
       <div
         onClick={() => navigate('/')}
         className="flex gap-2 font-bold   text-blue-500 hover:text-blue-500/80 cursor-pointer"
@@ -52,7 +59,7 @@ export default function LoginPage() {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <Form name="login" className="space-y-6" initialValues={{ remember: true }} onFinish={onFinish} size="large">
             <Form.Item
-              name="username"
+              name="email"
               rules={[
                 {
                   required: true,
@@ -75,7 +82,7 @@ export default function LoginPage() {
               <Input.Password prefix={<LockOutlined className="site-form-item-icon" />} placeholder="Mật khẩu" />
             </Form.Item>
 
-            <Form.Item>
+            {/* <Form.Item>
               <div className="flex items-center justify-between">
                 <Form.Item name="remember" valuePropName="checked" noStyle>
                   <Checkbox>Ghi nhớ đăng nhập</Checkbox>
@@ -85,7 +92,7 @@ export default function LoginPage() {
                   Quên mật khẩu?
                 </a>
               </div>
-            </Form.Item>
+            </Form.Item> */}
 
             <Form.Item>
               <Button
