@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Button, Form, Image, Input, message } from "antd"
-import logo from '../../../public/logo-biztrack-2.png';
+import logo from '../../assets/logo-biztrack-2.png';
 
 import {
   LockOutlined,

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Button, Checkbox, Form, Image, Input, message } from "antd"
-import logo from '../../../public/logo-biztrack-2.png';
+import logo from '../../assets/logo-biztrack-2.png';
 
 import {
   UserOutlined,
@@ -10,11 +10,16 @@ import {
 import { useNavigate } from "react-router-dom";
 import authService from "../../service/authService";
 import useToastNotify from "../../utils/useToastNotify";
+import { jwtDecode } from "jwt-decode";
+import { useDispatch } from "react-redux";
+import { fetchProfile } from "../../redux/user/user.slice";
 // import Link from "next/link"  
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+
+  const dispatch = useDispatch()
   const onFinish = async (values) => {
     try {
       setLoading(true)
@@ -22,15 +27,18 @@ export default function LoginPage() {
       await new Promise((resolve) => setTimeout(resolve, 1000))
       const loginResponse = await authService.logIn(values);
       console.log("Login values:", values)
-      if (loginResponse) {
-        asyncLocalStorage.setLocalStorage(access_token, loginResponse.data.access_token);
-        asyncLocalStorage.setLocalStorage(refresh_token, loginResponse.data.refresh_token);
+      if (loginResponse.success == true) {
+        localStorage.setItem('access_token', loginResponse?.accessToken);
+        localStorage.setItem('refresh_token', loginResponse?.refreshToken);
         useToastNotify('Đăng nhập thành công !', 'success');
-        navigate(PATH_AFTER_LOGIN);
-      }
 
-      // Redirect to dashboard after successful login
-      // window.location.href = "/dashboard"
+        dispatch(fetchProfile())
+
+        // Optional: Lưu vào localStorage hoặc Context
+        // localStorage.setItem('user_info', JSON.stringify(userInfo));
+
+        navigate('/')
+      }
     } catch (error) {
       useToastNotify('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.', 'error');
     } finally {

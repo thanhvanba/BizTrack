@@ -7,6 +7,7 @@ import {
 } from '@ant-design/icons';
 import ListNotification from '../ListNotification';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 export default function Header() {
   const menu = (
@@ -71,42 +72,54 @@ export default function Header() {
       ]}
     />
   );
+
+  const profileInfo = useSelector(state => state.user.userInfo)
+  console.log("🚀 ~ Header ~ profileInfo:", profileInfo)
+
   const navigate = useNavigate()
   return (
     <div className="flex justify-end items-center shadow-lg h-20 px-4">
       <div className="flex px-3 items-center">
-        <div className="flex gap-4">
-          <Button
-            type="primary"
-            className="bg-blue-500 hover:bg-blue-600"
-            onClick={() => navigate("/login")}
-          >
-            Đăng nhập
-          </Button>
-          <Button
-            type="default"
-            className="border-blue-500 text-blue-500 hover:bg-blue-50"
-            onClick={() => navigate("/register")}
-          >
-            Đăng ký
-          </Button>
-        </div>
-        <div>
-          <ListNotification />
-        </div>
-        <div className="relative ml-4">
-          <Dropdown overlay={menu} trigger={['hover']} placement="bottomRight">
-            <div className="flex items-center cursor-pointer transition-transform duration-150 hover:scale-[1.01]">
-              <div className="ml-3 flex flex-col text-right">
-                <span className="text-sm text-gray-600">Xin chào</span>
-                <span className="text-xl text-cyan-600 font-bold">Sonder Van</span>
-              </div>
-              <div className="ml-2">
-                <Avatar icon={<UserOutlined />} size={32} />
-              </div>
+
+
+        {Object.keys(profileInfo).length ?
+          <>
+            <div>
+              <ListNotification />
             </div>
-          </Dropdown>
-        </div>
+            <div className="relative ml-4">
+              <Dropdown overlay={menu} trigger={['hover']} placement="bottomRight">
+                <div className="flex items-center cursor-pointer transition-transform duration-150 hover:scale-[1.01]">
+                  <div className="ml-3 flex flex-col text-right">
+                    <span className="text-sm text-gray-600">Xin chào</span>
+                    <span className="text-xl text-cyan-600 font-bold">{profileInfo?.data?.email}</span>
+                  </div>
+                  <div className="ml-2">
+                    <Avatar icon={<UserOutlined />} size={32} />
+                  </div>
+                </div>
+              </Dropdown>
+            </div>
+          </>
+
+          :
+          <div className="flex gap-4">
+            <Button
+              type="primary"
+              className="bg-blue-500 hover:bg-blue-600"
+              onClick={() => navigate("/login")}
+            >
+              Đăng nhập
+            </Button>
+            <Button
+              type="default"
+              className="border-blue-500 text-blue-500 hover:bg-blue-50"
+              onClick={() => navigate("/register")}
+            >
+              Đăng ký
+            </Button>
+          </div>
+        }
       </div>
     </div>
   );

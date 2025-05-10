@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { REFRESH_TOKEN_URL, REGISTER_URL, SIGNIN_URL, SIGN_OUT_URL } from '../apiUrl';
+import { REFRESH_TOKEN_URL, REGISTER_URL, SIGNIN_URL, SIGN_OUT_URL, PROFILE_URL } from '../apiUrl';
 import axiosService from '../axiosService';
 const authService = {
     logIn: async (payload) => {
@@ -25,12 +25,12 @@ const authService = {
                 throw error;
             });
     },
-    // logOut: async () => {
-    //     return axiosService()({
-    //         method: 'POST',
-    //         url: SIGN_OUT_URL,
-    //     });
-    // },
+    logOut: async () => {
+        return axiosService()({
+            method: 'POST',
+            url: SIGN_OUT_URL,
+        });
+    },
     // refreshToken: async (refresh_token) => {
     //     return axios({
     //         method: 'POST',
@@ -45,6 +45,16 @@ const authService = {
     //             throw error;
     //         });
     // },
+    getUserInfo: async () => {
+        return axiosService()({
+            baseURL: `${PROFILE_URL}`,
+            method: 'GET',
+        })
+            .then((res) => res.data)
+            .catch((err) => {
+                throw err;
+            });
+    },
 };
 
 export default authService;
