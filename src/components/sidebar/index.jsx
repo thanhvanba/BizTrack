@@ -18,7 +18,22 @@ import authService from '../../service/authService';
 const menuItems = [
   { key: 'dashboard', icon: <AppstoreOutlined />, label: 'Tổng quan' },
   { key: 'orders', icon: <ShoppingCartOutlined />, label: 'Đơn hàng' },
-  { key: 'products', icon: <ShoppingOutlined />, label: 'Sản phẩm' },
+  {
+    key: 'products',
+    icon: <ShoppingOutlined />,
+    label: 'Sản phẩm',
+    children: [
+      {
+        label: "Danh sách sản phẩm",
+        key: "products",
+      },
+      {
+        label: "Danh mục",
+        key: "product-category",
+      },
+    ],
+  },
+
   {
     key: 'revenue',
     label: 'Doanh Thu',
@@ -40,8 +55,8 @@ const menuItems = [
   { key: 'inventory', icon: <ContainerOutlined />, label: 'Quản lý kho' },
 ];
 const { Sider } = Layout
-const Sidebar = ({ collapsed: propCollapsed, setActiveTab, activeTab }) => {
-  const [collapsed, setCollapsed] = useState(propCollapsed);
+const Sidebar = ({ collapsed, setCollapsed, setActiveTab, activeTab }) => {
+  ;
   const [openKeys, setOpenKeys] = useState([]);
 
   const toggleCollapsed = () => {
@@ -57,9 +72,11 @@ const Sidebar = ({ collapsed: propCollapsed, setActiveTab, activeTab }) => {
       setOpenKeys(keys);
     }
   };
+  console.log("🚀 ~ Sidebar ~ collapsed:", collapsed)
 
   const handleLogout = async () => {
-    await authService.logOut()
+    const refreshToken = localStorage.getItem('refresh_token');
+    await authService.logOut({ refreshToken });
   }
   return (
     <Sider
@@ -82,9 +99,10 @@ const Sidebar = ({ collapsed: propCollapsed, setActiveTab, activeTab }) => {
           {!collapsed && (
             <Image width={140} preview={false} src={logo} alt="Logo" />
           )}
-          <Button type="primary" onClick={toggleCollapsed}>
+          {collapsed !== undefined && < Button type="primary" onClick={toggleCollapsed}>
             {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           </Button>
+          }
         </div>
 
         <Menu
@@ -105,7 +123,7 @@ const Sidebar = ({ collapsed: propCollapsed, setActiveTab, activeTab }) => {
           </Button>
         </div>
       </div>
-    </Sider>
+    </Sider >
   );
 };
 

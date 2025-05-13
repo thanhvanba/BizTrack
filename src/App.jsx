@@ -1,9 +1,7 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Layout, ConfigProvider, theme, Drawer } from "antd"
 import { MenuFoldOutlined, MenuUnfoldOutlined, MenuOutlined } from "@ant-design/icons"
-import Sidebar from "./components/Sidebar"
+import Sidebar from "./components/sidebar"
 import Dashboard from "./pages/dashboard"
 import InventoryManagement from "./pages/inventory-management"
 import RevenueTracking from "./pages/revenue-tracking"

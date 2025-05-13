@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Modal, Form, Select, Input, Button } from "antd"
 

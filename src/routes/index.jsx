@@ -1,21 +1,23 @@
-import React from 'react'
-import Home from '../pages/home'
-import LoginPage from '../components/login'
-import RegisterPage from '../components/register'
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// src/routes/MainRouter.js
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import MainLayout from '../layout/MainLayout';
+import LoginPage from '../components/login';
+import RegisterPage from '../components/register';
+import { privateRoutes } from './routeConfig';
 
-const MainRouter = () => {
-    return (
-        <div>
-            <Router>
-                <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                </Routes>
-            </Router>
-        </div>
-    )
-}
+const MainRouter = () => (
+  <Router>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route path="/" element={<MainLayout />}>
+        {privateRoutes.map(({ path, element }, index) => (
+          <Route key={index} path={path} element={element} />
+        ))}
+      </Route>
+    </Routes>
+  </Router>
+);
 
-export default MainRouter
+export default MainRouter;

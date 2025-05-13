@@ -185,10 +185,9 @@ const RevenueTracking = () => {
 
   return (
     <div>
-      <TitleTypography level={2} className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-gray-800 absolute z-20 top-6 left-4">
+      <TitleTypography level={2} className="text-xl md:text-2xl font-bold m-0 text-gray-800">
         Doanh thu
       </TitleTypography>
-
       <Tabs defaultActiveKey="monthly" className="mb-4 md:mb-6 custom-tabs" type="card">
         <TabPane tab="Theo tháng" key="monthly">
           <Row gutter={[12, 12]} className="mb-4 md:mb-6">

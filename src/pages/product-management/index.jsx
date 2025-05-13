@@ -1,9 +1,12 @@
-import { useState } from "react"
-import { Card, Input, Button, Table, Tag, Space, Tooltip, Select, Typography, Image, message } from "antd"
+import { useState, useEffect } from "react"
+import axios from "axios"
+import { Card, Input, Button, Table, Tag, Space, Tooltip, Select, Typography, Image, Switch } from "antd"
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons"
-import CreateProductModal from "../../components/modals/CreateProductModal"
-import EditProductModal from "../../components/modals/EditProductModal"
 import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal"
+import productService from "../../service/productService"
+import categoryService from "../../service/categoryService"
+import ProductModal from "../../components/modals/ProductModal"
+import useToastNotify from "../../utils/useToastNotify"
 
 const { Title } = Typography
 const { Option } = Select
@@ -16,229 +19,198 @@ const ProductManagement = () => {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [productsData, setProductsData] = useState([])
+  const [categories, setCategories] = useState([])
 
-  // Sample data
-  const [productsData, setProductsData] = useState([
-    {
-      key: "1",
-      name: "Laptop Dell XPS 13",
-      category: "Điện tử",
-      price: 32000000,
-      stock: 25,
-      status: "Còn hàng",
-      image:
-        "https://i.dell.com/is/image/DellContent/content/dam/ss2/product-images/dell-client-products/notebooks/xps-notebooks/xps-13-9315/media-gallery/notebook-xps-9315-nt-blue-gallery-1.psd?fmt=png-alpha&pscan=auto&scl=1&hei=402&wid=402&qlt=100,1&resMode=sharp2&size=402,402&chrss=full",
-    },
-    {
-      key: "2",
-      name: "iPhone 14 Pro",
-      category: "Điện thoại",
-      price: 28000000,
-      stock: 18,
-      status: "Còn hàng",
-      image:
-        "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-14-pro-finish-select-202209-6-1inch-deeppurple?wid=5120&hei=2880&fmt=p-jpg&qlt=80&.v=1663703841896",
-    },
-    {
-      key: "3",
-      name: "Tai nghe Sony WH-1000XM4",
-      category: "Phụ kiện",
-      price: 7500000,
-      stock: 5,
-      status: "Sắp hết",
-      image: "https://electronics.sony.com/image/5d02da5df552836db894cead8a68c5ef?fmt=png-alpha&wid=720&hei=720",
-    },
-    {
-      key: "4",
-      name: "Samsung Galaxy S23",
-      category: "Điện thoại",
-      price: 24000000,
-      stock: 12,
-      status: "Còn hàng",
-      image:
-        "https://images.samsung.com/is/image/samsung/p6pim/vn/2302/gallery/vn-galaxy-s23-s911-sm-s911bzgcxxv-534848082?$650_519_PNG$",
-    },
-    {
-      key: "5",
-      name: "iPad Pro 12.9",
-      category: "Máy tính bảng",
-      price: 26000000,
-      stock: 0,
-      status: "Hết hàng",
-      image:
-        "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-pro-12-select-wifi-spacegray-202104?wid=940&hei=1112&fmt=png-alpha&.v=1617126635000",
-    },
-    {
-      key: "6",
-      name: "Chuột Logitech MX Master 3",
-      category: "Phụ kiện",
-      price: 2500000,
-      stock: 8,
-      status: "Còn hàng",
-      image:
-        "https://resource.logitech.com/content/dam/logitech/en/products/mice/mx-master-3s/gallery/mx-master-3s-mouse-top-view-graphite.png",
-    },
-  ])
+  const fetchProducts = async () => {
+    try {
+      const response = await productService.getAllProducts()
+      setProductsData(
+        response.data.map((product) => ({
+          ...product,
+          key: product.product_id,
+        }))
+      )
+    } catch (error) {
+      useToastNotify("Không thể tải danh sách sản phẩm.", 'error')
+    }
+  }
 
-  // Filter data based on search text and category
+  const fetchCategories = async () => {
+    try {
+      const response = await categoryService.getAllCategories()
+      setCategories(response.data)
+    } catch (error) {
+      useToastNotify("Không thể tải danh sách danh mục.", 'error')
+    }
+  }
+  useEffect(() => {
+    fetchProducts()
+    fetchCategories()
+  }, [])
+
+
   const filteredData = productsData.filter(
     (item) =>
-      (categoryFilter === "all" || item.category === categoryFilter) &&
-      (item.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.category.toLowerCase().includes(searchText.toLowerCase())),
+      (categoryFilter === "all" || item.category_id === categoryFilter) &&
+      (item.product_name?.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.product_barcode?.toLowerCase().includes(searchText.toLowerCase()))
   )
 
-  // Format price
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price)
   }
 
-  // Handle create product
-  const handleCreateProduct = (productData) => {
-    // Create new product object
-    const newProduct = {
-      key: String(productsData.length + 1),
-      name: productData.name,
-      category: productData.category,
-      price: productData.price,
-      stock: productData.quantity,
-      status: productData.quantity > 10 ? "Còn hàng" : productData.quantity > 0 ? "Sắp hết" : "Hết hàng",
-      image: productData.images && productData.images.length > 0 ? productData.images[0] : "/placeholder.svg",
+  // Create product
+  const handleCreateProduct = async (productData) => {
+    try {
+      const newProduct = {
+        sku: productData.sku,
+        product_name: productData.product_name,
+        product_desc: productData.product_desc,
+        product_retail_price: productData.product_retail_price,
+        product_barcode: productData.product_barcode,
+        product_image: productData.product_image || "/placeholder.svg",
+        category_id: productData.category_id,
+        is_active: productData.is_active || true
+      }
+
+      const response = await productService.createProduct(newProduct)
+      setCreateModalVisible(false)  
+      fetchProducts()
+      useToastNotify(`Sản phẩm "${newProduct.product_name}" đã được thêm thành công!`, 'success')
+    } catch (error) {
+      useToastNotify("Thêm sản phẩm không thành công.", 'error')
     }
-
-    // Add new product to the list
-    setProductsData([newProduct, ...productsData])
-
-    // Close modal and show success message
-    setCreateModalVisible(false)
-    message.success(`Sản phẩm "${productData.name}" đã được thêm thành công!`)
-  }
-
-  // Handle edit product
-  const handleEditProduct = (updatedProduct) => {
-    // Determine status based on stock
-    const status = updatedProduct.stock > 10 ? "Còn hàng" : updatedProduct.stock > 0 ? "Sắp hết" : "Hết hàng"
-
-    // Update product in the list
-    const updatedData = productsData.map((product) =>
-      product.key === updatedProduct.key ? { ...updatedProduct, status } : product,
-    )
-
-    // Update state
-    setProductsData(updatedData)
-
-    // Close modal and show success message
-    setEditModalVisible(false)
-    message.success(`Sản phẩm "${updatedProduct.name}" đã được cập nhật thành công!`)
-  }
-
-  // Handle delete product
-  const handleDeleteProduct = () => {
-    setLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      // Remove product from the list
-      setProductsData(productsData.filter((item) => item.key !== selectedProduct.key))
-
-      // Reset state and show success message
-      setLoading(false)
-      setDeleteModalVisible(false)
-      setSelectedProduct(null)
-      message.success(`Sản phẩm "${selectedProduct.name}" đã được xóa thành công!`)
-    }, 1000)
   }
 
   // Edit product
+  const handleEditProduct = async (updatedProduct) => {
+    try {
+      await productService.updateProduct(updatedProduct.product_id, updatedProduct)
+      setEditModalVisible(false)
+      fetchProducts()
+      useToastNotify(`Sản phẩm "${updatedProduct.product_name}" đã được cập nhật thành công!`, 'success')
+    } catch (error) {
+      useToastNotify("Cập nhật sản phẩm không thành công.", 'error')
+    }
+  }
+
+  // Delete product
+  const handleDeleteProduct = async () => {
+    setLoading(true)
+    try {
+      await productService.deleteProduct(selectedProduct.product_id)
+      setLoading(false)
+      setDeleteModalVisible(false)
+      setSelectedProduct(null)
+      fetchProducts()
+      useToastNotify(`Sản phẩm "${selectedProduct.product_name}" đã được xóa thành công!`, 'success  ')
+    } catch (error) {
+      setLoading(false)
+      useToastNotify("Xóa sản phẩm không thành công.", 'error')
+    }
+  }
+
   const editProduct = (product) => {
     setSelectedProduct(product)
     setEditModalVisible(true)
   }
 
-  // Confirm delete product
   const confirmDelete = (product) => {
     setSelectedProduct(product)
     setDeleteModalVisible(true)
   }
 
-  // Table columns
   const columns = [
     {
+      title: "SKU",
+      dataIndex: "sku",
+      key: "sku",
+      width: 120,
+      render: (sku) => <span className="font-mono">{sku || '--'}</span>,
+      sorter: (a, b) => a.sku?.localeCompare(b.sku),
+    },
+    {
       title: "Sản phẩm",
-      dataIndex: "name",
-      key: "name",
+      dataIndex: "product_name",
+      key: "product_name",
       render: (text, record) => (
         <div className="flex items-center">
           <Image
-            src={record.image || "/placeholder.svg"}
+            src={record.product_image || "/placeholder.svg"}
             alt={text}
             width={50}
             height={50}
             className="object-cover rounded"
             preview={false}
           />
-          <span className="ml-3">{text}</span>
+          <div className="ml-3">
+            <div className="font-medium">{text}</div>
+            <div className="text-gray-500 text-xs">{record.product_barcode}</div>
+          </div>
         </div>
       ),
-      sorter: (a, b) => a.name.localeCompare(b.name),
+      sorter: (a, b) => a.product_name.localeCompare(b.product_name),
+    },
+    {
+      title: "Mô tả",
+      dataIndex: "product_desc",
+      key: "product_desc",
+      render: (text) => (
+        <Tooltip title={text}>
+          <span className="line-clamp-1">{text || '--'}</span>
+        </Tooltip>
+      ),
+      responsive: ["lg"],
     },
     {
       title: "Danh mục",
-      dataIndex: "category",
-      key: "category",
-      filters: [
-        { text: "Điện tử", value: "Điện tử" },
-        { text: "Điện thoại", value: "Điện thoại" },
-        { text: "Phụ kiện", value: "Phụ kiện" },
-        { text: "Máy tính bảng", value: "Máy tính bảng" },
-      ],
-      onFilter: (value, record) => record.category === value,
+      dataIndex: "category_id",
+      key: "category_id",
+      render: (categoryId) => {
+        const category = categories.find(c => c.category_id === categoryId)
+        return category ? category.category_name : '--'
+      },
+      filters: categories.map(c => ({
+        text: c.category_name,
+        value: c.category_id
+      })),
+      onFilter: (value, record) => record.category_id === value,
       responsive: ["md"],
     },
     {
-      title: "Giá",
-      dataIndex: "price",
-      key: "price",
+      title: "Giá bán",
+      dataIndex: "product_retail_price",
+      key: "product_retail_price",
       render: (price) => formatPrice(price),
-      sorter: (a, b) => a.price - b.price,
+      sorter: (a, b) => a.product_retail_price - b.product_retail_price,
       align: "right",
     },
     {
-      title: "Tồn kho",
-      dataIndex: "stock",
-      key: "stock",
-      sorter: (a, b) => a.stock - b.stock,
-      align: "center",
-      responsive: ["md"],
-    },
-    {
       title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
+      dataIndex: "is_active",
+      key: "is_active",
       align: "center",
       render: (status) => {
         let color
         switch (status) {
-          case "Còn hàng":
+          case 1:
             color = "success"
             break
-          case "Sắp hết":
+          case "2":
             color = "warning"
-            break
-          case "Hết hàng":
-            color = "error"
             break
           default:
             color = "default"
         }
-        return <Tag color={color}>{status}</Tag>
+        return <Tag color={color}>{status === 1 ? 'Hoạt động' : 'Ẩn'}</Tag>
       },
       filters: [
-        { text: "Còn hàng", value: "Còn hàng" },
-        { text: "Sắp hết", value: "Sắp hết" },
-        { text: "Hết hàng", value: "Hết hàng" },
+        { text: "Hoạt động", value: true },
+        { text: "Ẩn", value: false },
       ],
-      onFilter: (value, record) => record.status === value,
+      onFilter: (value, record) => record.is_active === value,
     },
     {
       title: "Thao tác",
@@ -301,19 +273,25 @@ const ProductManagement = () => {
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1 w-full">
             <Input
-              placeholder="Tìm kiếm sản phẩm..."
+              placeholder="Tìm kiếm sản phẩm theo tên hoặc mã vạch..."
               prefix={<SearchOutlined className="text-gray-400" />}
               onChange={(e) => setSearchText(e.target.value)}
               allowClear
               className="md:max-w-md"
             />
           </div>
-          <Select defaultValue="all" style={{ minWidth: 180 }} onChange={(value) => setCategoryFilter(value)}>
+          <Select
+            defaultValue="all"
+            style={{ minWidth: 180 }}
+            onChange={(value) => setCategoryFilter(value)}
+            placeholder="Lọc theo danh mục"
+          >
             <Option value="all">Tất cả danh mục</Option>
-            <Option value="Điện tử">Điện tử</Option>
-            <Option value="Điện thoại">Điện thoại</Option>
-            <Option value="Phụ kiện">Phụ kiện</Option>
-            <Option value="Máy tính bảng">Máy tính bảng</Option>
+            {categories.map(category => (
+              <Option key={category.category_id} value={category.category_id}>
+                {category.category_name}
+              </Option>
+            ))}
           </Select>
         </div>
 
@@ -330,31 +308,35 @@ const ProductManagement = () => {
           className="custom-table"
           rowClassName="hover:bg-gray-50 transition-colors"
           scroll={{ x: "max-content" }}
+          locale={{ emptyText: "Không có sản phẩm nào" }}
         />
       </Card>
 
       {/* Create Product Modal */}
-      <CreateProductModal
+      <ProductModal
+        mode="create"
         open={createModalVisible}
         onCancel={() => setCreateModalVisible(false)}
         onSubmit={handleCreateProduct}
+        categories={categories}
       />
 
       {/* Edit Product Modal */}
-      <EditProductModal
+      <ProductModal
+        mode="edit"
         open={editModalVisible}
         onCancel={() => setEditModalVisible(false)}
         onSubmit={handleEditProduct}
         product={selectedProduct}
+        categories={categories}
       />
-
       {/* Delete Confirm Modal */}
       <DeleteConfirmModal
         open={deleteModalVisible}
         onCancel={() => setDeleteModalVisible(false)}
         onConfirm={handleDeleteProduct}
         title="Xác nhận xóa sản phẩm"
-        content={`Bạn có chắc chắn muốn xóa sản phẩm "${selectedProduct?.name}" không? Hành động này không thể hoàn tác.`}
+        content={`Bạn có chắc chắn muốn xóa sản phẩm "${selectedProduct?.product_name}" không? Hành động này không thể hoàn tác.`}
         loading={loading}
       />
     </div>

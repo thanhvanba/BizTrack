@@ -15,3 +15,9 @@ export const CHANGE_PASSWORD_URL = `${API_URL}/auth/change-password`;
 
 // USER URL
 export const USERS_URL = `${API_URL}/users`;
+
+// CATEGORY URL
+export const CATEGORIES_URL = `${API_URL}/categories`;
+
+// PRODUCT URL
+export const PRODUCTS_URL = `${API_URL}/products`;

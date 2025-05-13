@@ -25,10 +25,11 @@ const authService = {
                 throw error;
             });
     },
-    logOut: async () => {
+    logOut: async (payload) => {
         return axiosService()({
             method: 'POST',
             url: SIGN_OUT_URL,
+            data: payload,
         });
     },
     // refreshToken: async (refresh_token) => {

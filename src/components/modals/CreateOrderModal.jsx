@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { Modal, Form, Input, Select, InputNumber, DatePicker, Button, Table, Typography } from "antd"
 import { PlusOutlined, DeleteOutlined, SearchOutlined } from "@ant-design/icons"

@@ -18,7 +18,7 @@ const axiosService = () => {
     const loadRefreshToken = async () => {
         try {
             if (refreshToken) {
-                const response = await authService.refreshToken( refreshToken);
+                const response = await authService.refreshToken(refreshToken);
                 return response;
             }
         } catch (error) {
@@ -74,20 +74,23 @@ const axiosService = () => {
         (response) => response,
         (errors) => {
             if (!errors.response) {
-                // console.log('Lỗi khi kết nối với server', { variant: 'error' });
-                toastNotify('Lỗi khi kết nối với server','error')
+                toastNotify('Lỗi khi kết nối với server', 'error');
             }
+
             if (errors?.response?.status === 401) {
-                // console.log('Phiên đăng nhập đã hết hạn', { variant: 'error' });
-                toastNotify('Phiên đăng nhập đã hết hạn','error')
+                toastNotify('Phiên đăng nhập đã hết hạn', 'error');
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');
                 localStorage.removeItem('username');
-                window.location.href = '/signup'; 
+                setTimeout(() => {
+                    window.location.href = '/register';
+                }, 2000); 
             }
+
             throw errors;
         }
     );
+
     return axiosInstance
 }
 export default axiosService;

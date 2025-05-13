@@ -1,5 +1,3 @@
-"use client"
-
 import { Drawer, Descriptions, Table, Tag, Button, Divider, Typography, Space } from "antd"
 import { PrinterOutlined, DownloadOutlined } from "@ant-design/icons"
 

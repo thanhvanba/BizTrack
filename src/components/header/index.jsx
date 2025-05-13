@@ -4,12 +4,13 @@ import {
   UserOutlined,
   BoxPlotOutlined,
   LogoutOutlined,
+  MenuOutlined,
 } from '@ant-design/icons';
 import ListNotification from '../ListNotification';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-export default function Header() {
+export default function Header({ onToggleMobileDrawer, isMobile }) {
   const menu = (
     <Menu
       className="rounded-lg shadow-lg"
@@ -78,14 +79,22 @@ export default function Header() {
 
   const navigate = useNavigate()
   return (
-    <div className="flex justify-end items-center shadow-lg h-20 px-4">
+    <div className={`flex ${isMobile ? 'justify-between' : 'justify-end'} items-center shadow-lg h-20 px-4`}>
+      {isMobile && (
+        <Button
+          icon={<MenuOutlined />}
+          type="text"
+          onClick={onToggleMobileDrawer}
+        />
+      )}
+
       <div className="flex px-3 items-center">
-
-
         {Object.keys(profileInfo).length ?
           <>
             <div>
-              <ListNotification />
+              {
+                !isMobile && <ListNotification />
+              }
             </div>
             <div className="relative ml-4">
               <Dropdown overlay={menu} trigger={['hover']} placement="bottomRight">
