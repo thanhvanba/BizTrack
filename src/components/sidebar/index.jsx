@@ -52,7 +52,15 @@ const menuItems = [
     //   { key: 'customer-feedback', label: 'Phản hồi' },
     // ],
   },
-  { key: 'inventory', icon: <ContainerOutlined />, label: 'Quản lý kho' },
+  {
+    key: 'inventory',
+    icon: <ContainerOutlined />,
+    label: 'Quản lý kho',
+    children: [
+      { key: 'inventory', label: 'Tồn kho' },
+      { key: 'purchase', label: 'Nhập hàng' },
+    ],
+  },
 ];
 const { Sider } = Layout
 const Sidebar = ({ collapsed, setCollapsed, setActiveTab, activeTab }) => {
@@ -72,7 +80,6 @@ const Sidebar = ({ collapsed, setCollapsed, setActiveTab, activeTab }) => {
       setOpenKeys(keys);
     }
   };
-  console.log("🚀 ~ Sidebar ~ collapsed:", collapsed)
 
   const handleLogout = async () => {
     const refreshToken = localStorage.getItem('refresh_token');

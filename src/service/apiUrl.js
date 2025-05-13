@@ -1,6 +1,5 @@
 // BASE URL
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
-console.log("🚀 ~ BASE_URL:", BASE_URL)
 
 // API URL
 const API_URL = `${BASE_URL}/api/v1`;
@@ -22,6 +21,8 @@ export const CATEGORIES_URL = `${API_URL}/categories`;
 // PRODUCT URL
 export const PRODUCTS_URL = `${API_URL}/products`;
 
+// PURCHASE URL
+export const PURCHASE_ORDERS_URL = `${API_URL}/purchase-orders`;
 
 // WAREHOUSE URL
 export const WAREHOUSE_URL = `${API_URL}/warehouses`;
