@@ -21,3 +21,8 @@ export const CATEGORIES_URL = `${API_URL}/categories`;
 
 // PRODUCT URL
 export const PRODUCTS_URL = `${API_URL}/products`;
+
+
+// WAREHOUSE URL
+export const WAREHOUSE_URL = `${API_URL}/warehouses`;
+

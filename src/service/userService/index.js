@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { USERS_URL } from '../apiUrl';
 import axiosService from '../axiosService';
 const userService = {
