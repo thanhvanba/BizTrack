@@ -1,19 +1,43 @@
-import { useState } from "react"
-import { Card, Input, Button, Table, Space, Tooltip, Typography, Tag, message } from "antd"
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons"
-import AddInventoryItemModal from "../../components/modals/AddInventoryItemModal"
-import EditInventoryItemModal from "../../components/modals/EditInventoryItemModal"
-import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal"
+import { useEffect, useState } from "react";
+import {
+  Card,
+  Input,
+  Button,
+  Table,
+  Space,
+  Tooltip,
+  Typography,
+  Tag,
+  message,
+  Select,
+} from "antd";
+import {
+  SearchOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
+import AddInventoryItemModal from "../../components/modals/AddInventoryItemModal";
+import EditInventoryItemModal from "../../components/modals/EditInventoryItemModal";
+import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal";
 
-const { Title } = Typography
+import { fetchWarehouses } from "../../redux/warehouses/warehouses.slice";
+import { useDispatch, useSelector } from "react-redux";
+
+const { Title } = Typography;
 
 const InventoryManagement = () => {
-  const [searchText, setSearchText] = useState("")
-  const [addModalVisible, setAddModalVisible] = useState(false)
-  const [editModalVisible, setEditModalVisible] = useState(false)
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false)
-  const [selectedItem, setSelectedItem] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [searchText, setSearchText] = useState("");
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const dispatch = useDispatch();
+  const warehouses = useSelector((state) => state.warehouse.warehouses);
+  const loadingwh = useSelector((state) => state.warehouse.loading);
+  const error = useSelector((state) => state.warehouse.error);
 
   // Sample data
   const [inventoryData, setInventoryData] = useState([
@@ -65,29 +89,29 @@ const InventoryManagement = () => {
       quantity: 8,
       status: "Đủ hàng",
     },
-  ])
+  ]);
 
   // Filter data based on search text
   const filteredData = inventoryData.filter(
     (item) =>
       item.name.toLowerCase().includes(searchText.toLowerCase()) ||
       item.category.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.location.toLowerCase().includes(searchText.toLowerCase()),
-  )
+      item.location.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   // Get status color
   const getStatusColor = (status) => {
     switch (status) {
       case "Đủ hàng":
-        return "success"
+        return "success";
       case "Sắp hết":
-        return "warning"
+        return "warning";
       case "Hết hàng":
-        return "error"
+        return "error";
       default:
-        return "default"
+        return "default";
     }
-  }
+  };
 
   // Handle add inventory item
   const handleAddInventoryItem = (values) => {
@@ -96,27 +120,32 @@ const InventoryManagement = () => {
       values.productId === 1
         ? "Laptop Dell XPS 13"
         : values.productId === 2
-          ? "iPhone 14 Pro"
-          : values.productId === 3
-            ? "Tai nghe Sony WH-1000XM4"
-            : values.productId === 4
-              ? "Samsung Galaxy S23"
-              : values.productId === 5
-                ? "iPad Pro 12.9"
-                : "Chuột Logitech MX Master 3"
+        ? "iPhone 14 Pro"
+        : values.productId === 3
+        ? "Tai nghe Sony WH-1000XM4"
+        : values.productId === 4
+        ? "Samsung Galaxy S23"
+        : values.productId === 5
+        ? "iPad Pro 12.9"
+        : "Chuột Logitech MX Master 3";
 
     // Get category based on productId
     const category =
       values.productId === 1
         ? "Điện tử"
         : values.productId === 2 || values.productId === 4
-          ? "Điện thoại"
-          : values.productId === 3 || values.productId === 6
-            ? "Phụ kiện"
-            : "Máy tính bảng"
+        ? "Điện thoại"
+        : values.productId === 3 || values.productId === 6
+        ? "Phụ kiện"
+        : "Máy tính bảng";
 
     // Determine status based on quantity
-    const status = values.quantity > 10 ? "Đủ hàng" : values.quantity > 0 ? "Sắp hết" : "Hết hàng"
+    const status =
+      values.quantity > 10
+        ? "Đủ hàng"
+        : values.quantity > 0
+        ? "Sắp hết"
+        : "Hết hàng";
 
     // Create new inventory item
     const newItem = {
@@ -127,60 +156,75 @@ const InventoryManagement = () => {
       quantity: values.quantity,
       status: status,
       notes: values.notes,
-    }
+    };
 
     // Add new item to the list
-    setInventoryData([...inventoryData, newItem])
+    setInventoryData([...inventoryData, newItem]);
 
     // Close modal and show success message
-    setAddModalVisible(false)
-    message.success(`Sản phẩm "${productName}" đã được thêm vào kho thành công!`)
-  }
+    setAddModalVisible(false);
+    message.success(
+      `Sản phẩm "${productName}" đã được thêm vào kho thành công!`
+    );
+  };
 
   // Handle edit inventory item
   const handleEditInventoryItem = (updatedItem) => {
     // Determine status based on quantity
-    const status = updatedItem.quantity > 10 ? "Đủ hàng" : updatedItem.quantity > 0 ? "Sắp hết" : "Hết hàng"
+    const status =
+      updatedItem.quantity > 10
+        ? "Đủ hàng"
+        : updatedItem.quantity > 0
+        ? "Sắp hết"
+        : "Hết hàng";
 
     // Update item in the list
-    const updatedData = inventoryData.map((item) => (item.key === updatedItem.key ? { ...updatedItem, status } : item))
+    const updatedData = inventoryData.map((item) =>
+      item.key === updatedItem.key ? { ...updatedItem, status } : item
+    );
 
     // Update state
-    setInventoryData(updatedData)
+    setInventoryData(updatedData);
 
     // Close modal and show success message
-    setEditModalVisible(false)
-    message.success(`Sản phẩm "${updatedItem.name}" đã được cập nhật thành công!`)
-  }
+    setEditModalVisible(false);
+    message.success(
+      `Sản phẩm "${updatedItem.name}" đã được cập nhật thành công!`
+    );
+  };
 
   // Handle delete inventory item
   const handleDeleteInventoryItem = () => {
-    setLoading(true)
+    setLoading(true);
 
     // Simulate API call
     setTimeout(() => {
       // Remove item from the list
-      setInventoryData(inventoryData.filter((item) => item.key !== selectedItem.key))
+      setInventoryData(
+        inventoryData.filter((item) => item.key !== selectedItem.key)
+      );
 
       // Reset state and show success message
-      setLoading(false)
-      setDeleteModalVisible(false)
-      setSelectedItem(null)
-      message.success(`Sản phẩm "${selectedItem.name}" đã được xóa khỏi kho thành công!`)
-    }, 1000)
-  }
+      setLoading(false);
+      setDeleteModalVisible(false);
+      setSelectedItem(null);
+      message.success(
+        `Sản phẩm "${selectedItem.name}" đã được xóa khỏi kho thành công!`
+      );
+    }, 1000);
+  };
 
   // Edit inventory item
   const editItem = (item) => {
-    setSelectedItem(item)
-    setEditModalVisible(true)
-  }
+    setSelectedItem(item);
+    setEditModalVisible(true);
+  };
 
   // Confirm delete inventory item
   const confirmDelete = (item) => {
-    setSelectedItem(item)
-    setDeleteModalVisible(true)
-  }
+    setSelectedItem(item);
+    setDeleteModalVisible(true);
+  };
 
   // Table columns
   const columns = [
@@ -204,7 +248,9 @@ const InventoryManagement = () => {
       ],
       onFilter: (value, record) => record.category === value,
       render: (text) => (
-        <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">{text}</span>
+        <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+          {text}
+        </span>
       ),
       responsive: ["md"],
     },
@@ -229,7 +275,7 @@ const InventoryManagement = () => {
       key: "status",
       align: "center",
       render: (status) => {
-        return <Tag color={getStatusColor(status)}>{status}</Tag>
+        return <Tag color={getStatusColor(status)}>{status}</Tag>;
       },
       filters: [
         { text: "Đủ hàng", value: "Đủ hàng" },
@@ -266,12 +312,50 @@ const InventoryManagement = () => {
         </Space>
       ),
     },
-  ]
+  ];
+
+  useEffect(() => {
+    dispatch(fetchWarehouses());
+  }, [dispatch]);
+
+  console.log(warehouses.data);
+
+  if (loading) {
+    return <div>Loading warehouses...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading warehouses: {error}</div>;
+  }
+
+  const handleChange = (value) => {
+    console.log(`Selected: ${value}`);
+    // Xử lý logic khi người dùng chọn một warehouse
+  };
+
+  const options = warehouses.data.map((warehouse) => ({
+    value: warehouse.warehouse_id,
+    label: warehouse.warehouse_name,
+  }));
 
   return (
     <div>
+      <div>
+        <h2>Select Warehouse</h2>
+        <Select
+          placeholder="Select a warehouse"
+          onChange={handleChange}
+          style={{ width: 300 }}
+          loading={loading}
+          options={options}
+        />
+      </div>
+
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 md:mb-6 gap-3">
-        <Title level={2} className="text-xl md:text-2xl font-bold m-0 text-gray-800">
+        <Title
+          level={2}
+          className="text-xl md:text-2xl font-bold m-0 text-gray-800"
+        >
           Quản lý kho
         </Title>
         <Button
@@ -344,7 +428,7 @@ const InventoryManagement = () => {
         loading={loading}
       />
     </div>
-  )
-}
+  );
+};
 
-export default InventoryManagement
+export default InventoryManagement;
