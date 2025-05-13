@@ -36,7 +36,6 @@ const InventoryManagement = () => {
 
   const dispatch = useDispatch();
   const warehouses = useSelector((state) => state.warehouse.warehouses);
-  const loadingwh = useSelector((state) => state.warehouse.loading);
   const error = useSelector((state) => state.warehouse.error);
 
   // Sample data
@@ -333,7 +332,7 @@ const InventoryManagement = () => {
     // Xử lý logic khi người dùng chọn một warehouse
   };
 
-  const options = warehouses.data.map((warehouse) => ({
+  const options = warehouses.data?.map((warehouse) => ({
     value: warehouse.warehouse_id,
     label: warehouse.warehouse_name,
   }));
