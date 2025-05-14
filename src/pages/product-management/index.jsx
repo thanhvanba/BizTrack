@@ -75,8 +75,8 @@ const ProductManagement = () => {
         is_active: productData.is_active || true
       }
 
-      const response = await productService.createProduct(newProduct)
-      setCreateModalVisible(false)  
+      await productService.createProduct(newProduct)
+      setCreateModalVisible(false)
       fetchProducts()
       useToastNotify(`Sản phẩm "${newProduct.product_name}" đã được thêm thành công!`, 'success')
     } catch (error) {
@@ -105,7 +105,7 @@ const ProductManagement = () => {
       setDeleteModalVisible(false)
       setSelectedProduct(null)
       fetchProducts()
-      useToastNotify(`Sản phẩm "${selectedProduct.product_name}" đã được xóa thành công!`, 'success  ')
+      useToastNotify(`Sản phẩm "${selectedProduct.product_name}" đã được xóa thành công!`, 'success')
     } catch (error) {
       setLoading(false)
       useToastNotify("Xóa sản phẩm không thành công.", 'error')

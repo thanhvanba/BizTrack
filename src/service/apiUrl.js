@@ -27,3 +27,5 @@ export const PURCHASE_ORDERS_URL = `${API_URL}/purchase-orders`;
 // WAREHOUSE URL
 export const WAREHOUSE_URL = `${API_URL}/warehouses`;
 
+// INVENTORY URL
+export const INVENTORY_URL =  `${API_URL}/inventories`;

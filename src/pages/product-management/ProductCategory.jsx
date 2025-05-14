@@ -74,11 +74,17 @@ const ProductCategory = () => {
       title: "Tên danh mục",
       dataIndex: "category_name",
       key: "category_name",
+      sorter: (a, b) => a.category_name.localeCompare(b.category_name),
     },
     {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
+      filters: [
+        { text: "Hoạt động", value: "active" },
+        { text: "Tạm ngưng", value: "inactive" },
+      ],
+      onFilter: (value, record) => record.status === value,
       render: (status) => (
         <Tag color={status === "active" ? "green" : "volcano"}>
           {status === "active" ? "Hoạt động" : "Tạm ngưng"}
@@ -125,7 +131,12 @@ const ProductCategory = () => {
         </Button>
       </div>
 
-      <Table dataSource={categories} columns={columns} pagination={false} />
+      <Table
+        dataSource={categories}
+        columns={columns}
+        pagination={{ pageSize: 10 }}
+        rowClassName="hover:bg-gray-50 transition-colors"
+      />
 
       <CategoryModal
         open={isCreateModalOpen}
