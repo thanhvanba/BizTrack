@@ -28,7 +28,7 @@ const purchaseOrderService = {
             .then(res => res.data)
             .catch(error => { throw error; });
     },
-    ApprovePO: async (id, data) => {
+    ApprovePO: async (id) => {
         return axios({
             url: `${PURCHASE_ORDERS_URL}/${id}/post`,
             method: 'POST',
@@ -48,9 +48,8 @@ const purchaseOrderService = {
     },
 
     updatePurchaseOrder: async (id, data) => {
-        console.log("🚀 ~ updatePurchaseOrder: ~ id:", id)
         return axios({
-            url: `${PURCHASE_ORDERS_URL}/${id}`,
+            url: `${PURCHASE_ORDERS_URL}/${id}/podetails`,
             method: 'PUT',
             data,
         })

@@ -15,21 +15,11 @@ export default function PurchaseManagement() {
 
     const handleCreatePurchaseOrder = async (order) => {
         if (selectedOrder) {
-            const res = await purchaseOrderService.updatePurchaseOrder(selectedOrder.po_id, order)
-
-            if (res && res.data) {
-                setPurchaseOrders(prev =>
-                    prev.map(o => (o.po_id === order.po_id ? res.data : o))
-                )
-            }
+            await purchaseOrderService.updatePurchaseOrder(selectedOrder.po_id, order)
         } else {
-            const res = await purchaseOrderService.createPurchaseOrder(order)
-
-            if (res && res.data) {
-                setPurchaseOrders(prev => [...prev, res.data])
-            }
+            await purchaseOrderService.createPurchaseOrder(order)
         }
-
+        fetchPurchaseOrder()
         setActiveTab("list")
     }
 
@@ -49,12 +39,7 @@ export default function PurchaseManagement() {
     }
 
     const handleApprovePurchaseOrder = async (orderId) => {
-        const data = {
-            po_id: orderId,
-            status: "posted"
-        }
-
-        await purchaseOrderService.ApprovePO(orderId, data)
+        await purchaseOrderService.ApprovePO(orderId)
         setPurchaseOrders(
             purchaseOrders.map((order) =>
                 order.po_id === orderId
@@ -73,13 +58,13 @@ export default function PurchaseManagement() {
         setActiveTab("list")
     }
 
-    useEffect(() => {
-        const fetchPurchaseOrder = async () => {
-            const res = await purchaseOrderService.getAllPurchaseOrders()
-            if (res && res.data) {
-                setPurchaseOrders(res.data)
-            }
+    const fetchPurchaseOrder = async () => {
+        const res = await purchaseOrderService.getAllPurchaseOrders()
+        if (res && res.data) {
+            setPurchaseOrders(res.data)
         }
+    }
+    useEffect(() => {
         fetchPurchaseOrder()
         dispatch(fetchWarehouses());
     }, [])

@@ -69,9 +69,10 @@ useEffect(()=>{
     ])
   }
 
-  const handleRemoveDetail = (detailId) => {
-    setDetails(details.filter((detail) => detail.po_detail_id !== detailId))
-  }
+const handleRemoveDetail = (indexToRemove) => {
+  setDetails(details.filter((_, index) => index !== indexToRemove))
+}
+
 
   const handleProductChange = (productId, index) => {
     const product = products.find((p) => p.product_id === productId)
@@ -288,7 +289,7 @@ useEffect(()=>{
                       <td className="py-4 px-6">
                         <button
                           type="button"
-                          onClick={() => handleRemoveDetail(detail.po_detail_id)}
+                          onClick={() => handleRemoveDetail(index)}
                           className="text-red-600 hover:text-red-900"
                         >
                           <svg
