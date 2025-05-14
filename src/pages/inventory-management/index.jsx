@@ -41,12 +41,12 @@ const InventoryManagement = () => {
     try {
       const response = await inventoryService.getAllInventories();
       const enrichedData = response.data.map((item) => {
-        const product = products.find((p) => p.product_id === item.product_id);
-        const warehouse = warehouses.data?.find(
-          (w) => w.warehouse_id === item.warehouse_id
-        );
-        const quantity = item.quantity;
-
+        // const product = products.find((p) => p.product_id === item.product_id);
+        // const warehouse = warehouses.data?.find(
+        //   (w) => w.warehouse_id === item.warehouse_id
+        // );
+        const quantity = item.product?.quantity;
+        
         let status = "Sắp hết";
         if (quantity > 5) status = "Đủ hàng";
         else if (quantity <= 0) status = "Hết hàng";
@@ -54,10 +54,11 @@ const InventoryManagement = () => {
         return {
           ...item,
           key: item.inventory_id,
-          name: product?.product_name || "Không rõ",
-          category: product?.category_name || "Không rõ",
-          location: warehouse?.warehouse_name || "Không rõ",
+          name: item.product?.product_name || "Không rõ",
+          category: item.product?.category?.category_name || "Không rõ",
+          location: item.warehouse?.warehouse_name || "Không rõ",
           status,
+          quantity: quantity,
         };
       });
       console.log("🚀 ~ enrichedData ~ enrichedData:", enrichedData)
@@ -84,6 +85,8 @@ const InventoryManagement = () => {
       item.category?.toLowerCase().includes(searchText.toLowerCase()) ||
       item.location?.toLowerCase().includes(searchText.toLowerCase())
   );
+
+    console.log("🚀 ~ filteredData:", filteredData); // Thêm dòng này
 
   const getStatusColor = (status) => {
     switch (status) {
