@@ -35,3 +35,6 @@ export const CUSTOMERS_URL = `${API_URL}/customers`;
 
 // ORDER URL
 export const ORDERS_URL = `${API_URL}/orders`;
+
+// ORDER DETAIL URL
+export const ORDERS_DETAIL_URL = `${API_URL}/order-details`;
