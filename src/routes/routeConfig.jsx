@@ -7,11 +7,13 @@ import CustomerManagement from '../pages/customer-management';
 import InventoryManagement from '../pages/inventory-management';
 import ProductCategory from '../pages/product-management/ProductCategory';
 import PurchaseManagement from '../pages/inventory-management/PurchaseManagement';
+import CreateOrderPage from '../pages/order-management/CreateOrder';
 
 export const privateRoutes = [
   { path: '', element: <Dashboard /> }, // index route
   { path: 'dashboard', element: <Dashboard /> },
   { path: 'orders', element: <OrderManagement /> },
+  { path: 'create-order', element: <CreateOrderPage /> },
   { path: 'products', element: <ProductManagement /> },
   { path: 'product-category', element: <ProductCategory /> },
   { path: 'revenue', element: <RevenueTracking /> },

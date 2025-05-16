@@ -84,7 +84,7 @@ const MainLayout = () => {
                     </div>
                     <Content className="p-3 md:p-6">
                         <div className="p-3 md:p-6 transition-all duration-300 animate-fadeIn">
-                            <Outlet />
+                            <Outlet context={{ mobileView, collapsed }} />
                         </div>
                     </Content>
                 </Layout>

@@ -17,6 +17,7 @@ import productService from "../../service/productService";
 
 import { fetchWarehouses } from "../../redux/warehouses/warehouses.slice";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 
@@ -25,6 +26,8 @@ const InventoryManagement = () => {
   const [inventories, setInventories] = useState([]);
   const [products, setProducts] = useState([]);
 
+  const navigate = useNavigate()
+  
   const dispatch = useDispatch();
   const warehouses = useSelector((state) => state.warehouse.warehouses);
 
@@ -46,7 +49,7 @@ const InventoryManagement = () => {
         //   (w) => w.warehouse_id === item.warehouse_id
         // );
         const quantity = item.product?.quantity;
-        
+
         let status = "Sắp hết";
         if (quantity > 5) status = "Đủ hàng";
         else if (quantity <= 0) status = "Hết hàng";
@@ -85,8 +88,6 @@ const InventoryManagement = () => {
       item.category?.toLowerCase().includes(searchText.toLowerCase()) ||
       item.location?.toLowerCase().includes(searchText.toLowerCase())
   );
-
-    console.log("🚀 ~ filteredData:", filteredData); // Thêm dòng này
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -169,7 +170,7 @@ const InventoryManagement = () => {
         <Button
           type="primary"
           icon={<PlusOutlined />}
-          onClick={() => setAddModalVisible(true)}
+          onClick={() => navigate('/purchase?tab=form')}
           className="bg-blue-500 hover:bg-blue-600 border-0 shadow-md hover:shadow-lg transition-all"
         >
           Thêm sản phẩm
@@ -199,7 +200,7 @@ const InventoryManagement = () => {
           rowClassName="hover:bg-gray-50"
         />
       </Card>
-    </div>
+    </div >
   );
 };
 

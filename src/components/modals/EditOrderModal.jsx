@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import { Modal, Form, Select, Input, Button } from "antd"
 
@@ -12,8 +14,10 @@ const EditOrderModal = ({ open, onCancel, onSubmit, order }) => {
   useEffect(() => {
     if (order && open) {
       form.setFieldsValue({
-        status: order.status,
+        order_status: order.order_status,
         note: order.note || "",
+        payment_method: order.payment_method,
+        shipping_address: order.shipping_address || "",
       })
     }
   }, [order, open, form])
@@ -28,6 +32,7 @@ const EditOrderModal = ({ open, onCancel, onSubmit, order }) => {
       const orderData = {
         ...order,
         ...values,
+        updated_at: new Date().toISOString(),
       }
 
       // Simulate API call
@@ -58,17 +63,9 @@ const EditOrderModal = ({ open, onCancel, onSubmit, order }) => {
       ]}
     >
       <Form form={form} layout="vertical">
-        <Form.Item
-          name="status"
-          label="Trạng thái đơn hàng"
-          rules={[{ required: true, message: "Vui lòng chọn trạng thái" }]}
-        >
-          <Select placeholder="Chọn trạng thái">
-            <Option value="Đang xử lý">Đang xử lý</Option>
-            <Option value="Đang giao">Đang giao</Option>
-            <Option value="Đã giao">Đã giao</Option>
-            <Option value="Đã hủy">Đã hủy</Option>
-          </Select>
+
+        <Form.Item name="shipping_address" label="Địa chỉ giao hàng">
+          <TextArea rows={2} placeholder="Nhập địa chỉ giao hàng" />
         </Form.Item>
 
         <Form.Item name="note" label="Ghi chú">

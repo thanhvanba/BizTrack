@@ -17,7 +17,21 @@ import authService from '../../service/authService';
 
 const menuItems = [
   { key: 'dashboard', icon: <AppstoreOutlined />, label: 'Tổng quan' },
-  { key: 'orders', icon: <ShoppingCartOutlined />, label: 'Đơn hàng' },
+  {
+    key: 'orders',
+    icon: <ShoppingCartOutlined />,
+    label: 'Đơn hàng',
+    children: [
+      {
+        label: "Danh sách đơn hàng",
+        key: "orders",
+      },
+      {
+        label: "Tạo đơn hàng",
+        key: "create-order",
+      },
+    ],
+  },
   {
     key: 'products',
     icon: <ShoppingOutlined />,

@@ -4,14 +4,23 @@ import PurchaseOrderForm from "../../components/purchase/PurchaseOrderForm"
 import { useDispatch, useSelector } from "react-redux"
 import { fetchWarehouses } from "../../redux/warehouses/warehouses.slice"
 import purchaseOrderService from "../../service/purchaseService"
+import { useSearchParams } from "react-router-dom"
 
 export default function PurchaseManagement() {
-    const [activeTab, setActiveTab] = useState("list")
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initialTab = searchParams.get("tab") || "list";
+
+    const [activeTab, setActiveTab] = useState(initialTab)
     const [purchaseOrders, setPurchaseOrders] = useState([])
     const [selectedOrder, setSelectedOrder] = useState(null)
 
     const dispatch = useDispatch()
     const mockWarehouses = useSelector(state => state.warehouse.warehouses.data)
+
+    const handleTabChange = (tab) => {
+        setActiveTab(tab);
+        setSearchParams({ tab });
+    };
 
     const handleCreatePurchaseOrder = async (order) => {
         if (selectedOrder) {
@@ -76,7 +85,7 @@ export default function PurchaseManagement() {
                 <div className="border-b border-gray-200 mb-4">
                     <nav className="-mb-px flex space-x-8">
                         <button
-                            onClick={() => setActiveTab("list")}
+                            onClick={() => handleTabChange("list")}
                             className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "list"
                                 ? "border-blue-500 text-blue-600"
                                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -85,7 +94,7 @@ export default function PurchaseManagement() {
                             Danh sách đơn nhập hàng
                         </button>
                         <button
-                            onClick={() => setActiveTab("form")}
+                            onClick={() => handleTabChange("form")}
                             className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "form"
                                 ? "border-blue-500 text-blue-600"
                                 : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
@@ -103,7 +112,7 @@ export default function PurchaseManagement() {
                         onApprove={handleApprovePurchaseOrder}
                         onCreateNew={() => {
                             setSelectedOrder(null)
-                            setActiveTab("form")
+                            handleTabChange("form")
                         }}
                     />
                 ) : (

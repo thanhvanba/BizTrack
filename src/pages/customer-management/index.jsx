@@ -1,8 +1,7 @@
 import { useState } from "react"
 import { Card, Input, Button, Table, Tag, Space, Tooltip, Typography, Avatar, message } from "antd"
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons"
-import CreateCustomerModal from "../../components/modals/CreateCustomerModal"
-import EditCustomerModal from "../../components/modals/EditCustomerModal"
+import CustomerModal from "../../components/modals/CustomerModal"
 import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal"
 
 const { Title } = Typography
@@ -348,17 +347,19 @@ const CustomerManagement = () => {
       </Card>
 
       {/* Create Customer Modal */}
-      <CreateCustomerModal
+      <CustomerModal
         open={createModalVisible}
         onCancel={() => setCreateModalVisible(false)}
         onSubmit={handleCreateCustomer}
+        mode="create"
       />
 
       {/* Edit Customer Modal */}
-      <EditCustomerModal
+      <CustomerModal
         open={editModalVisible}
         onCancel={() => setEditModalVisible(false)}
         onSubmit={handleEditCustomer}
+        mode="edit"
         customer={selectedCustomer}
       />
 
