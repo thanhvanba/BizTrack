@@ -18,9 +18,9 @@ const { Title, Text } = Typography;
 
 const OrderDetailDrawer = ({ open, onClose, order }) => {
   const [orderInfo, setOrderInfo] = useState(null);
-  console.log("🚀 ~ OrderDetailDrawer ~ orderInfo:", orderInfo)
+  console.log("🚀 ~ OrderDetailDrawer ~ orderInfo:", orderInfo);
   const [orderDetailsData, setOrderDetailsData] = useState([]);
-  console.log("🚀 ~ OrderDetailDrawer ~ orderDetailsData:", orderDetailsData)
+  console.log("🚀 ~ OrderDetailDrawer ~ orderDetailsData:", orderDetailsData);
 
   useEffect(() => {
     if (order) {
@@ -28,33 +28,73 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
     }
   }, [order]);
 
+  // const fetchOrderDetails = async (orderId) => {
+  //   try {
+  //     const response = await orderDetailService.getOrderDetailById(orderId);
+  //     setOrderInfo(response);
+  //     const productsWithTotal = response.products.map((product) => {
+  //       // chuyển price sang số float rồi nhân với quantity
+  //       const total = parseFloat(product.price) * product.quantity - product.discount;
+  //       return {
+  //         ...product,
+  //         total,
+  //       };
+  //     });
+  //     setOrderDetailsData(productsWithTotal);
+  //   } catch (error) {
+  //     console.error("Lỗi khi tải chi tiết đơn hàng:", error);
+  //     useToastNotify("Không thể tải danh sách sản phẩm.", "error");
+  //   }
+  // };
+
   const fetchOrderDetails = async (orderId) => {
     try {
       const response = await orderDetailService.getOrderDetailById(orderId);
       setOrderInfo(response);
-      const productsWithTotal = response.products.map(product => {
-        // chuyển price sang số float rồi nhân với quantity
-        const total = parseFloat(product.price) * product.quantity;
+
+      const productsWithPriceBreakdown = response.products.map((product) => {
+        const originalPrice = parseFloat(product.price) || 0;
+        const discountAmount = parseFloat(product.discount) || 0;
+        const discountedPrice = originalPrice - discountAmount;
+
         return {
           ...product,
-          total
+          originalPrice,
+          discountAmount,
+          discountedPrice,
+          total: discountedPrice * product.quantity,
         };
       });
-      setOrderDetailsData(productsWithTotal);
+
+      setOrderDetailsData(productsWithPriceBreakdown);
     } catch (error) {
       console.error("Lỗi khi tải chi tiết đơn hàng:", error);
       useToastNotify("Không thể tải danh sách sản phẩm.", "error");
     }
   };
 
+  function calculateTotalDiscount(orderDetailsData) {
+    if (!Array.isArray(orderDetailsData)) return 0;
+
+    return orderDetailsData.reduce((total, item) => {
+      const discount = parseFloat(item.discount) || 0;
+      return total + discount;
+    }, 0);
+  }
+
+  const totalProductDiscount = calculateTotalDiscount(orderDetailsData);
+
   if (!order) return null;
 
   const formatPrice = (price) => {
+    const value = parseFloat(price) || 0;
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
-    }).format(price);
+    }).format(value);
   };
+
+  console.log(formatPrice(totalProductDiscount));
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -89,6 +129,13 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
       dataIndex: "quantity",
       key: "quantity",
       align: "center",
+    },
+    {
+      title: "Giảm giá",
+      dataIndex: "discount",
+      key: "discount",
+      align: "right",
+      render: (discount) => formatPrice(discount),
     },
     {
       title: "Thành tiền",
@@ -163,28 +210,67 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
           return (
             <>
               <Table.Summary.Row>
-                <Table.Summary.Cell index={0} colSpan={3} className="text-right">
+                <Table.Summary.Cell
+                  index={0}
+                  colSpan={3}
+                  className="text-right"
+                >
                   <Text strong>Tổng tiền sản phẩm:</Text>
                 </Table.Summary.Cell>
                 <Table.Summary.Cell index={1} className="text-right">
                   <Text strong>{formatPrice(totalPrice)}</Text>
                 </Table.Summary.Cell>
               </Table.Summary.Row>
+
               <Table.Summary.Row>
-                <Table.Summary.Cell index={0} colSpan={3} className="text-right">
+                <Table.Summary.Cell
+                  index={0}
+                  colSpan={3}
+                  className="text-right"
+                >
+                  <Text strong>Giảm giá trên đơn:</Text>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={1} className="text-right">
+                  <Text strong>{formatPrice(orderInfo?.order_amount)}</Text>
+                </Table.Summary.Cell>
+              </Table.Summary.Row>
+
+              <Table.Summary.Row>
+                <Table.Summary.Cell
+                  index={0}
+                  colSpan={3}
+                  className="text-right"
+                >
+                  <Text strong>Tổng giảm giá sản phẩm:</Text>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={1} className="text-right">
+                  <Text strong>{formatPrice(totalProductDiscount)}</Text>
+                </Table.Summary.Cell>
+              </Table.Summary.Row>
+
+              <Table.Summary.Row>
+                <Table.Summary.Cell
+                  index={0}
+                  colSpan={3}
+                  className="text-right"
+                >
                   <Text strong>Phí vận chuyển:</Text>
                 </Table.Summary.Cell>
                 <Table.Summary.Cell index={1} className="text-right">
-                  <Text strong>{formatPrice(30000)}</Text>
+                  <Text strong>{formatPrice(orderInfo?.shipping_fee)}</Text>
                 </Table.Summary.Cell>
               </Table.Summary.Row>
               <Table.Summary.Row>
-                <Table.Summary.Cell index={0} colSpan={3} className="text-right">
+                <Table.Summary.Cell
+                  index={0}
+                  colSpan={3}
+                  className="text-right"
+                >
                   <Text strong>Tổng thanh toán:</Text>
                 </Table.Summary.Cell>
                 <Table.Summary.Cell index={1} className="text-right">
                   <Text strong className="text-lg text-blue-600">
-                    {formatPrice(totalPrice + 30000)}
+                    {formatPrice(orderInfo?.final_amount)}
                   </Text>
                 </Table.Summary.Cell>
               </Table.Summary.Row>
