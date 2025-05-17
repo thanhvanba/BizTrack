@@ -12,13 +12,15 @@ import { PrinterOutlined, DownloadOutlined } from "@ant-design/icons";
 import orderDetailService from "../../service/orderDetailService";
 import { useEffect, useState } from "react";
 import useToastNotify from "../../utils/useToastNotify";
+import moment from "moment";
+
 const { Title, Text } = Typography;
 
 const OrderDetailDrawer = ({ open, onClose, order }) => {
-  //   const [orderDetailsData, setOrderDetailsData] = useState();
-
-  const [orderInfo, setOrderInfo] = useState(null); // Lưu thông tin đơn hàng
-  const [orderDetailsData, setOrderDetailsData] = useState([]); // Lưu danh sách sản phẩm
+  const [orderInfo, setOrderInfo] = useState(null);
+  console.log("🚀 ~ OrderDetailDrawer ~ orderInfo:", orderInfo)
+  const [orderDetailsData, setOrderDetailsData] = useState([]);
+  console.log("🚀 ~ OrderDetailDrawer ~ orderDetailsData:", orderDetailsData)
 
   useEffect(() => {
     if (order) {
@@ -26,43 +28,27 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
     }
   }, [order]);
 
-  const fetchOrderDetails = async (order) => {
+  const fetchOrderDetails = async (orderId) => {
     try {
-      const response = await orderDetailService.getOrderDetailById(order);
-
-      console.log("API Response:", response); // <-- vẫn đầy đủ thông tin ở đây
-
-      // Lưu thông tin đơn hàng tổng quan
-      setOrderInfo({
-        order_id: response.order_id,
-        order_code: response.order_code,
-        order_date: response.order_date,
-        order_status: response.order_status,
-        total_amount: response.total_amount,
-        final_amount: response.final_amount,
-        customer: response.customer,
+      const response = await orderDetailService.getOrderDetailById(orderId);
+      setOrderInfo(response);
+      const productsWithTotal = response.products.map(product => {
+        // chuyển price sang số float rồi nhân với quantity
+        const total = parseFloat(product.price) * product.quantity;
+        return {
+          ...product,
+          total
+        };
       });
-
-      // Lưu danh sách sản phẩm
-      setOrderDetailsData(
-        Array.isArray(response.products)
-          ? response.products.map((product) => ({
-              ...product,
-              key:
-                product.product_id || Math.random().toString(36).substr(2, 9),
-            }))
-          : []
-      );
+      setOrderDetailsData(productsWithTotal);
     } catch (error) {
       console.error("Lỗi khi tải chi tiết đơn hàng:", error);
       useToastNotify("Không thể tải danh sách sản phẩm.", "error");
     }
   };
 
-  console.log(orderInfo);
-
   if (!order) return null;
-  // Format price
+
   const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -70,7 +56,6 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
     }).format(price);
   };
 
-  // Get status color
   const getStatusColor = (status) => {
     switch (status) {
       case "Đã giao":
@@ -86,30 +71,11 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
     }
   };
 
-  // Mock order items
-  const orderItems = [
-    {
-      id: 1,
-      name: "iPhone 14 Pro",
-      price: 28000000,
-      quantity: 1,
-      total: 28000000,
-    },
-    {
-      id: 2,
-      name: "Ốp lưng iPhone 14 Pro",
-      price: 500000,
-      quantity: 1,
-      total: 500000,
-    },
-  ];
-
-  // Table columns
   const columns = [
     {
       title: "Sản phẩm",
-      dataIndex: "name",
-      key: "name",
+      dataIndex: "product_name",
+      key: "product_name",
     },
     {
       title: "Đơn giá",
@@ -145,7 +111,7 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
           )}
         </div>
       }
-      width={700}
+      width={1200}
       placement="right"
       onClose={onClose}
       open={open}
@@ -166,7 +132,7 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
             {orderInfo?.order_code}
           </Descriptions.Item>
           <Descriptions.Item label="Ngày đặt">
-            {orderInfo?.order_date}
+            {new Date(orderInfo?.order_date).toLocaleDateString("vi-VN")}
           </Descriptions.Item>
           <Descriptions.Item label="Khách hàng">
             {orderInfo?.customer?.customer_name}
@@ -186,7 +152,7 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
       <Table
         columns={columns}
         dataSource={orderDetailsData}
-        rowKey="id"
+        rowKey="key"
         pagination={false}
         summary={(pageData) => {
           let totalPrice = 0;
@@ -197,23 +163,15 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
           return (
             <>
               <Table.Summary.Row>
-                <Table.Summary.Cell
-                  index={0}
-                  colSpan={3}
-                  className="text-right"
-                >
+                <Table.Summary.Cell index={0} colSpan={3} className="text-right">
                   <Text strong>Tổng tiền sản phẩm:</Text>
                 </Table.Summary.Cell>
                 <Table.Summary.Cell index={1} className="text-right">
-                  <Text strong>{formatPrice(orderInfo?.total_amount)}</Text>
+                  <Text strong>{formatPrice(totalPrice)}</Text>
                 </Table.Summary.Cell>
               </Table.Summary.Row>
               <Table.Summary.Row>
-                <Table.Summary.Cell
-                  index={0}
-                  colSpan={3}
-                  className="text-right"
-                >
+                <Table.Summary.Cell index={0} colSpan={3} className="text-right">
                   <Text strong>Phí vận chuyển:</Text>
                 </Table.Summary.Cell>
                 <Table.Summary.Cell index={1} className="text-right">
@@ -221,18 +179,12 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
                 </Table.Summary.Cell>
               </Table.Summary.Row>
               <Table.Summary.Row>
-                <Table.Summary.Cell
-                  index={0}
-                  colSpan={3}
-                  className="text-right"
-                >
+                <Table.Summary.Cell index={0} colSpan={3} className="text-right">
                   <Text strong>Tổng thanh toán:</Text>
                 </Table.Summary.Cell>
                 <Table.Summary.Cell index={1} className="text-right">
                   <Text strong className="text-lg text-blue-600">
-                    {formatPrice(
-                      parseFloat(orderInfo?.total_amount || 0) + 30000
-                    )}
+                    {formatPrice(totalPrice + 30000)}
                   </Text>
                 </Table.Summary.Cell>
               </Table.Summary.Row>
@@ -244,8 +196,12 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
       <Divider />
 
       <Descriptions title="Thông tin giao hàng" column={{ xs: 1, sm: 1 }}>
-        <Descriptions.Item label="Người nhận">Nguyễn Văn A</Descriptions.Item>
-        <Descriptions.Item label="Số điện thoại">0901234567</Descriptions.Item>
+        <Descriptions.Item label="Người nhận">
+          {orderInfo?.customer?.customer_name}
+        </Descriptions.Item>
+        <Descriptions.Item label="Số điện thoại">
+          {orderInfo?.customer?.phone}
+        </Descriptions.Item>
         <Descriptions.Item label="Địa chỉ">
           123 Đường ABC, Phường XYZ, Quận 1, TP. Hồ Chí Minh
         </Descriptions.Item>
