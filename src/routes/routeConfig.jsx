@@ -4,10 +4,11 @@ import OrderManagement from '../pages/order-management';
 import ProductManagement from '../pages/product-management';
 import RevenueTracking from '../pages/revenue-tracking';
 import CustomerManagement from '../pages/customer-management';
-import InventoryManagement from '../pages/inventory-management';
 import ProductCategory from '../pages/product-management/ProductCategory';
-import PurchaseManagement from '../pages/inventory-management/PurchaseManagement';
+import PurchaseManagement from '../pages/warehouse-management/PurchaseManagement';
 import CreateOrderPage from '../pages/order-management/CreateOrder';
+import InventoryManagement from '../pages/warehouse-management/InventoryManagement';
+import WarehouseManagement from '../pages/warehouse-management';
 
 export const privateRoutes = [
   { path: '', element: <Dashboard /> }, // index route
@@ -18,6 +19,8 @@ export const privateRoutes = [
   { path: 'product-category', element: <ProductCategory /> },
   { path: 'revenue', element: <RevenueTracking /> },
   { path: 'customers', element: <CustomerManagement /> },
+  { path: 'inventory', element: <InventoryManagement /> },
+  { path: 'warehouses', element: <WarehouseManagement /> },
   { path: 'inventory', element: <InventoryManagement /> },
   { path: 'purchase', element: <PurchaseManagement /> },
 ];

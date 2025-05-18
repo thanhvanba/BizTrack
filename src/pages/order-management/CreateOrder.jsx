@@ -54,20 +54,21 @@ const CreateOrderPage = () => {
 
   const [form] = Form.useForm();
   const [selectedProducts, setSelectedProducts] = useState([]);
+  console.log("🚀 ~ CreateOrderPage ~ selectedProducts:", selectedProducts)
 
   const [shippingFee, setShippingFee] = useState(0);
   const [orderDiscount, setOrderDiscount] = useState(0);
   console.log("🚀 ~ CreateOrderPage ~ orderDiscount:", orderDiscount);
   const [transferAmount, setTransferAmount] = useState(0);
-  const [productDiscount, setProductDiscount] = useState(0); // tính từ các sản phẩm
-  const totalBeforeDiscount = selectedProducts.reduce(
-    (sum, p) => sum + p.product_retail_price * p.quantity,
-    0
-  );
-  const totalDiscount = orderDiscount + productDiscount;
-  const totalAfterDiscount = totalBeforeDiscount - totalDiscount;
-  const amountToPay = totalAfterDiscount + shippingFee;
-  const remainingAmount = amountToPay - transferAmount;
+  // const [productDiscount, setProductDiscount] = useState(0); // tính từ các sản phẩm
+  // const totalBeforeDiscount = selectedProducts.reduce(
+  //   (sum, p) => sum + p.product_retail_price * p.quantity,
+  //   0
+  // );
+  // const totalDiscount = orderDiscount + productDiscount;
+  // const totalAfterDiscount = totalBeforeDiscount - totalDiscount;
+  // const amountToPay = totalAfterDiscount + shippingFee;
+  // const remainingAmount = amountToPay - transferAmount;
   const formatCurrency = (value) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -163,7 +164,7 @@ const CreateOrderPage = () => {
 
   const calculateDiscountAmount = () => {
     const discountProduct = selectedProducts.reduce(
-      (sum, item) => sum + (item.discountAmount || 0) * item.quantity,
+      (sum, item) => sum + (item.discountAmount || 0),
       0
     );
     console.log(
@@ -174,7 +175,7 @@ const CreateOrderPage = () => {
   };
 
   const calculateFinalAmount = () => {
-    return calculateTotalAmount() - calculateDiscountAmount();
+    return calculateTotalAmount() - calculateDiscountAmount() + shippingFee;
   };
 
   // Add product to order
@@ -240,7 +241,7 @@ const CreateOrderPage = () => {
 
         if (discountType === "%") {
           discountAmount = Math.round(
-            (discount / 100) * item.product_retail_price
+            (discount / 100) * (item.product_retail_price * item.quantity)
           );
         } else {
           discountAmount = discount;
@@ -397,7 +398,7 @@ const CreateOrderPage = () => {
               }
               parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
               className="w-24"
-              // addonAfter={discountType}
+            // addonAfter={discountType}
             />
             <Select
               value={discountType}
@@ -421,8 +422,7 @@ const CreateOrderPage = () => {
       align: "right",
       render: (_, record) =>
         formatCurrency(
-          (record.product_retail_price - (record.discountAmount || 0)) *
-            record.quantity
+          (record.product_retail_price * record.quantity - (record.discountAmount || 0))
         ),
     },
     {
@@ -688,6 +688,12 @@ const CreateOrderPage = () => {
               <Descriptions.Item label="Sau giảm giá" span={4}>
                 <div style={{ textAlign: "right" }}>
                   {formatCurrency(calculateFinalAmount())}
+                </div>
+              </Descriptions.Item>
+
+              <Descriptions.Item label="Phí vận chuyển" span={4}>
+                <div style={{ textAlign: "right" }}>
+                  {formatCurrency(shippingFee)}
                 </div>
               </Descriptions.Item>
 

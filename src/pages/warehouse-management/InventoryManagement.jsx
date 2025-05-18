@@ -165,7 +165,7 @@ const InventoryManagement = () => {
           level={2}
           className="text-xl md:text-2xl font-bold m-0 text-gray-800"
         >
-          Quản lý kho
+          Quản lý tồn kho
         </Title>
         <Button
           type="primary"
@@ -173,7 +173,7 @@ const InventoryManagement = () => {
           onClick={() => navigate('/purchase?tab=form')}
           className="bg-blue-500 hover:bg-blue-600 border-0 shadow-md hover:shadow-lg transition-all"
         >
-          Thêm sản phẩm
+          Nhập thêm sản phẩm
         </Button>
       </div>
 

@@ -3,7 +3,6 @@ import { Layout, ConfigProvider, theme, Drawer } from "antd"
 import { MenuFoldOutlined, MenuUnfoldOutlined, MenuOutlined } from "@ant-design/icons"
 import Sidebar from "./components/sidebar"
 import Dashboard from "./pages/dashboard"
-import InventoryManagement from "./pages/inventory-management"
 import RevenueTracking from "./pages/revenue-tracking"
 import ProductManagement from "./pages/product-management"
 import CustomerManagement from "./pages/customer-management"
@@ -12,6 +11,7 @@ import OrderManagement from "./pages/order-management"
 import "./index.css"
 import Header from "./components/header"
 import MainRouter from "./routes"
+import InventoryManagement from "./pages/warehouse-management/InventoryManagement"
 
 const { Content } = Layout
 

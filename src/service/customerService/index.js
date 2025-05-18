@@ -61,15 +61,10 @@ const customerService = {
             });
     },
 
-    deleteCustomer: async (ids) => {
+    deleteCustomer: async (id) => {
         return axiosService()({
-            url: CUSTOMERS_URL,
+            url: `${CUSTOMERS_URL}/${id}`,
             method: "DELETE",
-            params: {
-                id: ids,
-            },
-            paramsSerializer: (params) =>
-                qs.stringify(params, { arrayFormat: "repeat" }),
         })
             .then((res) => res.data)
             .catch((error) => {

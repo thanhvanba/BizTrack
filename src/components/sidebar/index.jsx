@@ -71,6 +71,7 @@ const menuItems = [
     icon: <ContainerOutlined />,
     label: 'Quản lý kho',
     children: [
+      { key: 'warehouses', label: 'Danh sách kho' },
       { key: 'inventory', label: 'Tồn kho' },
       { key: 'purchase', label: 'Nhập hàng' },
     ],

@@ -53,16 +53,13 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
       setOrderInfo(response);
 
       const productsWithPriceBreakdown = response.products.map((product) => {
-        const originalPrice = parseFloat(product.price) || 0;
-        const discountAmount = parseFloat(product.discount) || 0;
-        const discountedPrice = originalPrice - discountAmount;
+        // const originalPrice = parseFloat(product.price) || 0;
+        // const discountAmount = parseFloat(product.discount) || 0;
+        // const discountedPrice = originalPrice - discountAmount;
 
         return {
           ...product,
-          originalPrice,
-          discountAmount,
-          discountedPrice,
-          total: discountedPrice * product.quantity,
+          total: product.price * product.quantity - product.discount,
         };
       });
 
@@ -190,7 +187,7 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
             </Tag>
           </Descriptions.Item>
           <Descriptions.Item label="Tổng tiền" span={2}>
-            <Text strong>{formatPrice(orderInfo?.total_amount)}</Text>
+            <Text strong>{formatPrice(orderInfo?.final_amount)}</Text>
           </Descriptions.Item>
         </Descriptions>
       </div>
@@ -202,10 +199,6 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
         rowKey="key"
         pagination={false}
         summary={(pageData) => {
-          let totalPrice = 0;
-          pageData.forEach(({ total }) => {
-            totalPrice += total;
-          });
 
           return (
             <>
@@ -218,7 +211,7 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
                   <Text strong>Tổng tiền sản phẩm:</Text>
                 </Table.Summary.Cell>
                 <Table.Summary.Cell index={1} className="text-right">
-                  <Text strong>{formatPrice(totalPrice)}</Text>
+                  <Text strong>{formatPrice(orderInfo?.total_amount)}</Text>
                 </Table.Summary.Cell>
               </Table.Summary.Row>
 
@@ -289,19 +282,19 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
           {orderInfo?.customer?.phone}
         </Descriptions.Item>
         <Descriptions.Item label="Địa chỉ">
-          123 Đường ABC, Phường XYZ, Quận 1, TP. Hồ Chí Minh
+          {orderInfo?.shipping_address}
         </Descriptions.Item>
         <Descriptions.Item label="Phương thức thanh toán">
-          Thanh toán khi nhận hàng (COD)
+          {orderInfo?.payment_method}
         </Descriptions.Item>
         <Descriptions.Item label="Ghi chú">
-          Gọi điện trước khi giao hàng
+          {orderInfo?.note || 'Không'}
         </Descriptions.Item>
       </Descriptions>
 
       <Divider />
 
-      <Descriptions title="Lịch sử đơn hàng" column={{ xs: 1, sm: 1 }}>
+      {/* <Descriptions title="Lịch sử đơn hàng" column={{ xs: 1, sm: 1 }}>
         <Descriptions.Item label="15/05/2023 - 10:30">
           Đơn hàng đã được tạo
         </Descriptions.Item>
@@ -314,7 +307,7 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
         <Descriptions.Item label="15/05/2023 - 17:45">
           Đơn hàng đã giao thành công
         </Descriptions.Item>
-      </Descriptions>
+      </Descriptions> */}
     </Drawer>
   );
 };
