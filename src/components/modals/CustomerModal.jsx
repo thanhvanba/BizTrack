@@ -17,12 +17,12 @@ const CustomerModal = ({
     if (open) {
       if (mode === "edit" && customer) {
         form.setFieldsValue({
-          name: customer.customer_name,
+          customer_name: customer.customer_name,
           phone: customer.phone,
           email: customer.email,
           gender: customer.gender,
           address: customer.address,
-          status: customer.status, 
+          status: customer.status,
         })
       } else {
         form.resetFields()

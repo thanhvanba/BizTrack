@@ -27,7 +27,7 @@ const InventoryManagement = () => {
   const [products, setProducts] = useState([]);
 
   const navigate = useNavigate()
-  
+
   const dispatch = useDispatch();
   const warehouses = useSelector((state) => state.warehouse.warehouses);
 
@@ -133,7 +133,13 @@ const InventoryManagement = () => {
       dataIndex: "location",
       key: "location",
       responsive: ["lg"],
+      filters: warehouses.data?.map(w => ({
+        text: w.warehouse_name,
+        value: w.warehouse_name
+      })) || [],
+      onFilter: (value, record) => record.location === value,
     },
+
     {
       title: "SL",
       dataIndex: "quantity",

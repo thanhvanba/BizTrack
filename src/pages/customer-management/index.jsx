@@ -134,9 +134,9 @@ const CustomerManagement = () => {
       align: "center",
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title="Xem chi tiết">
+          {/* <Tooltip title="Xem chi tiết">
             <Button type="text" icon={<EyeOutlined />} />
-          </Tooltip>
+          </Tooltip> */}
           <Tooltip title="Chỉnh sửa">
             <Button
               type="text"

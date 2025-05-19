@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Dropdown, Menu, Avatar, Button } from 'antd';
 import {
   UserOutlined,
@@ -8,7 +8,8 @@ import {
 } from '@ant-design/icons';
 import ListNotification from '../ListNotification';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProfile } from '../../redux/user/user.slice';
 
 export default function Header({ onToggleMobileDrawer, isMobile }) {
   const menu = (
@@ -74,8 +75,16 @@ export default function Header({ onToggleMobileDrawer, isMobile }) {
     />
   );
 
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      dispatch(fetchProfile());
+    }
+  }, [dispatch]);
+
   const profileInfo = useSelector(state => state.user.userInfo)
-  console.log("🚀 ~ Header ~ profileInfo:", profileInfo)
 
   const navigate = useNavigate()
   return (

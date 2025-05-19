@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { fetchWarehouses } from "../../redux/warehouses/warehouses.slice"
 import purchaseOrderService from "../../service/purchaseService"
 import { useSearchParams } from "react-router-dom"
+import useToastNotify from "../../utils/useToastNotify"
 
 export default function PurchaseManagement() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -23,43 +24,57 @@ export default function PurchaseManagement() {
     };
 
     const handleCreatePurchaseOrder = async (order) => {
-        if (selectedOrder) {
-            await purchaseOrderService.updatePurchaseOrder(selectedOrder.po_id, order)
-        } else {
-            await purchaseOrderService.createPurchaseOrder(order)
+        try {
+            if (selectedOrder) {
+                await purchaseOrderService.updatePurchaseOrder(selectedOrder.po_id, order)
+                useToastNotify("Cập nhật đơn nhập hàng thành công", 'success')
+            } else {
+                await purchaseOrderService.createPurchaseOrder(order)
+                useToastNotify("Tạo đơn nhập hàng thành công", 'success')
+            }
+            fetchPurchaseOrder()
+            setActiveTab("list")
+        } catch (error) {
+            useToastNotify("Có lỗi xảy ra khi lưu đơn nhập hàng", 'error')
         }
-        fetchPurchaseOrder()
-        setActiveTab("list")
     }
 
     const handleEditPurchaseOrder = async (order) => {
-        const res = await purchaseOrderService.getPurchaseOrderDetail(order.po_id)
+        try {
+            const res = await purchaseOrderService.getPurchaseOrderDetail(order.po_id)
 
-        if (res && res.data) {
-            const warehouse = mockWarehouses.find(w => w.warehouse_id === res.data.warehouse_id)
+            if (res && res.data) {
+                const warehouse = mockWarehouses.find(w => w.warehouse_id === res.data.warehouse_id)
 
-            const dataWithWarehouseName = {
-                ...res.data,
-                warehouse_name: warehouse ? warehouse.warehouse_name : 'Không rõ'
+                const dataWithWarehouseName = {
+                    ...res.data,
+                    warehouse_name: warehouse ? warehouse.warehouse_name : "Không rõ"
+                }
+                // useToastNotify("Cập nhật đơn hàng thành công", 'success')
+                setSelectedOrder(dataWithWarehouseName)
+                setActiveTab("form")
+            } else {
+                useToastNotify("Không tìm thấy thông tin đơn hàng", 'error')
             }
-            setSelectedOrder(dataWithWarehouseName)
-            setActiveTab("form")
+        } catch (error) {
+            useToastNotify("Lỗi khi tải thông tin đơn nhập hàng", 'error')
         }
     }
 
     const handleApprovePurchaseOrder = async (orderId) => {
-        await purchaseOrderService.ApprovePO(orderId)
-        setPurchaseOrders(
-            purchaseOrders.map((order) =>
-                order.po_id === orderId
-                    ? {
-                        ...order,
-                        status: "posted",
-                        posted_at: new Date().toISOString(),
-                    }
-                    : order,
-            ),
-        )
+        try {
+            await purchaseOrderService.ApprovePO(orderId)
+            useToastNotify("Duyệt đơn nhập hàng thành công", 'success')
+            setPurchaseOrders(
+                purchaseOrders.map(order =>
+                    order.po_id === orderId
+                        ? { ...order, status: "posted", posted_at: new Date().toISOString() }
+                        : order
+                )
+            )
+        } catch (error) {
+            useToastNotify("Lỗi khi duyệt đơn nhập hàng", 'error')
+        }
     }
 
     const handleCancelEdit = () => {
@@ -68,9 +83,15 @@ export default function PurchaseManagement() {
     }
 
     const fetchPurchaseOrder = async () => {
-        const res = await purchaseOrderService.getAllPurchaseOrders()
-        if (res && res.data) {
-            setPurchaseOrders(res.data)
+        try {
+            const res = await purchaseOrderService.getAllPurchaseOrders()
+            if (res && res.data) {
+                setPurchaseOrders(res.data)
+            } else {
+                useToastNotify("Không thể tải danh sách đơn nhập hàng", 'error')
+            }
+        } catch (error) {
+            useToastNotify("Lỗi khi tải danh sách đơn nhập hàng", 'error')
         }
     }
     useEffect(() => {

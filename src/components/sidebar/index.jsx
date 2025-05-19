@@ -86,16 +86,18 @@ const Sidebar = ({ collapsed, setCollapsed, setActiveTab, activeTab }) => {
     setCollapsed(!collapsed);
   };
 
+  const rootSubmenuKeys = menuItems
+    .filter(item => item.children)
+    .map(item => item.key);
+
   const onOpenChange = (keys) => {
     const latestOpenKey = keys.find((key) => !openKeys.includes(key));
-    const rootSubmenuKeys = ['revenue', 'customers'];
     if (rootSubmenuKeys.includes(latestOpenKey)) {
       setOpenKeys(latestOpenKey ? [latestOpenKey] : []);
     } else {
       setOpenKeys(keys);
     }
   };
-
   const handleLogout = async () => {
     const refreshToken = localStorage.getItem('refresh_token');
     await authService.logOut({ refreshToken });

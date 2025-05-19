@@ -218,14 +218,14 @@ const ProductManagement = () => {
       align: "center",
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title="Xem chi tiết">
+          {/* <Tooltip title="Xem chi tiết">
             <Button
               type="text"
               icon={<EyeOutlined />}
               size="small"
               className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
             />
-          </Tooltip>
+          </Tooltip> */}
           <Tooltip title="Chỉnh sửa">
             <Button
               type="text"
@@ -318,7 +318,7 @@ const ProductManagement = () => {
         open={createModalVisible}
         onCancel={() => setCreateModalVisible(false)}
         onSubmit={handleCreateProduct}
-        categories={categories}
+        categories={categories.filter(category => category.status === "active")}
       />
 
       {/* Edit Product Modal */}
@@ -328,7 +328,7 @@ const ProductManagement = () => {
         onCancel={() => setEditModalVisible(false)}
         onSubmit={handleEditProduct}
         product={selectedProduct}
-        categories={categories}
+        categories={categories.filter(category => category.status === "active")}
       />
       {/* Delete Confirm Modal */}
       <DeleteConfirmModal

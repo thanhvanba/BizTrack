@@ -1,11 +1,16 @@
 import { useState, useEffect } from "react"
 import { useSelector } from "react-redux"
+import { Table, Input, Select, Button, Typography, Divider, InputNumber } from "antd"
+import { PlusOutlined, DeleteOutlined } from "@ant-design/icons"
 import productService from "../../service/productService"
+
+const { TextArea } = Input
+const { Option } = Select
+const { Title, Text } = Typography
 
 export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel }) {
   const [products, setProducts] = useState([])
-  const mockWarehouses = useSelector(state => state.warehouse.warehouses.data)
-
+  const warehouses = useSelector(state => state.warehouse.warehouses.data)
   const [formData, setFormData] = useState({
     supplier_name: "",
     warehouse_id: "",
@@ -14,16 +19,16 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
   const [details, setDetails] = useState([])
   const [errors, setErrors] = useState({})
 
-useEffect(()=>{
-  const fetchProduct = async () => {
-    const res = await productService.getAllProducts()
-    if (res && res.data) {
-      setProducts(res.data)
+  useEffect(() => {
+    const fetchProduct = async () => {
+      const res = await productService.getAllProducts()
+      if (res && res.data) {
+        setProducts(res.data)
+      }
     }
-  }
-  fetchProduct()
-},[])
- 
+    fetchProduct()
+  }, [])
+
   useEffect(() => {
     if (initialValues) {
       setFormData({
@@ -48,40 +53,27 @@ useEffect(()=>{
       ...formData,
       [name]: value,
     })
-
-    // Clear error when field is edited
     if (errors[name]) {
-      setErrors({
-        ...errors,
-        [name]: "",
-      })
+      setErrors({ ...errors, [name]: "" })
     }
   }
 
   const handleAddDetail = () => {
-    setDetails([
-      ...details,
-      {
-        product_id: "",
-        quantity: 1,
-        price: 0,
-      },
-    ])
+    setDetails([...details, { product_id: "", quantity: 1, price: 0 }])
   }
 
-const handleRemoveDetail = (indexToRemove) => {
-  setDetails(details.filter((_, index) => index !== indexToRemove))
-}
-
+  const handleRemoveDetail = (indexToRemove) => {
+    setDetails(details.filter((_, index) => index !== indexToRemove))
+  }
 
   const handleProductChange = (productId, index) => {
-    const product = products.find((p) => p.product_id === productId)
+    const product = products.find(p => p.product_id === productId)
     if (product) {
       const newDetails = [...details]
       newDetails[index] = {
         ...newDetails[index],
         product_id: productId,
-        price: product.product_retail_price,
+        price: product.product_retail_price || 0,
       }
       setDetails(newDetails)
     }
@@ -91,7 +83,7 @@ const handleRemoveDetail = (indexToRemove) => {
     const newDetails = [...details]
     newDetails[index] = {
       ...newDetails[index],
-      [field]: field === "quantity" ? Number.parseInt(value) || 1 : Number.parseFloat(value) || 0,
+      [field]: value || 0,
     }
     setDetails(newDetails)
   }
@@ -123,229 +115,177 @@ const handleRemoveDetail = (indexToRemove) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-
-    if (!validateForm()) {
-      return
-    }
+    if (!validateForm()) return
 
     const order = {
       supplier_name: formData.supplier_name,
       warehouse_id: formData.warehouse_id,
       note: formData.note,
       status: "draft",
-      details: details,
+      details,
     }
 
     onSubmit(order)
-    setFormData({
-      supplier_name: "",
-      warehouse_id: "",
-      note: "",
-    })
+    setFormData({ supplier_name: "", warehouse_id: "", note: "" })
     setDetails([])
   }
 
-  const totalAmount = details.reduce((sum, detail) => sum + detail.quantity * detail.price, 0)
+  const totalAmount = details.reduce((sum, d) => sum + d.quantity * d.price, 0)
+
+  const columns = [
+    {
+      title: "Sản phẩm",
+      dataIndex: "product_id",
+      render: (value, _, index) => (
+        <Select
+          value={value}
+          onChange={(val) => handleProductChange(val, index)}
+          style={{ width: "100%" }}
+          placeholder="Chọn sản phẩm"
+          status={errors[`product_${index}`] ? "error" : ""}
+        >
+          {products.map(p => (
+            <Option key={p.product_id} value={p.product_id}>
+              {p.product_name}
+            </Option>
+          ))}
+        </Select>
+      ),
+    },
+    {
+      title: "Số lượng",
+      dataIndex: "quantity",
+      render: (value, _, index) => (
+        <Input
+          type="number"
+          min={1}
+          value={value}
+          onChange={(e) => handleDetailChange(Number(e.target.value), "quantity", index)}
+        />
+      ),
+    },
+    {
+      title: "Đơn giá",
+      dataIndex: "price",
+      render: (value, _, index) => (
+        <InputNumber
+          min={0}
+          value={value}
+          style={{ width: "100%" }}
+          formatter={(value) =>
+            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+          }
+          parser={(value) => value.replace(/,/g, "")}
+          onChange={(val) => handleDetailChange(val, "price", index)}
+        />
+      ),
+    },
+    {
+      title: "Thành tiền",
+      render: (_, record) =>
+        `${(record.quantity * record.price).toLocaleString()} VNĐ`,
+    },
+    {
+      title: "",
+      render: (_, __, index) => (
+        <Button
+          type="text"
+          icon={<DeleteOutlined />}
+          danger
+          onClick={() => handleRemoveDetail(index)}
+        />
+      ),
+    },
+  ]
 
   return (
-    <div className="space-y-6">
+    <div className="p-4 bg-white rounded shadow">
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block font-medium mb-1">
               Nhà cung cấp <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
+            <Input
               name="supplier_name"
               value={formData.supplier_name}
               onChange={handleInputChange}
-              className={`w-full p-2 border rounded-md ${errors.supplier_name ? "border-red-500" : "border-gray-300"}`}
               placeholder="Nhập tên nhà cung cấp"
+              status={errors.supplier_name ? "error" : ""}
             />
-            {errors.supplier_name && <p className="mt-1 text-sm text-red-500">{errors.supplier_name}</p>}
+            {errors.supplier_name && (
+              <Text type="danger">{errors.supplier_name}</Text>
+            )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block font-medium mb-1">
               Kho nhập hàng <span className="text-red-500">*</span>
             </label>
-            <select
+            <Select
               name="warehouse_id"
               value={formData.warehouse_id}
-              onChange={handleInputChange}
-              className={`w-full p-2 border rounded-md ${errors.warehouse_id ? "border-red-500" : "border-gray-300"}`}
+              onChange={(value) =>
+                handleInputChange({ target: { name: "warehouse_id", value } })
+              }
+              placeholder="Chọn kho"
+              style={{ width: "100%" }}
+              status={errors.warehouse_id ? "error" : ""}
             >
-              <option value="">Chọn kho</option>
-              {mockWarehouses.map((warehouse) => (
-                <option key={warehouse.warehouse_id} value={warehouse.warehouse_id}>
-                  {warehouse.warehouse_name}
-                </option>
+              {warehouses.map((w) => (
+                <Option key={w.warehouse_id} value={w.warehouse_id}>
+                  {w.warehouse_name}
+                </Option>
               ))}
-            </select>
-            {errors.warehouse_id && <p className="mt-1 text-sm text-red-500">{errors.warehouse_id}</p>}
+            </Select>
+            {errors.warehouse_id && (
+              <Text type="danger">{errors.warehouse_id}</Text>
+            )}
           </div>
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-          <textarea
+          <label className="block font-medium mb-1">Ghi chú</label>
+          <TextArea
             name="note"
             value={formData.note}
             onChange={handleInputChange}
             rows={3}
-            className="w-full p-2 border border-gray-300 rounded-md"
             placeholder="Nhập ghi chú (nếu có)"
           />
         </div>
 
-        <div className="space-y-4 mt-6">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium">Chi tiết đơn hàng</h3>
-            <button
-              type="button"
-              onClick={handleAddDetail}
-              className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <svg
-                className="w-4 h-4 mr-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                ></path>
-              </svg>
-              Thêm sản phẩm
-            </button>
-          </div>
+        <Divider orientation="left">Chi tiết đơn hàng</Divider>
 
-          {errors.details && <p className="text-sm text-red-500">{errors.details}</p>}
+        <div className="mb-4">
+          <Button icon={<PlusOutlined />} onClick={handleAddDetail}>
+            Thêm sản phẩm
+          </Button>
+          {errors.details && (
+            <Text type="danger" className="block mt-2">
+              {errors.details}
+            </Text>
+          )}
+        </div>
 
-          <div className="overflow-x-auto relative shadow-md sm:rounded-lg">
-            <table className="w-full text-sm text-left text-gray-500">
-              <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                <tr>
-                  <th scope="col" className="py-3 px-6">
-                    Sản phẩm
-                  </th>
-                  <th scope="col" className="py-3 px-6">
-                    Số lượng
-                  </th>
-                  <th scope="col" className="py-3 px-6">
-                    Đơn giá
-                  </th>
-                  <th scope="col" className="py-3 px-6">
-                    Thành tiền
-                  </th>
-                  <th scope="col" className="py-3 px-6"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {details.length > 0 ? (
-                  details.map((detail, index) => (
-                    <tr key={detail.po_detail_id} className="bg-white border-b">
-                      <td className="py-4 px-6">
-                        <select
-                          value={detail.product_id}
-                          onChange={(e) => handleProductChange(e.target.value, index)}
-                          className={`w-full p-1.5 border rounded ${errors[`product_${index}`] ? "border-red-500" : "border-gray-300"}`}
-                        >
-                          <option value="">Chọn sản phẩm</option>
-                          {products.map((product) => (
-                            <option key={product.product_id} value={product.product_id}>
-                              {product.product_name}
-                            </option>
-                          ))}
-                        </select>
-                        {errors[`product_${index}`] && (
-                          <p className="mt-1 text-xs text-red-500">{errors[`product_${index}`]}</p>
-                        )}
-                      </td>
-                      <td className="py-4 px-6">
-                        <input
-                          type="number"
-                          min="1"
-                          value={detail.quantity}
-                          onChange={(e) => handleDetailChange(e.target.value, "quantity", index)}
-                          className="w-full p-1.5 border border-gray-300 rounded"
-                        />
-                      </td>
-                      <td className="py-4 px-6">
-                        <input
-                          type="number"
-                          min="0"
-                          value={detail.price}
-                          onChange={(e) => handleDetailChange(e.target.value, "price", index)}
-                          className="w-full p-1.5 border border-gray-300 rounded"
-                        />
-                      </td>
-                      <td className="py-4 px-6">{(detail.quantity * detail.price).toLocaleString()} VNĐ</td>
-                      <td className="py-4 px-6">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveDetail(index)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            ></path>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr className="bg-white border-b">
-                    <td colSpan={5} className="py-4 px-6 text-center">
-                      Chưa có sản phẩm nào. Vui lòng thêm sản phẩm.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+        <Table
+          dataSource={details}
+          columns={columns}
+          pagination={false}
+          rowKey={(_, index) => index}
+          bordered
+        />
 
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex justify-end">
-              <div className="text-right">
-                <p className="text-gray-500">Tổng giá trị:</p>
-                <p className="text-xl font-bold">{totalAmount.toLocaleString()} VNĐ</p>
-              </div>
-            </div>
-          </div>
+        <div className="text-right mt-6">
+          <p className="text-gray-600">Tổng giá trị:</p>
+          <Title level={3}>{totalAmount.toLocaleString()} VNĐ</Title>
+        </div>
 
-          <div className="flex justify-end space-x-4 mt-6">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              disabled={details.length === 0}
-            >
-              {initialValues ? "Cập nhật" : "Tạo đơn nhập hàng"}
-            </button>
-          </div>
+        <div className="flex justify-end space-x-4 mt-6">
+          <Button onClick={onCancel}>Hủy</Button>
+          <Button type="primary" htmlType="submit" disabled={details.length === 0}>
+            {initialValues ? "Cập nhật" : "Tạo đơn nhập hàng"}
+          </Button>
         </div>
       </form>
     </div>

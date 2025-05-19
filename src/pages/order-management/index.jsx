@@ -54,6 +54,22 @@ const OrderManagement = () => {
       useToastNotify("Không thể tải danh sách sản phẩm.", "error");
     }
   };
+  const updateOrderStatus = async (orderId, order_status) => {
+    const data = { order_status };
+    try {
+      await orderService.updateOrder(orderId, data);
+      message.success("Cập nhật trạng thái đơn hàng thành công!");
+      fetchOrders(); // reload lại danh sách
+    } catch (error) {
+      message.error("Không thể cập nhật trạng thái đơn hàng.");
+    }
+  };
+
+  const getNextStatus = (status) => {
+    const statusFlow = ["Mới", "Xác nhận", "Đang đóng hàng", "Đang giao", "Hoàn tất"];
+    const currentIndex = statusFlow.indexOf(status);
+    return statusFlow[currentIndex + 1] || status;
+  };
 
   useEffect(() => {
     fetchOrders();
@@ -159,34 +175,77 @@ const OrderManagement = () => {
       dataIndex: "order_status",
       key: "order_status",
       align: "center",
-      render: (status) => {
+      render: (status, record) => {
         let color;
         switch (status) {
-          case "Đã giao":
-            color = "success";
+          case "Hoàn tất":
+            color = "green";
             break;
           case "Đang giao":
-            color = "processing";
+            color = "blue";
             break;
-          case "Đang xử lý":
-            color = "warning";
+          case "Đang đóng hàng":
+            color = "orange";
             break;
-          case "Đã hủy":
-            color = "error";
+          case "Xác nhận":
+            color = "gold";
+            break;
+          case "Mới":
+            color = "default";
+            break;
+          case "Huỷ đơn":
+          case "Huỷ điều chỉnh":
+            color = "red";
             break;
           default:
             color = "default";
         }
-        return <Tag color={color}>{status}</Tag>;
+
+        const statusOptions = [
+          { value: "Mới", label: "Mới" },
+          { value: "Xác nhận", label: "Xác nhận" },
+          { value: "Đang đóng hàng", label: "Đang đóng hàng" },
+          { value: "Đang giao", label: "Đang giao" },
+          { value: "Hoàn tất", label: "Hoàn tất" },
+          { value: "Huỷ đơn", label: "Huỷ đơn" },
+          { value: "Huỷ điều chỉnh", label: "Huỷ điều chỉnh" },
+        ];
+
+        // Filter options based on current status
+        const availableOptions = statusOptions.filter(option => {
+          if (status === "Mới") return ["Xác nhận"].includes(option.value);
+          if (status === "Xác nhận") return ["Đang đóng hàng", "Đang giao", "Hoàn tất", "Huỷ đơn", "Huỷ điều chỉnh"].includes(option.value);
+          if (status === "Đang đóng hàng") return ["Đang giao", "Hoàn tất", "Huỷ đơn", "Huỷ điều chỉnh"].includes(option.value);
+          if (status === "Đang giao") return ["Hoàn tất", "Huỷ đơn", "Huỷ điều chỉnh"].includes(option.value);
+          return false;
+        });
+
+        return (
+          <Space direction="vertical">
+            <Tag color={color}>{status}</Tag>
+            <Select
+              size="small"
+              style={{ width: 150 }}
+              placeholder="Chuyển trạng thái"
+              options={availableOptions}
+              onChange={(value) => updateOrderStatus(record.order_id, value)}
+              disabled={status === "Hoàn tất" || status === "Huỷ đơn" || status === "Huỷ điều chỉnh"}
+            />
+          </Space>
+        );
       },
       filters: [
-        { text: "Đã giao", value: "Đã giao" },
+        { text: "Mới", value: "Mới" },
+        { text: "Xác nhận", value: "Xác nhận" },
+        { text: "Đang đóng hàng", value: "Đang đóng hàng" },
         { text: "Đang giao", value: "Đang giao" },
-        { text: "Đang xử lý", value: "Đang xử lý" },
-        { text: "Đã hủy", value: "Đã hủy" },
+        { text: "Hoàn tất", value: "Hoàn tất" },
+        { text: "Huỷ đơn", value: "Huỷ đơn" },
+        { text: "Huỷ điều chỉnh", value: "Huỷ điều chỉnh" },
       ],
       onFilter: (value, record) => record.order_status === value,
     },
+
     {
       title: "Thao tác",
       key: "action",
