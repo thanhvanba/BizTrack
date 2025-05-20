@@ -18,9 +18,7 @@ const { Title, Text } = Typography;
 
 const OrderDetailDrawer = ({ open, onClose, order }) => {
   const [orderInfo, setOrderInfo] = useState(null);
-  console.log("🚀 ~ OrderDetailDrawer ~ orderInfo:", orderInfo);
   const [orderDetailsData, setOrderDetailsData] = useState([]);
-  console.log("🚀 ~ OrderDetailDrawer ~ orderDetailsData:", orderDetailsData);
 
   useEffect(() => {
     if (order) {

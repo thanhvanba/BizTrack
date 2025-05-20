@@ -6,15 +6,16 @@ import RevenueTracking from '../pages/revenue-tracking';
 import CustomerManagement from '../pages/customer-management';
 import ProductCategory from '../pages/product-management/ProductCategory';
 import PurchaseManagement from '../pages/warehouse-management/PurchaseManagement';
-import CreateOrderPage from '../pages/order-management/CreateOrder';
 import InventoryManagement from '../pages/warehouse-management/InventoryManagement';
 import WarehouseManagement from '../pages/warehouse-management';
+import OrderFormPage from '../pages/order-management/OrderFormPage';
 
 export const privateRoutes = [
   { path: '', element: <Dashboard /> }, // index route
   { path: 'dashboard', element: <Dashboard /> },
   { path: 'orders', element: <OrderManagement /> },
-  { path: 'create-order', element: <CreateOrderPage /> },
+  { path: 'create-order', element: <OrderFormPage mode="create" /> },
+  { path: 'edit-order/:orderId', element: <OrderFormPage mode="edit" /> },
   { path: 'products', element: <ProductManagement /> },
   { path: 'product-category', element: <ProductCategory /> },
   { path: 'revenue', element: <RevenueTracking /> },

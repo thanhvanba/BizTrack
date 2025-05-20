@@ -44,10 +44,6 @@ const InventoryManagement = () => {
     try {
       const response = await inventoryService.getAllInventories();
       const enrichedData = response.data.map((item) => {
-        // const product = products.find((p) => p.product_id === item.product_id);
-        // const warehouse = warehouses.data?.find(
-        //   (w) => w.warehouse_id === item.warehouse_id
-        // );
         const quantity = item.product?.quantity;
 
         let status = "Sắp hết";
@@ -64,7 +60,6 @@ const InventoryManagement = () => {
           quantity: quantity,
         };
       });
-      console.log("🚀 ~ enrichedData ~ enrichedData:", enrichedData)
       setInventories(enrichedData);
     } catch (error) {
       console.error("Không thể tải danh sách tồn kho.");

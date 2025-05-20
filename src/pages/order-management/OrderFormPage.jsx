@@ -10,13 +10,11 @@ import {
   Table,
   Typography,
   message,
-  Tabs,
-  Checkbox,
   Divider,
   Descriptions,
-  Row,
-  Col,
   Tag,
+  Spin,
+  Alert
 } from "antd";
 import {
   PlusOutlined,
@@ -24,9 +22,8 @@ import {
   SearchOutlined,
   SaveOutlined,
 } from "@ant-design/icons";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import CustomerModal from "../../components/modals/CustomerModal";
-
 import customerService from "../../service/customerService";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWarehouses } from "../../redux/warehouses/warehouses.slice";
@@ -35,39 +32,36 @@ import orderService from "../../service/orderService";
 import useToastNotify from "../../utils/useToastNotify";
 import moment from "moment";
 import ShippingAddressForm from "../../components/ShippingAddressForm";
+import orderDetailService from "../../service/orderDetailService";
 
 const { Option } = Select;
 const { Text } = Typography;
 const { TextArea } = Input;
 
-const CreateOrderPage = () => {
+const OrderFormPage = ({ mode = 'create' }) => {
+  const { orderId } = useParams();
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
+  const [order, setOrder] = useState(null);
+  const [loading, setLoading] = useState(mode === 'edit');
+  const [formLoading, setFormLoading] = useState(false);
 
   const dispatch = useDispatch();
   const warehouses = useSelector((state) => state.warehouse.warehouses.data);
   const { mobileView, collapsed } = useOutletContext();
 
   const [createModalVisible, setCreateModalVisible] = useState(false);
-
   const [discountTypes, setDiscountTypes] = useState({});
 
   const [form] = Form.useForm();
   const [selectedProducts, setSelectedProducts] = useState([]);
-  console.log("🚀 ~ CreateOrderPage ~ selectedProducts:", selectedProducts)
-
+  console.log("🚀 ~ OrderFormPage ~ selectedProducts:", selectedProducts)
   const [shippingFee, setShippingFee] = useState(0);
+  console.log("🚀 ~ OrderFormPage ~ shippingFee:", shippingFee)
   const [orderDiscount, setOrderDiscount] = useState(0);
   const [transferAmount, setTransferAmount] = useState(0);
-  // const [productDiscount, setProductDiscount] = useState(0); // tính từ các sản phẩm
-  // const totalBeforeDiscount = selectedProducts.reduce(
-  //   (sum, p) => sum + p.product_retail_price * p.quantity,
-  //   0
-  // );
-  // const totalDiscount = orderDiscount + productDiscount;
-  // const totalAfterDiscount = totalBeforeDiscount - totalDiscount;
-  // const amountToPay = totalAfterDiscount + shippingFee;
-  // const remainingAmount = amountToPay - transferAmount;
+  console.log("🚀 ~ OrderFormPage ~ transferAmount:", transferAmount)
+
   const formatCurrency = (value) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -76,22 +70,80 @@ const CreateOrderPage = () => {
 
   const [searchText, setSearchText] = useState("");
   const navigate = useNavigate();
+
   useEffect(() => {
     dispatch(fetchWarehouses());
-    const fetchUsers = async () => {
-      const res = await customerService.getAllCustomers();
-      if (res && res.data) {
-        setCustomers(res.data);
-      }
-    };
-    fetchUsers();
-  }, []);
+    fetchCustomers();
 
-  const handleCreateOrder = async () => {
+    if (mode === 'edit') {
+      fetchOrderDetails();
+    }
+  }, [orderId]);
+
+  const fetchCustomers = async () => {
+    const res = await customerService.getAllCustomers();
+    if (res && res.data) {
+      setCustomers(res.data);
+    }
+  };
+
+  const fetchOrderDetails = async () => {
     try {
-      console.log("🚀 ~ handleCreateOrder ~ values: nè");
+      setLoading(true);
+      // const orderRes = await orderService.getOrderById(orderId);
+      const orderRes = await orderDetailService.getOrderDetailById(orderId);
+      console.log("🚀 ~ fetchOrderDetails ~ orderRes:", orderRes)
+      if (orderRes) {
+        setOrder(orderRes);
+
+        // Parse shipping address
+        const addressParts = orderRes.shipping_address.split(', ');
+        const [address_detail, ward, district, province] = addressParts;
+
+        // Format order details for selected products
+        const formattedProducts = orderRes.products.map((item) => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          product_name: item.product_name,
+          product_retail_price: Number(item.price),
+          discount: item.discountAmount || item.discount || 0,
+        }));
+
+        setSelectedProducts(formattedProducts);
+        setShippingFee(orderRes.shipping_fee || 0);
+        setOrderDiscount(orderRes.order_amount || 0);
+        setTransferAmount(orderRes.transfer_amount || 0);
+
+        // Set form values
+        form.setFieldsValue({
+          customer_id: orderRes.customer.customer_id,
+          order_date: moment(orderRes.order_date),
+          shipping_fee: orderRes.shipping_fee,
+          discount_amount: orderRes.order_amount,
+          transfer_amount: orderRes.transfer_amount,
+          payment_method: orderRes.payment_method,
+          note: orderRes.note,
+          warehouse_id: orderRes.warehouse_id,
+          address_detail,
+          ward,
+          district,
+          province
+        });
+
+        // Fetch products for the warehouse
+        fetchInventoryByWarehouseId(orderRes.warehouse_id);
+      }
+    } catch (error) {
+      useToastNotify("Không thể tải thông tin đơn hàng", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitOrder = async () => {
+    try {
+      setFormLoading(true);
       const values = await form.validateFields();
-      console.log("🚀 ~ handleCreateOrder ~ values:", values);
       const formattedOrderDate = moment(values.order_date).format("YYYY-MM-DD");
 
       const orderDetails = selectedProducts.map((item) => ({
@@ -100,6 +152,7 @@ const CreateOrderPage = () => {
         price: Number(item.product_retail_price),
         discount: item.discountAmount || item.discount || 0,
       }));
+
       const rqOrder = {
         order: {
           customer_id: values.customer_id,
@@ -109,21 +162,35 @@ const CreateOrderPage = () => {
           shipping_fee: values.shipping_fee,
           payment_method: values.payment_method,
           note: values.note,
-          warehouse_id: values.warehouse_id || true,
+          warehouse_id: values.warehouse_id,
         },
         orderDetails: orderDetails,
       };
-      console.log("🚀 ~ handleCreateOrder ~ rqOrder:", rqOrder);
-      const res = await orderService.createOrderWithDetails(rqOrder);
-      console.log("🚀 ~ handleCreateOrder ~ res:", res);
+
+      let res;
+      if (mode === 'create') {
+        res = await orderService.createOrderWithDetails(rqOrder);
+      } else {
+        res = await orderService.updateOrder(orderId, rqOrder);
+      }
+
       if (res) {
-        useToastNotify(`Đơn hàng đã được thêm thành công!`, "success");
+        useToastNotify(
+          `Đơn hàng đã được ${mode === 'create' ? 'thêm' : 'cập nhật'} thành công!`,
+          "success"
+        );
         navigate("/orders");
       }
     } catch (error) {
-      useToastNotify("Thêm đơn hàng không thành công.", "error");
+      useToastNotify(
+        `${mode === 'create' ? 'Thêm' : 'Cập nhật'} đơn hàng không thành công.`,
+        "error"
+      );
+    } finally {
+      setFormLoading(false);
     }
   };
+
   const fetchInventoryByWarehouseId = async (warehouseId) => {
     const res = await inventoryService.getInventoryByWarehouseId(warehouseId);
     if (res && res.data) {
@@ -145,14 +212,11 @@ const CreateOrderPage = () => {
     }
   };
 
-  // Filter products based on search text and warehouse
-  // const filteredProducts = products?.filter(
-  //     (product) =>
-  //         product.name.toLowerCase().includes(searchText?.toLowerCase()) &&
-  //         product.stock > 0 &&
-  //         (!warehouseId || product.warehouse_id === warehouseId),
-  // )
-  const filteredProducts = products;
+  // Filter products based on search text
+  const filteredProducts = products.filter(product =>
+    product.product_name.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   // Calculate totals
   const calculateTotalAmount = () => {
     return selectedProducts.reduce(
@@ -161,6 +225,7 @@ const CreateOrderPage = () => {
     );
   };
 
+    console.log("🚀 ~ calculateTotalAmount ~ calculateTotalAmount:", calculateTotalAmount())
   const calculateDiscountAmount = () => {
     const discountProduct = selectedProducts.reduce(
       (sum, item) => sum + (item.discountAmount || 0),
@@ -169,9 +234,11 @@ const CreateOrderPage = () => {
     return discountProduct + orderDiscount;
   };
 
+  console.log("🚀 ~ calculateDiscountAmount ~ calculateDiscountAmount:", calculateDiscountAmount())
   const calculateFinalAmount = () => {
-    return calculateTotalAmount() - calculateDiscountAmount() + shippingFee;
+    return Number(calculateTotalAmount()) - Number(calculateDiscountAmount()) + Number(shippingFee);
   };
+  console.log("🚀 ~ calculateFinalAmount ~ calculateFinalAmount:", calculateFinalAmount())
 
   // Add product to order
   const addProduct = (product) => {
@@ -260,7 +327,10 @@ const CreateOrderPage = () => {
   // Handle warehouse change
   const handleWarehouseChange = (warehouseId) => {
     fetchInventoryByWarehouseId(warehouseId);
-    setSelectedProducts([]);
+    if (mode === 'create') {
+      setSelectedProducts([]);
+    }
+    form.setFieldValue('warehouse_id', warehouseId);
   };
 
   // Product selection table columns
@@ -296,8 +366,8 @@ const CreateOrderPage = () => {
     },
     {
       title: "Tồn kho",
-      dataIndex: "total_quantity",
-      key: "total_quantity",
+      dataIndex: "available_quantity",
+      key: "available_quantity",
       align: "center",
     },
     {
@@ -364,7 +434,7 @@ const CreateOrderPage = () => {
       render: (_, record) => (
         <InputNumber
           min={1}
-          max={record.total_quantity}
+          max={record.available_quantity}
           value={record.quantity}
           onChange={(value) => updateQuantity(record.product_id, value)}
           className="w-14"
@@ -377,7 +447,7 @@ const CreateOrderPage = () => {
       key: "discount",
       align: "right",
       render: (_, record) => {
-        const discountType = discountTypes[record.product_id] || "đ"; // Mặc định "đ"
+        const discountType = discountTypes[record.product_id] || "đ";
 
         return (
           <div className="flex items-center gap-2">
@@ -393,7 +463,6 @@ const CreateOrderPage = () => {
               }
               parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
               className="w-24"
-            // addonAfter={discountType}
             />
             <Select
               value={discountType}
@@ -410,7 +479,6 @@ const CreateOrderPage = () => {
         );
       },
     },
-
     {
       title: "Thành tiền",
       key: "subtotal",
@@ -435,21 +503,54 @@ const CreateOrderPage = () => {
     },
   ];
 
+  if (loading) {
+    return <Spin size="large" className="flex justify-center mt-10" />;
+  }
+
+  if (mode === 'edit' && (!order || order.order_status !== "Mới")) {
+    return (
+      <div className="p-4">
+        <div className="bg-white rounded-lg shadow p-6 text-center">
+          <Typography.Title level={4} className="text-red-500">
+            Không thể chỉnh sửa đơn hàng này
+          </Typography.Title>
+          <Typography.Text>
+            Chỉ có thể chỉnh sửa đơn hàng khi ở trạng thái "Mới"
+          </Typography.Text>
+          <div className="mt-4">
+            <Button type="primary" onClick={() => navigate("/orders")}>
+              Quay lại danh sách đơn hàng
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-semibold">Tạo đơn hàng mới</h1>
+        <h1 className="text-xl font-semibold">
+          {mode === 'create' ? 'Tạo đơn hàng mới' : `Chỉnh sửa đơn hàng #${order?.order_code}`}
+        </h1>
       </div>
-      <Form form={form} layout="vertical" initialValues={{ order_date: null }}>
+
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={{
+          order_date: mode === 'create' ? null : moment(order?.order_date),
+          warehouse_id: mode === 'edit' ? order?.warehouse_id : null
+        }}
+      >
         <div className="grid grid-cols-3 gap-4 mb-10 pb-10">
           <div className="col-span-2">
-            {/* Thông tin sp theo kho */}
+            {/* Product selection by warehouse */}
             <div className="p-4 bg-white rounded-lg shadow mb-4">
               <div className="flex justify-between">
                 <div className="font-medium mb-2">Sản phẩm</div>
                 <Form.Item
                   name="warehouse_id"
-                  // label="Kho hàng"
                   rules={[
                     { required: true, message: "Vui lòng chọn kho hàng" },
                   ]}
@@ -457,6 +558,7 @@ const CreateOrderPage = () => {
                   <Select
                     placeholder="Chọn kho hàng"
                     onChange={handleWarehouseChange}
+                    disabled={mode === 'edit' && selectedProducts.length > 0}
                   >
                     {warehouses?.map((warehouse) => (
                       <Option
@@ -481,7 +583,7 @@ const CreateOrderPage = () => {
                 <Table
                   columns={productColumns}
                   dataSource={filteredProducts}
-                  rowKey="id"
+                  rowKey="product_id"
                   size="small"
                   pagination={{ pageSize: 5 }}
                   className="mb-4"
@@ -489,23 +591,22 @@ const CreateOrderPage = () => {
               </div>
             </div>
 
-            {/* Thông tin sp*/}
+            {/* Selected products */}
             {selectedProducts.length > 0 && (
               <div className="rounded-lg p-4 bg-white">
                 <div className="font-medium mb-2">Sản phẩm đã chọn</div>
                 <Table
                   columns={selectedProductColumns}
                   dataSource={selectedProducts}
-                  rowKey="id"
+                  rowKey="product_id"
                   size="small"
                   pagination={false}
                 />
               </div>
             )}
-            {/* </div> */}
           </div>
 
-          {/* Thông tin đơn hàng */}
+          {/* Order information */}
           <div className="p-4 bg-white rounded-lg shadow">
             <div className="font-medium mb-2">Thông tin đơn hàng</div>
             <Divider />
@@ -516,7 +617,7 @@ const CreateOrderPage = () => {
                   name="customer_id"
                   className="w-full"
                   rules={[
-                    { required: true, message: "Vui lòng chọn kho hàng" },
+                    { required: true, message: "Vui lòng chọn khách hàng" },
                   ]}
                 >
                   <Select
@@ -529,9 +630,6 @@ const CreateOrderPage = () => {
                       option.children
                         .toLowerCase()
                         .indexOf(input.toLowerCase()) >= 0
-                    }
-                    onChange={(value) =>
-                      form.setFieldsValue({ customer_id: value })
                     }
                   >
                     {customers.map((customer) => (
@@ -616,7 +714,6 @@ const CreateOrderPage = () => {
                 <Form.Item name="discount_amount" label="Giảm giá đơn hàng">
                   <InputNumber
                     variant="filled"
-                    // onChange={(value) => formPayment.setFieldsValue({ discount_amount: value })}
                     addonAfter="₫"
                     placeholder="Nhập phí giảm giá"
                     className="w-full"
@@ -632,7 +729,6 @@ const CreateOrderPage = () => {
               <Form.Item name="transfer_amount" label="Tiền chuyển khoản">
                 <InputNumber
                   variant="filled"
-                  // onChange={(value) => formPayment.setFieldsValue({ transfer_amount: value })}
                   addonAfter="₫"
                   placeholder="Nhập số tiền chuyển khoản"
                   className="w-full"
@@ -645,7 +741,8 @@ const CreateOrderPage = () => {
               </Form.Item>
             </div>
           </div>
-          {selectedProducts.length !== 0 &&
+
+          {selectedProducts.length !== 0 && (
             <div className="col-span-2 bg-white p-4 rounded-lg shadow space-y-2">
               <Descriptions column={4} size="small" bordered>
                 <Descriptions.Item
@@ -682,7 +779,7 @@ const CreateOrderPage = () => {
 
                 <Descriptions.Item label="Sau giảm giá" span={4}>
                   <div style={{ textAlign: "right" }}>
-                    {formatCurrency(calculateFinalAmount())}
+                    {formatCurrency(calculateTotalAmount() - calculateDiscountAmount())}
                   </div>
                 </Descriptions.Item>
 
@@ -717,12 +814,11 @@ const CreateOrderPage = () => {
                 </Descriptions.Item>
               </Descriptions>
             </div>
-          }
+          )}
         </div>
-
       </Form>
 
-      {/* footer */}
+      {/* Footer */}
       <div
         style={{
           position: "fixed",
@@ -742,7 +838,7 @@ const CreateOrderPage = () => {
         <div>
           <div>
             <Text strong style={{ fontSize: 16 }}>
-              Cần thanh toán: {calculateFinalAmount().toLocaleString()} đ
+              Cần thanh toán: {formatCurrency(calculateFinalAmount())}
             </Text>
           </div>
           <div>
@@ -763,10 +859,11 @@ const CreateOrderPage = () => {
           <Button
             type="primary"
             icon={<SaveOutlined />}
-            onClick={handleCreateOrder}
+            onClick={handleSubmitOrder}
             disabled={selectedProducts.length === 0}
+            loading={formLoading}
           >
-            Tạo đơn hàng
+            {mode === 'create' ? 'Tạo đơn hàng' : 'Cập nhật đơn hàng'}
           </Button>
         </div>
       </div>
@@ -774,4 +871,4 @@ const CreateOrderPage = () => {
   );
 };
 
-export default CreateOrderPage;
+export default OrderFormPage;

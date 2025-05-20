@@ -24,6 +24,7 @@ import EditOrderModal from "../../components/modals/EditOrderModal";
 import OrderDetailDrawer from "../../components/drawers/OrderDetailDrawer";
 import { useNavigate } from "react-router-dom";
 import orderService from "../../service/orderService";
+import './index.css'
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -179,26 +180,26 @@ const OrderManagement = () => {
         let color;
         switch (status) {
           case "Hoàn tất":
-            color = "green";
+            color = "bg-green-400";
             break;
           case "Đang giao":
-            color = "blue";
+            color = "bg-blue-400";
             break;
           case "Đang đóng hàng":
-            color = "orange";
+            color = "bg-orange-400";
             break;
           case "Xác nhận":
-            color = "gold";
+            color = "bg-sky-400";
             break;
           case "Mới":
-            color = "default";
+            color = "bg-gray-400";
             break;
           case "Huỷ đơn":
           case "Huỷ điều chỉnh":
-            color = "red";
+            color = "bg-red-400";
             break;
           default:
-            color = "default";
+            color = "bg-gray-400";
         }
 
         const statusOptions = [
@@ -222,12 +223,15 @@ const OrderManagement = () => {
 
         return (
           <Space direction="vertical">
-            <Tag color={color}>{status}</Tag>
             <Select
               size="small"
-              style={{ width: 150 }}
+              style={{
+                width: 150,
+              }}
+              className={`custom-select rounded px-2 py-1 ${color}`}
               placeholder="Chuyển trạng thái"
               options={availableOptions}
+              value={status}
               onChange={(value) => updateOrderStatus(record.order_id, value)}
               disabled={status === "Hoàn tất" || status === "Huỷ đơn" || status === "Huỷ điều chỉnh"}
             />
@@ -266,7 +270,7 @@ const OrderManagement = () => {
               type="text"
               icon={<EditOutlined />}
               size="small"
-              onClick={() => editOrder(record)}
+              onClick={() => navigate(`/edit-order/${record.order_id}`)}
               className="hover:bg-gray-100"
             />
           </Tooltip>
@@ -325,7 +329,7 @@ const OrderManagement = () => {
             />
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Select
+            {/* <Select
               defaultValue="all"
               style={{ minWidth: 150 }}
               onChange={(value) => setStatusFilter(value)}
@@ -335,7 +339,7 @@ const OrderManagement = () => {
               <Option value="Đang giao">Đang giao</Option>
               <Option value="Đang xử lý">Đang xử lý</Option>
               <Option value="Đã hủy">Đã hủy</Option>
-            </Select>
+            </Select> */}
             <RangePicker
               placeholder={["Từ ngày", "Đến ngày"]}
               className="w-full sm:w-auto"

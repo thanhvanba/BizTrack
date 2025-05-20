@@ -1,0 +1,15 @@
+/* CSS - bạn thêm vào file global (vd: index.css hoặc component tương ứng) */
+.custom-select .ant-select-selector {
+    background-color: transparent !important;
+    color: white !important;
+    border: none;
+    /* tuỳ chọn */
+}
+
+.custom-select .ant-select-selection-item {
+    color: white !important;
+}
+
+.custom-select .ant-select-arrow {
+    color: white !important;
+}
