@@ -20,24 +20,18 @@ import {
   DownloadOutlined,
   EditOutlined,
 } from "@ant-design/icons";
-import EditOrderModal from "../../components/modals/EditOrderModal";
 import OrderDetailDrawer from "../../components/drawers/OrderDetailDrawer";
 import { useNavigate } from "react-router-dom";
 import orderService from "../../service/orderService";
 import './index.css'
 
 const { Title } = Typography;
-const { Option } = Select;
 const { RangePicker } = DatePicker;
 
 const OrderManagement = () => {
   const [searchText, setSearchText] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
   const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const [ordersData, setOrdersData] = useState([]);
@@ -66,12 +60,6 @@ const OrderManagement = () => {
     }
   };
 
-  const getNextStatus = (status) => {
-    const statusFlow = ["Mới", "Xác nhận", "Đang đóng hàng", "Đang giao", "Hoàn tất"];
-    const currentIndex = statusFlow.indexOf(status);
-    return statusFlow[currentIndex + 1] || status;
-  };
-
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -79,7 +67,6 @@ const OrderManagement = () => {
   // Filter data based on search text and status
   const filteredData = (ordersData || []).filter(
     (item) =>
-      (statusFilter === "all" || item.order_status === statusFilter) &&
       (item.order_id?.toLowerCase().includes(searchText.toLowerCase()) ||
         item.order_code?.toLowerCase().includes(searchText.toLowerCase()) ||
         item.customer?.toLowerCase().includes(searchText.toLowerCase()))
@@ -92,36 +79,12 @@ const OrderManagement = () => {
     }).format(price);
   };
 
-  // Handle edit order
-  const handleEditOrder = (updatedOrder) => {
-    // Update order in the list
-    const updatedData = ordersData.map((order) =>
-      order.key === updatedOrder.key ? { ...updatedOrder } : order
-    );
-
-    // Update state
-    setOrdersData(updatedData);
-
-    // Close modal and show success message
-    setEditModalVisible(false);
-    message.success(
-      `Đơn hàng ${updatedOrder.order_code} đã được cập nhật thành công!`
-    );
-  };
-
   // View order details
   const viewOrderDetails = (order) => {
     console.log(order)
     setSelectedOrder(order);
     setDetailDrawerVisible(true);
   };
-
-  // Edit order
-  const editOrder = (order) => {
-    setSelectedOrder(order);
-    setEditModalVisible(true);
-  };
-
   // Table columns
   const columns = [
     {
@@ -329,17 +292,6 @@ const OrderManagement = () => {
             />
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
-            {/* <Select
-              defaultValue="all"
-              style={{ minWidth: 150 }}
-              onChange={(value) => setStatusFilter(value)}
-            >
-              <Option value="all">Tất cả trạng thái</Option>
-              <Option value="Đã giao">Đã giao</Option>
-              <Option value="Đang giao">Đang giao</Option>
-              <Option value="Đang xử lý">Đang xử lý</Option>
-              <Option value="Đã hủy">Đã hủy</Option>
-            </Select> */}
             <RangePicker
               placeholder={["Từ ngày", "Đến ngày"]}
               className="w-full sm:w-auto"
@@ -362,21 +314,6 @@ const OrderManagement = () => {
           scroll={{ x: "max-content" }}
         />
       </Card>
-
-      {/* Create Order Modal */}
-      {/* <CreateOrderModal
-        open={createModalVisible}
-        onCancel={() => setCreateModalVisible(false)}
-        onSubmit={handleCreateOrder}
-      /> */}
-
-      {/* Edit Order Modal */}
-      <EditOrderModal
-        open={editModalVisible}
-        onCancel={() => setEditModalVisible(false)}
-        onSubmit={handleEditOrder}
-        order={selectedOrder}
-      />
 
       {/* Order Detail Drawer */}
       <OrderDetailDrawer

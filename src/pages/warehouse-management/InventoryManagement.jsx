@@ -24,6 +24,7 @@ const { Title } = Typography;
 const InventoryManagement = () => {
   const [searchText, setSearchText] = useState("");
   const [inventories, setInventories] = useState([]);
+  console.log("🚀 ~ InventoryManagement ~ inventories:", inventories)
   const [products, setProducts] = useState([]);
 
   const navigate = useNavigate()
@@ -44,11 +45,11 @@ const InventoryManagement = () => {
     try {
       const response = await inventoryService.getAllInventories();
       const enrichedData = response.data.map((item) => {
-        const quantity = item.product?.quantity;
+        const available_stock = item.product?.available_stock;
 
         let status = "Sắp hết";
-        if (quantity > 5) status = "Đủ hàng";
-        else if (quantity <= 0) status = "Hết hàng";
+        if (available_stock > 5) status = "Đủ hàng";
+        else if (available_stock <= 0) status = "Hết hàng";
 
         return {
           ...item,
@@ -57,9 +58,12 @@ const InventoryManagement = () => {
           category: item.product?.category?.category_name || "Không rõ",
           location: item.warehouse?.warehouse_name || "Không rõ",
           status,
-          quantity: quantity,
+          available_stock: available_stock,
+          reserved_stock: item.product?.reserved_stock,
+          quantity: item.product?.quantity,
         };
       });
+      console.log("🚀 ~ enrichedData ~ enrichedData:", enrichedData)
       setInventories(enrichedData);
     } catch (error) {
       console.error("Không thể tải danh sách tồn kho.");
@@ -83,6 +87,7 @@ const InventoryManagement = () => {
       item.category?.toLowerCase().includes(searchText.toLowerCase()) ||
       item.location?.toLowerCase().includes(searchText.toLowerCase())
   );
+  console.log("🚀 ~ InventoryManagement ~ filteredData:", filteredData)
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -134,12 +139,18 @@ const InventoryManagement = () => {
       })) || [],
       onFilter: (value, record) => record.location === value,
     },
-
     {
-      title: "SL",
+      title: "Số lượng",
       dataIndex: "quantity",
       key: "quantity",
       sorter: (a, b) => a.quantity - b.quantity,
+      align: "center",
+    },
+    {
+      title: "Khả dụng",
+      dataIndex: "available_stock",
+      key: "available_stock",
+      sorter: (a, b) => a.available_stock - b.available_stock,
       align: "center",
     },
     {
