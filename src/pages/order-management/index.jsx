@@ -79,6 +79,23 @@ const OrderManagement = () => {
     }).format(price);
   };
 
+  // Handle edit order
+  const handleEditOrder = (updatedOrder) => {
+    // Update order in the list
+    const updatedData = ordersData.map((order) =>
+      order.key === updatedOrder.key ? { ...updatedOrder } : order
+    );
+    console.log(updatedData)
+    // Update state
+    setOrdersData(updatedData);
+
+    // Close modal and show success message
+    setEditModalVisible(false);
+    message.success(
+      `Đơn hàng ${updatedOrder.order_code} đã được cập nhật thành công!`
+    );
+  };
+
   // View order details
   const viewOrderDetails = (order) => {
     console.log(order)

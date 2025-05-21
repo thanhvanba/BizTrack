@@ -14,7 +14,7 @@ import {
   Descriptions,
   Tag,
   Spin,
-  Alert
+  Alert,
 } from "antd";
 import {
   PlusOutlined,
@@ -41,12 +41,12 @@ const { Option } = Select;
 const { Text } = Typography;
 const { TextArea } = Input;
 
-const OrderFormPage = ({ mode = 'create' }) => {
+const OrderFormPage = ({ mode = "create" }) => {
   const { orderId } = useParams();
   // const [customers, setCustomers] = useState([]);
   // const [products, setProducts] = useState([]);
   // const [order, setOrder] = useState(orderProp || null);
-  // const [loading, setLoading] = useState(mode === 'edit');
+  // const [loading, setLoading] = useState(mode === "edit");
   // const [formLoading, setFormLoading] = useState(false);
 
   // const dispatch = useDispatch();
