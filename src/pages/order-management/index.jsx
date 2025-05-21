@@ -98,7 +98,7 @@ const OrderManagement = () => {
     const updatedData = ordersData.map((order) =>
       order.key === updatedOrder.key ? { ...updatedOrder } : order
     );
-
+    console.log(updatedData)
     // Update state
     setOrdersData(updatedData);
 

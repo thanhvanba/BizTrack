@@ -14,7 +14,7 @@ import {
   Descriptions,
   Tag,
   Spin,
-  Alert
+  Alert,
 } from "antd";
 import {
   PlusOutlined,
@@ -38,12 +38,12 @@ const { Option } = Select;
 const { Text } = Typography;
 const { TextArea } = Input;
 
-const OrderFormPage = ({ mode = 'create' }) => {
+const OrderFormPage = ({ mode = "create" }) => {
   const { orderId } = useParams();
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
   const [order, setOrder] = useState(null);
-  const [loading, setLoading] = useState(mode === 'edit');
+  const [loading, setLoading] = useState(mode === "edit");
   const [formLoading, setFormLoading] = useState(false);
 
   const dispatch = useDispatch();
@@ -55,13 +55,12 @@ const OrderFormPage = ({ mode = 'create' }) => {
 
   const [form] = Form.useForm();
   const [selectedProducts, setSelectedProducts] = useState([]);
-  console.log("🚀 ~ OrderFormPage ~ selectedProducts:", selectedProducts)
+  console.log("🚀 ~ OrderFormPage ~ selectedProducts:", selectedProducts);
   const [shippingFee, setShippingFee] = useState(0);
-  console.log("🚀 ~ OrderFormPage ~ shippingFee:", shippingFee)
+  console.log("🚀 ~ OrderFormPage ~ shippingFee:", shippingFee);
   const [orderDiscount, setOrderDiscount] = useState(0);
   const [transferAmount, setTransferAmount] = useState(0);
-  console.log("🚀 ~ OrderFormPage ~ transferAmount:", transferAmount)
-
+  console.log("🚀 ~ OrderFormPage ~ transferAmount:", transferAmount);
   const formatCurrency = (value) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -75,7 +74,7 @@ const OrderFormPage = ({ mode = 'create' }) => {
     dispatch(fetchWarehouses());
     fetchCustomers();
 
-    if (mode === 'edit') {
+    if (mode === "edit") {
       fetchOrderDetails();
     }
   }, [orderId]);
@@ -92,12 +91,12 @@ const OrderFormPage = ({ mode = 'create' }) => {
       setLoading(true);
       // const orderRes = await orderService.getOrderById(orderId);
       const orderRes = await orderDetailService.getOrderDetailById(orderId);
-      console.log("🚀 ~ fetchOrderDetails ~ orderRes:", orderRes)
+      console.log("🚀 ~ fetchOrderDetails ~ orderRes:", orderRes);
       if (orderRes) {
         setOrder(orderRes);
 
         // Parse shipping address
-        const addressParts = orderRes.shipping_address.split(', ');
+        const addressParts = orderRes.shipping_address.split(", ");
         const [address_detail, ward, district, province] = addressParts;
 
         // Format order details for selected products
@@ -107,6 +106,7 @@ const OrderFormPage = ({ mode = 'create' }) => {
           product_name: item.product_name,
           product_retail_price: Number(item.price),
           discount: item.discountAmount || item.discount || 0,
+          order_code: item.order_code,
         }));
 
         setSelectedProducts(formattedProducts);
@@ -127,7 +127,7 @@ const OrderFormPage = ({ mode = 'create' }) => {
           address_detail,
           ward,
           district,
-          province
+          province,
         });
 
         // Fetch products for the warehouse
@@ -155,6 +155,9 @@ const OrderFormPage = ({ mode = 'create' }) => {
 
       const rqOrder = {
         order: {
+          order_id: orderId,
+          order_code: order.order_code,
+          order_status: order.order_status,
           customer_id: values.customer_id,
           order_date: formattedOrderDate,
           order_amount: values.discount_amount,
@@ -167,23 +170,28 @@ const OrderFormPage = ({ mode = 'create' }) => {
         orderDetails: orderDetails,
       };
 
+      console.log(rqOrder);
+
       let res;
-      if (mode === 'create') {
+      if (mode === "create") {
         res = await orderService.createOrderWithDetails(rqOrder);
       } else {
-        res = await orderService.updateOrder(orderId, rqOrder);
+        // res = await orderService.updateOrder(orderId, rqOrder);
+        res = await orderService.updateOrderWithDetail(orderId, rqOrder);
       }
 
       if (res) {
         useToastNotify(
-          `Đơn hàng đã được ${mode === 'create' ? 'thêm' : 'cập nhật'} thành công!`,
+          `Đơn hàng đã được ${
+            mode === "create" ? "thêm" : "cập nhật"
+          } thành công!`,
           "success"
         );
         navigate("/orders");
       }
     } catch (error) {
       useToastNotify(
-        `${mode === 'create' ? 'Thêm' : 'Cập nhật'} đơn hàng không thành công.`,
+        `${mode === "create" ? "Thêm" : "Cập nhật"} đơn hàng không thành công.`,
         "error"
       );
     } finally {
@@ -213,7 +221,7 @@ const OrderFormPage = ({ mode = 'create' }) => {
   };
 
   // Filter products based on search text
-  const filteredProducts = products.filter(product =>
+  const filteredProducts = products.filter((product) =>
     product.product_name.toLowerCase().includes(searchText.toLowerCase())
   );
 
@@ -225,7 +233,10 @@ const OrderFormPage = ({ mode = 'create' }) => {
     );
   };
 
-    console.log("🚀 ~ calculateTotalAmount ~ calculateTotalAmount:", calculateTotalAmount())
+  console.log(
+    "🚀 ~ calculateTotalAmount ~ calculateTotalAmount:",
+    calculateTotalAmount()
+  );
   const calculateDiscountAmount = () => {
     const discountProduct = selectedProducts.reduce(
       (sum, item) => sum + (item.discountAmount || 0),
@@ -234,11 +245,21 @@ const OrderFormPage = ({ mode = 'create' }) => {
     return discountProduct + orderDiscount;
   };
 
-  console.log("🚀 ~ calculateDiscountAmount ~ calculateDiscountAmount:", calculateDiscountAmount())
+  console.log(
+    "🚀 ~ calculateDiscountAmount ~ calculateDiscountAmount:",
+    calculateDiscountAmount()
+  );
   const calculateFinalAmount = () => {
-    return Number(calculateTotalAmount()) - Number(calculateDiscountAmount()) + Number(shippingFee);
+    return (
+      Number(calculateTotalAmount()) -
+      Number(calculateDiscountAmount()) +
+      Number(shippingFee)
+    );
   };
-  console.log("🚀 ~ calculateFinalAmount ~ calculateFinalAmount:", calculateFinalAmount())
+  console.log(
+    "🚀 ~ calculateFinalAmount ~ calculateFinalAmount:",
+    calculateFinalAmount()
+  );
 
   // Add product to order
   const addProduct = (product) => {
@@ -327,10 +348,10 @@ const OrderFormPage = ({ mode = 'create' }) => {
   // Handle warehouse change
   const handleWarehouseChange = (warehouseId) => {
     fetchInventoryByWarehouseId(warehouseId);
-    if (mode === 'create') {
+    if (mode === "create") {
       setSelectedProducts([]);
     }
-    form.setFieldValue('warehouse_id', warehouseId);
+    form.setFieldValue("warehouse_id", warehouseId);
   };
 
   // Product selection table columns
@@ -485,7 +506,8 @@ const OrderFormPage = ({ mode = 'create' }) => {
       align: "right",
       render: (_, record) =>
         formatCurrency(
-          (record.product_retail_price * record.quantity - (record.discountAmount || 0))
+          record.product_retail_price * record.quantity -
+            (record.discountAmount || 0)
         ),
     },
     {
@@ -507,7 +529,7 @@ const OrderFormPage = ({ mode = 'create' }) => {
     return <Spin size="large" className="flex justify-center mt-10" />;
   }
 
-  if (mode === 'edit' && (!order || order.order_status !== "Mới")) {
+  if (mode === "edit" && (!order || order.order_status !== "Mới")) {
     return (
       <div className="p-4">
         <div className="bg-white rounded-lg shadow p-6 text-center">
@@ -531,7 +553,9 @@ const OrderFormPage = ({ mode = 'create' }) => {
     <div className="relative">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-semibold">
-          {mode === 'create' ? 'Tạo đơn hàng mới' : `Chỉnh sửa đơn hàng #${order?.order_code}`}
+          {mode === "create"
+            ? "Tạo đơn hàng mới"
+            : `Chỉnh sửa đơn hàng #${order?.order_code}`}
         </h1>
       </div>
 
@@ -539,8 +563,8 @@ const OrderFormPage = ({ mode = 'create' }) => {
         form={form}
         layout="vertical"
         initialValues={{
-          order_date: mode === 'create' ? null : moment(order?.order_date),
-          warehouse_id: mode === 'edit' ? order?.warehouse_id : null
+          order_date: mode === "create" ? null : moment(order?.order_date),
+          warehouse_id: mode === "edit" ? order?.warehouse_id : null,
         }}
       >
         <div className="grid grid-cols-3 gap-4 mb-10 pb-10">
@@ -558,7 +582,7 @@ const OrderFormPage = ({ mode = 'create' }) => {
                   <Select
                     placeholder="Chọn kho hàng"
                     onChange={handleWarehouseChange}
-                    disabled={mode === 'edit' && selectedProducts.length > 0}
+                    disabled={mode === "edit" && selectedProducts.length > 0}
                   >
                     {warehouses?.map((warehouse) => (
                       <Option
@@ -779,7 +803,9 @@ const OrderFormPage = ({ mode = 'create' }) => {
 
                 <Descriptions.Item label="Sau giảm giá" span={4}>
                   <div style={{ textAlign: "right" }}>
-                    {formatCurrency(calculateTotalAmount() - calculateDiscountAmount())}
+                    {formatCurrency(
+                      calculateTotalAmount() - calculateDiscountAmount()
+                    )}
                   </div>
                 </Descriptions.Item>
 
@@ -863,7 +889,7 @@ const OrderFormPage = ({ mode = 'create' }) => {
             disabled={selectedProducts.length === 0}
             loading={formLoading}
           >
-            {mode === 'create' ? 'Tạo đơn hàng' : 'Cập nhật đơn hàng'}
+            {mode === "create" ? "Tạo đơn hàng" : "Cập nhật đơn hàng"}
           </Button>
         </div>
       </div>
