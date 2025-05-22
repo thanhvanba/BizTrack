@@ -8,6 +8,7 @@ const { Text } = Typography;
 const MultiOrderFormTabs = () => {
   const [panes, setPanes] = useState(() => {
     const saved = localStorage.getItem("orderTabs");
+    console.log("🚀 ~ const[panes,setPanes]=useState ~ saved:", saved)
     return saved ? JSON.parse(saved) : [{ key: "1", title: "Đơn hàng #1", mode: "create", order: null }];
   });
 
@@ -78,11 +79,15 @@ const MultiOrderFormTabs = () => {
     removeTab(key);
   };
 
-  const onOrderChange = (key, updatedOrder) => {
+  const onOrderChange = (key, updatedOrder, updatedSelectedProducts) => {
     setPanes((prev) =>
       prev.map((pane) =>
         pane.key === key
-          ? { ...pane, order: updatedOrder }
+          ? {
+            ...pane,
+            order: updatedOrder,
+            selectedProducts: updatedSelectedProducts || pane.selectedProducts
+          }
           : pane
       )
     );
@@ -104,13 +109,16 @@ const MultiOrderFormTabs = () => {
           </Button>
         }
       >
-        {panes.map(({ key, title, mode, order }) => (
+        {panes.map(({ key, title, mode, order, selectedProducts }) => (
           <Tabs.TabPane tab={title} key={key} closable={panes.length > 1}>
             <OrderFormData
               mode={mode}
               order={order}
+              selectedProducts={selectedProducts}
               onSave={(savedOrder) => onOrderSaved(key, savedOrder)}
-              onChange={(updatedOrder) => onOrderChange(key, updatedOrder)}
+              onChange={(updatedOrder, updatedProducts) =>
+                onOrderChange(key, updatedOrder, updatedProducts)
+              }
             />
           </Tabs.TabPane>
         ))}

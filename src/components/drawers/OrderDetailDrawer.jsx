@@ -12,7 +12,6 @@ import { PrinterOutlined, DownloadOutlined } from "@ant-design/icons";
 import orderDetailService from "../../service/orderDetailService";
 import { useEffect, useState } from "react";
 import useToastNotify from "../../utils/useToastNotify";
-import moment from "moment";
 
 const { Title, Text } = Typography;
 

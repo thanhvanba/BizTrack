@@ -30,21 +30,19 @@ import { fetchWarehouses } from "../../redux/warehouses/warehouses.slice";
 import inventoryService from "../../service/inventoryService";
 import orderService from "../../service/orderService";
 import useToastNotify from "../../utils/useToastNotify";
-import moment from "moment";
 import ShippingAddressForm from "../../components/ShippingAddressForm";
 import orderDetailService from "../../service/orderDetailService";
+import dayjs from "dayjs";
 
 const { Option } = Select;
 const { Text } = Typography;
 const { TextArea } = Input;
 
-const OrderFormData = ({ mode = 'create', order: orderProp, onSave, onChange }) => {
-    console.log("🚀 ~ OrderFormData ~ orderProp:", orderProp)
+const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: selectedProductsProps, onSave, onChange }) => {
     const { orderId } = useParams();
     const [customers, setCustomers] = useState([]);
     const [products, setProducts] = useState([]);
     const [order, setOrder] = useState(orderProp || null);
-    console.log("🚀 ~ OrderFormData ~ order:", order)
     const [loading, setLoading] = useState(mode === 'edit');
     const [formLoading, setFormLoading] = useState(false);
 
@@ -56,7 +54,8 @@ const OrderFormData = ({ mode = 'create', order: orderProp, onSave, onChange }) 
     const [discountTypes, setDiscountTypes] = useState({});
 
     const [form] = Form.useForm();
-    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [selectedProducts, setSelectedProducts] = useState(selectedProductsProps || []);
+
     const [shippingFee, setShippingFee] = useState(0);
     const [orderDiscount, setOrderDiscount] = useState(0);
     const [transferAmount, setTransferAmount] = useState(0);
@@ -80,7 +79,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, onSave, onChange }) 
     }, [orderId]);
 
     useEffect(() => {
-        fetchInventoryByWarehouseId(orderProp.warehouse_id);
+        fetchInventoryByWarehouseId(orderProp?.warehouse_id);
     }, [orderProp?.warehouse_id]);
 
     const fetchCustomers = async () => {
@@ -95,7 +94,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, onSave, onChange }) 
         if (order) {
             form.setFieldsValue({
                 customer_id: order.customer_id,
-                order_date: moment(order.order_date),
+                order_date: dayjs(order.order_date),
                 shipping_fee: order.shipping_fee,
                 discount_amount: order.order_amount,
                 transfer_amount: order.transfer_amount,
@@ -111,8 +110,14 @@ const OrderFormData = ({ mode = 'create', order: orderProp, onSave, onChange }) 
     }, [order]);
 
     const handleValuesChange = (_, allValues) => {
-        onChange?.(allValues); // gọi lên parent để lưu vào panes
+        onChange?.(allValues, selectedProducts);
     };
+    useEffect(() => {
+        if (order) {
+            onChange?.(form.getFieldsValue(), selectedProducts);
+        }
+    }, [selectedProducts]);
+
 
     const fetchOrderDetails = async () => {
         try {
@@ -144,7 +149,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, onSave, onChange }) 
                 // Set form values
                 form.setFieldsValue({
                     customer_id: orderRes.customer.customer_id,
-                    order_date: moment(orderRes.order_date),
+                    order_date: dayjs(orderRes.order_date),
                     shipping_fee: orderRes.shipping_fee,
                     discount_amount: orderRes.order_amount,
                     transfer_amount: orderRes.transfer_amount,
@@ -171,7 +176,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, onSave, onChange }) 
         try {
             setFormLoading(true);
             const values = await form.validateFields();
-            const formattedOrderDate = moment(values.order_date).format("YYYY-MM-DD");
+            const formattedOrderDate = dayjs(values.order_date).format("YYYY-MM-DD");
 
             const orderDetails = selectedProducts.map((item) => ({
                 product_id: item.product_id,
@@ -264,7 +269,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, onSave, onChange }) 
         return discountProduct + orderDiscount;
     };
 
-    const calculateFinalAmount = () => {
+        const calculateFinalAmount = () => {
         return Number(calculateTotalAmount()) - Number(calculateDiscountAmount()) + Number(shippingFee);
     };
 
@@ -354,6 +359,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, onSave, onChange }) 
 
     // Handle warehouse change
     const handleWarehouseChange = (warehouseId) => {
+        console.log('change')
         fetchInventoryByWarehouseId(warehouseId);
         if (mode === 'create') {
             setSelectedProducts([]);
@@ -568,7 +574,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, onSave, onChange }) 
                 layout="vertical"
                 onValuesChange={handleValuesChange}
                 initialValues={{
-                    order_date: mode === 'create' ? null : moment(order?.order_date),
+                    order_date: mode === 'create' ? null : dayjs(order?.order_date),
                     warehouse_id: mode === 'edit' ? order?.warehouse_id : null
                 }}
             >
