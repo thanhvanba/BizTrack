@@ -121,10 +121,8 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         }
     }, [orderId]);
 
-    useEffect(() => {
-        fetchInventoryByWarehouseId(orderProp?.warehouse_id);
-    }, [orderProp?.warehouse_id]);
 
+    // Call api
     const fetchCustomers = async () => {
         try {
             setLoading(true);
@@ -136,34 +134,26 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
             setLoading(false);
         }
     };
-
-    // Nếu có dữ liệu order ban đầu thì set form
-    useEffect(() => {
-        if (order) {
-            form.setFieldsValue({
-                customer_id: order?.customer?.customer_id,
-                order_date: dayjs(order?.order_date),
-                shipping_fee: order?.shipping_fee,
-                discount_amount: order?.order_amount,
-                transfer_amount: order?.transfer_amount,
-                payment_method: order?.payment_method,
-                note: order?.note,
-                warehouse_id: order?.warehouse_id,
-                shipping_address: order?.shipping_address,
-            });
+    const fetchInventoryByWarehouseId = async (warehouseId) => {
+        const res = await inventoryService.getInventoryByWarehouseId(warehouseId);
+        if (res && res.data) {
+            setProducts(res.data);
         }
-    }, [order]);
-
-    const handleValuesChange = (_, allValues) => {
-        onChange?.(allValues, selectedProducts);
     };
-    useEffect(() => {
-        if (selectedProducts.length !== 0) {
-            onChange?.(form.getFieldsValue(), selectedProducts);
+    const handleCreateCustomer = async (data) => {
+        try {
+            const res = await customerService.createCustomer(data);
+            setCustomers([...customers, res?.data]);
+            setCreateModalVisible(false);
+            useToastNotify(
+                `Khách hàng "${data.customer_name}" đã được thêm thành công!`,
+                "success"
+            );
+        } catch (error) {
+            useToastNotify("Thêm khách hàng không thành công.", "error");
         }
-    }, [selectedProducts]);
-
-
+    };
+    // Sử dụng cho edit
     const fetchOrderDetails = async () => {
         try {
             setLoading(true);
@@ -192,7 +182,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                     customer_id: orderRes.customer.customer_id,
                     order_date: dayjs(orderRes.order_date),
                     shipping_fee: orderRes.shipping_fee,
-                    discount_amount: orderRes.order_amount,
+                    order_amount: orderRes.order_amount,
                     transfer_amount: orderRes.transfer_amount,
                     payment_method: orderRes.payment_method,
                     note: orderRes.note,
@@ -209,6 +199,39 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
             setLoading(false);
         }
     };
+
+
+    // Sử dụng cho tạo nhiều đơn hàng
+    useEffect(() => {
+        if (orderProp) {
+            form.setFieldsValue({
+                customer_id: orderProp?.customer_id,
+                order_date: dayjs(orderProp?.order_date),
+                shipping_fee: orderProp?.shipping_fee,
+                order_amount: orderProp?.order_amount,
+                transfer_amount: orderProp?.transfer_amount,
+                payment_method: orderProp?.payment_method,
+                note: orderProp?.note,
+                warehouse_id: orderProp?.warehouse_id,
+                shipping_address: orderProp?.shipping_address,
+            });
+        }
+    }, [orderProp]);
+
+    useEffect(() => {
+        fetchInventoryByWarehouseId(orderProp?.warehouse_id);
+    }, [orderProp?.warehouse_id]);
+
+    const handleValuesChange = (_, allValues) => {
+        onChange?.(allValues, selectedProducts);
+    };
+    useEffect(() => {
+        if (selectedProducts.length !== 0) {
+            onChange?.(form.getFieldsValue(), selectedProducts);
+        }
+    }, [selectedProducts]);
+
+
 
     const handleSubmitOrder = async () => {
         try {
@@ -227,7 +250,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                 order: {
                     customer_id: values.customer_id,
                     order_date: formattedOrderDate,
-                    order_amount: values.discount_amount,
+                    order_amount: values.order_amount,
                     shipping_address: values.shipping_address,
                     shipping_fee: values.shipping_fee,
                     payment_method: values.payment_method,
@@ -242,6 +265,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                 res = await orderService.createOrderWithDetails(rqOrder);
             } else {
                 res = await orderService.updateOrderWithDetail(orderId, rqOrder);
+                navigate('/orders')
             }
 
             if (onSave) {
@@ -266,33 +290,11 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         }
     };
 
-    const fetchInventoryByWarehouseId = async (warehouseId) => {
-        const res = await inventoryService.getInventoryByWarehouseId(warehouseId);
-        if (res && res.data) {
-            setProducts(res.data);
-        }
-    };
-
-    const handleCreateCustomer = async (data) => {
-        try {
-            const res = await customerService.createCustomer(data);
-            setCustomers([...customers, res?.data]);
-            setCreateModalVisible(false);
-            useToastNotify(
-                `Khách hàng "${data.customer_name}" đã được thêm thành công!`,
-                "success"
-            );
-        } catch (error) {
-            useToastNotify("Thêm khách hàng không thành công.", "error");
-        }
-    };
-
-    // Filter products based on search text
+    // xử lý form
     const filteredProducts = products.filter((product) =>
         product.product_name.toLowerCase().includes(searchText.toLowerCase())
     );
 
-    // Calculate totals
     const calculateTotalAmount = () => {
         return selectedProducts.reduce(
             (sum, item) => sum + item.product_retail_price * item.quantity,
@@ -316,7 +318,6 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         );
     };
 
-    // Add product to order
     const addProduct = (product) => {
         const existingProduct = selectedProducts.find(
             (item) => item.product_id === product.product_id
@@ -338,14 +339,12 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         }
     };
 
-    // Remove product from order
     const removeProduct = (productId) => {
         setSelectedProducts(
             selectedProducts.filter((item) => item.product_id !== productId)
         );
     };
 
-    // Update product quantity
     const updateQuantity = (productId, quantity) => {
         if (quantity > 0) {
             setSelectedProducts(
@@ -368,7 +367,6 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         }
     };
 
-    // Update product discount
     const updateDiscount = (productId, discount, type) => {
         setSelectedProducts((prev) =>
             prev.map((item) => {
@@ -400,7 +398,6 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         }
     };
 
-    // Handle warehouse change
     const handleWarehouseChange = (warehouseId) => {
         console.log('change')
         fetchInventoryByWarehouseId(warehouseId);
@@ -617,10 +614,10 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                 form={form}
                 layout="vertical"
                 onValuesChange={handleValuesChange}
-                initialValues={{
-                    order_date: mode === 'create' ? null : dayjs(order?.order_date),
-                    warehouse_id: mode === 'edit' ? order?.warehouse_id : null
-                }}
+            // initialValues={{
+            //     order_date: mode === 'create' ? null : dayjs(order?.order_date),
+            //     warehouse_id: mode === 'edit' ? order?.warehouse_id : null
+            // }}
             >
                 <div className="grid grid-cols-3 gap-4 mb-10 pb-10">
                     <div className="col-span-2">
@@ -704,22 +701,22 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                                         placeholder="Chọn khách hàng"
                                         variant="filled"
                                         showSearch
-                                        optionFilterProp="children"
+                                        optionFilterProp="label"
                                         filterOption={(input, option) =>
-                                            option.children
-                                                .toLowerCase()
-                                                .indexOf(input.toLowerCase()) >= 0
+                                            option?.label?.toLowerCase().includes(input.toLowerCase())
                                         }
                                     >
                                         {customers?.map((customer) => (
                                             <Option
                                                 key={customer.customer_id}
                                                 value={customer.customer_id}
+                                                label={`${customer.customer_name} - ${customer.phone}`}
                                             >
                                                 {customer.customer_name} - {customer.phone}
                                             </Option>
                                         ))}
                                     </Select>
+
                                 </Form.Item>
                                 <Button
                                     type="primary"
@@ -799,7 +796,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                                     />
                                 </Form.Item>
 
-                                <Form.Item name="discount_amount" label="Giảm giá đơn hàng">
+                                <Form.Item name="order_amount" label="Giảm giá đơn hàng">
                                     <InputNumber
                                         variant="filled"
                                         addonAfter="₫"

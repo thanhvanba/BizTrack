@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Tabs, Button, Typography, Tag } from "antd";
+import { Tabs, Button } from "antd";
 import OrderFormData from "./OrderFormData";
 import { PlusOutlined } from "@ant-design/icons";
-
-const { Text } = Typography;
+import { useNavigate } from "react-router-dom";
 
 const MultiOrderFormTabs = () => {
+  const navigate = useNavigate()
+  const [shouldClearStorage, setShouldClearStorage] = useState(false);
+
   const [panes, setPanes] = useState(() => {
     const saved = localStorage.getItem("orderTabs");
     console.log("🚀 ~ const[panes,setPanes]=useState ~ saved:", saved)
@@ -23,10 +25,13 @@ const MultiOrderFormTabs = () => {
 
   // Ghi localStorage khi thay đổi panes, activeKey hoặc orderCount
   useEffect(() => {
+    if (shouldClearStorage) return; // Dừng khi cần clear
+
     localStorage.setItem("orderTabs", JSON.stringify(panes));
     localStorage.setItem("activeOrderTab", activeKey);
     localStorage.setItem("orderTabCount", orderCount.toString());
-  }, [panes, activeKey, orderCount]);
+  }, [panes, activeKey, orderCount, shouldClearStorage]);
+
 
   const addTab = () => {
     const newKey = (orderCount + 1).toString();
@@ -61,6 +66,9 @@ const MultiOrderFormTabs = () => {
   // Khi order mới được lưu (ví dụ trả về order có mã order_code),
   // ta có thể cập nhật tab tương ứng (ví dụ đổi tên tab sang mã order)
   const onOrderSaved = (key, savedOrder) => {
+    console.log("🚀 ~ onOrderSaved ~ onOrderSaved:", onOrderSaved)
+    const test = JSON.parse(localStorage.getItem("orderTabs") || "[]");
+    console.log("🚀 ~ onOrderSaved ~ test:", test.length)
     setPanes((prev) =>
       prev.map((pane) =>
         pane.key === key
@@ -77,9 +85,18 @@ const MultiOrderFormTabs = () => {
     );
 
     removeTab(key);
+    console.log("🚀 ~ onOrderSaved ~ orderCount:", orderCount)
+    if (Array.isArray(test) && test.length === 1) {
+      setShouldClearStorage(true);
+      localStorage.removeItem("orderTabs");
+      localStorage.removeItem("activeOrderTab");
+      localStorage.removeItem("orderTabCount");
+      navigate('/orders');
+    }
   };
 
   const onOrderChange = (key, updatedOrder, updatedSelectedProducts) => {
+    console.log("🚀 ~ onOrderChange ~ onOrderChange:", onOrderChange)
     setPanes((prev) =>
       prev.map((pane) =>
         pane.key === key
