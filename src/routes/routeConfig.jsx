@@ -14,8 +14,8 @@ export const privateRoutes = [
   { path: '', element: <Dashboard /> }, // index route
   { path: 'dashboard', element: <Dashboard /> },
   { path: 'orders', element: <OrderManagement /> },
-  { path: 'create-order', element: <OrderFormPage mode="create" /> },
-  { path: 'edit-order/:orderId', element: <OrderFormPage mode="edit" /> },
+  { path: 'create-order', element: <OrderFormPage /> },
+  { path: 'edit-order/:orderId', element: <OrderFormPage/> },
   { path: 'products', element: <ProductManagement /> },
   { path: 'product-category', element: <ProductCategory /> },
   { path: 'revenue', element: <RevenueTracking /> },
