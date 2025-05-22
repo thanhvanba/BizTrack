@@ -1,5 +1,5 @@
-import { WAREHOUSES_URL } from '../apiUrl';
-import axiosService from '../axiosService';
+import { WAREHOUSES_URL } from "../apiUrl";
+import axiosService from "../axiosService";
 
 const warehouseService = {
   getAllWarehouses: async () => {
@@ -11,42 +11,51 @@ const warehouseService = {
       .catch(error => { throw error; });
   },
 
+
   getWarehouseById: async (id) => {
     return axiosService()({
       url: `${WAREHOUSES_URL}/${id}`,
-      method: 'GET',
+      method: "GET",
     })
-      .then(res => res.data)
-      .catch(error => { throw error; });
+      .then((res) => res.data)
+      .catch((error) => {
+        throw error;
+      });
   },
 
   createWarehouse: async (data) => {
     return axiosService()({
       url: WAREHOUSES_URL,
-      method: 'POST',
+      method: "POST",
       data,
     })
-      .then(res => res.data)
-      .catch(error => { throw error; });
+      .then((res) => res.data)
+      .catch((error) => {
+        throw error;
+      });
   },
 
   updateWarehouse: async (id, data) => {
     return axiosService()({
       url: `${WAREHOUSES_URL}/${id}`,
-      method: 'PUT',
+      method: "PUT",
       data,
     })
-      .then(res => res.data)
-      .catch(error => { throw error; });
+      .then((res) => res.data)
+      .catch((error) => {
+        throw error;
+      });
   },
 
   deleteWarehouse: async (id) => {
     return axiosService()({
       url: `${WAREHOUSES_URL}/${id}`,
-      method: 'DELETE',
+      method: "DELETE",
     })
-      .then(res => res.data)
-      .catch(error => { throw error; });
+      .then((res) => res.data)
+      .catch((error) => {
+        throw error;
+      });
   },
 };
 
