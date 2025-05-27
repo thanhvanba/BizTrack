@@ -5,11 +5,12 @@ import useToastNotify from "../../utils/useToastNotify"
 import customerService from "../../service/customerService"
 import CustomerModal from "../../components/modals/CustomerModal"
 import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal"
+import { debounce } from "lodash"
+import searchService from "../../service/searchService"
 
 const { Title } = Typography
 
 const CustomerManagement = () => {
-  const [searchText, setSearchText] = useState("")
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(false)
   const [createModalVisible, setCreateModalVisible] = useState(false)
@@ -25,6 +26,20 @@ const CustomerManagement = () => {
       useToastNotify("Không thể tải danh sách khách hàng.", "error")
     }
   }
+
+  const handleSearch = debounce(async (value) => {
+    if (!value) {
+      fetchCustomers(); // gọi lại toàn bộ đơn hàng
+      return;
+    }
+    try {
+      const response = await searchService.searchCustomerByPhone(value);
+      const data = response.data || [];
+      setCustomers(data.map(customer => ({ ...customer, key: customer?.customer_id, })));
+    } catch (error) {
+      useToastNotify("Không thể tìm thấy khách hàng theo số điện thoại.", 'error');
+    }
+  }, 500);
 
   useEffect(() => {
     fetchCustomers()
@@ -60,19 +75,13 @@ const CustomerManagement = () => {
       setSelectedCustomer(null)
       fetchCustomers()
       useToastNotify(`Đã xóa khách hàng "${selectedCustomer.customer_name}" thành công!`, "success")
-    } catch(err) {
+    } catch (err) {
       console.log("🚀 ~ handleDeleteCustomer ~ err:", err)
       useToastNotify("Xóa khách hàng không thành công.", "error")
     } finally {
       setLoading(false)
     }
   }
-
-  const filteredData = customers.filter((c) =>
-    [c.customer_name, c.email, c.phone].some(field =>
-      field?.toLowerCase().includes(searchText.toLowerCase())
-    )
-  )
 
   const columns = [
     {
@@ -187,17 +196,17 @@ const CustomerManagement = () => {
       >
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <Input
-            placeholder="Tìm theo tên, email hoặc số điện thoại"
+            placeholder="Tìm kiếm theo số điện thoại"
             prefix={<SearchOutlined />}
             allowClear
-            onChange={(e) => setSearchText(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="md:max-w-md"
           />
         </div>
 
         <Table
           columns={columns}
-          dataSource={filteredData}
+          dataSource={customers}
           pagination={{ pageSize: 5, showSizeChanger: true }}
           rowClassName="hover:bg-gray-50 transition-colors"
           scroll={{ x: "max-content" }}

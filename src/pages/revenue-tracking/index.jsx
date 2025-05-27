@@ -12,6 +12,9 @@ import {
   Tooltip,
   Legend,
 } from "chart.js"
+import OptionsStatistics from "../../components/OptionsStatistics"
+import { useEffect, useState } from "react"
+import analysisService from "../../service/analysisService"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, Tooltip, Legend)
 
@@ -19,6 +22,75 @@ const { Title: TitleTypography } = Typography
 const { TabPane } = Tabs
 
 const RevenueTracking = () => {
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
+
+  const [selectedOptions, setSelectedOptions] = useState('day');
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [selectedQuarter, setSelectedQuarter] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+
+  const handleSelectOptions = (value) => {
+    if (value !== selectedOptions) {
+      setSelectedOptions(value);
+
+      if (value === 'month') {
+        setSelectedMonth(currentMonth);
+        setSelectedYear(currentYear);
+      } else if (value === 'year') {
+        setSelectedYear(currentYear);
+      } else if (value === 'quarter') {
+        setSelectedQuarter(null);
+        setSelectedYear(currentYear);
+      } else if (value === 'range') {
+        setSelectedDate(null); // chỉ reset nếu chuyển từ loại khác sang "range"
+      }
+    }
+  }
+
+  const handleDateChange = (date, dateString) => {
+    setSelectedDate(date);
+    if (selectedOptions === "range") {
+      console.log("Từ:", dateString[0], "Đến:", dateString[1]);
+    } else if (selectedOptions === 'day') {
+      console.log("Ngày:", dateString);
+    } else if (selectedOptions === 'month') {
+      const [year, month] = dateString.split('-');
+      setSelectedYear(Number(year));
+      setSelectedMonth(Number(month));
+      console.log("Tháng:", month, "Năm:", year);
+    } else if (selectedOptions === 'quarter') {
+      const [year, q] = dateString.split('-');
+      const quarter = Number(q.replace('Q', ''));
+      setSelectedYear(Number(year));
+      setSelectedQuarter(quarter);
+      setSelectedMonth(quarter * 3 - 2);
+      console.log("Quý:", quarter, "Năm:", year);
+    } else if (selectedOptions === 'year') {
+      setSelectedYear(Number(dateString));
+      console.log("Năm:", dateString);
+    }
+  };
+
+  const handleStatistic = () => {
+    console.log("Thống kê theo:", selectedOptions);
+    if (selectedOptions === 'range') {
+      const [start, end] = selectedDate || [];
+      console.log("Từ ngày:", start?.format('YYYY-MM-DD'), "đến ngày:", end?.format('YYYY-MM-DD'));
+    } else if (selectedOptions === 'day') {
+      console.log("Ngày được chọn:", selectedDate?.format('YYYY-MM-DD'));
+    } else if (selectedOptions === 'month') {
+      console.log("Tháng:", selectedMonth, "Năm:", selectedYear);
+    } else if (selectedOptions === 'quarter') {
+      console.log("Quý:", selectedQuarter, "Năm:", selectedYear);
+    } else if (selectedOptions === 'year') {
+      console.log("Năm:", selectedYear);
+    }
+
+    // TODO: Call API thống kê ở đây nếu cần
+  };
+
   // Line chart data
   const lineData = {
     labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6"],
@@ -183,120 +255,117 @@ const RevenueTracking = () => {
     },
   }
 
+  useEffect(() => {
+    const handelGetDataRevenue = async () => {
+      const res = await analysisService.getRevenueByTimePeriod()
+      console.log("🚀 ~ handelGetDataRevenue ~ res:", res)
+      const ress = await analysisService.getInvoicesWithFilters()
+      console.log("🚀 ~ handelGetDataRevenue ~ ress:", ress)
+      const ress1 = await analysisService.getPayablePurchaseOrders()
+      console.log("🚀 ~ handelGetDataRevenue ~ ress1:", ress1)
+      const ress2 = await analysisService.getReceivableOrders()
+      console.log("🚀 ~ handelGetDataRevenue ~ ress2:", ress2)
+      const ress3 = await analysisService.getOutstandingDebt()
+      console.log("🚀 ~ handelGetDataRevenue ~ ress3:", ress3)
+    }
+    handelGetDataRevenue()
+  }, [])
   return (
     <div>
       <TitleTypography level={2} className="text-xl md:text-2xl font-bold m-0 text-gray-800">
         Doanh thu
       </TitleTypography>
-      <Tabs defaultActiveKey="monthly" className="mb-4 md:mb-6 custom-tabs" type="card">
-        <TabPane tab="Theo tháng" key="monthly">
-          <Row gutter={[12, 12]} className="mb-4 md:mb-6">
-            <Col xs={24} sm={8}>
-              <Card
-                className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-                bodyStyle={{ padding: "16px" }}
-              >
-                <div className="flex flex-col">
-                  <p className="text-xs md:text-sm text-gray-500 mb-0 md:mb-1">Tổng doanh thu</p>
-                  <p className="text-base md:text-2xl font-bold text-gray-800 leading-tight">152.000.000 ₫</p>
-                  <div className="flex items-center text-xs text-green-600 mt-1 md:mt-2">
-                    <ArrowUpOutlined />
-                    <span className="ml-1 text-[10px] md:text-xs">20.1% so với tháng trước</span>
-                  </div>
-                </div>
-              </Card>
-            </Col>
-            <Col xs={24} sm={8}>
-              <Card
-                className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-                bodyStyle={{ padding: "16px" }}
-              >
-                <div className="flex flex-col">
-                  <p className="text-xs md:text-sm text-gray-500 mb-0 md:mb-1">Lợi nhuận</p>
-                  <p className="text-base md:text-2xl font-bold text-gray-800 leading-tight">57.000.000 ₫</p>
-                  <div className="flex items-center text-xs text-green-600 mt-1 md:mt-2">
-                    <ArrowUpOutlined />
-                    <span className="ml-1 text-[10px] md:text-xs">15.3% so với tháng trước</span>
-                  </div>
-                </div>
-              </Card>
-            </Col>
-            <Col xs={24} sm={8}>
-              <Card
-                className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-                bodyStyle={{ padding: "16px" }}
-              >
-                <div className="flex flex-col">
-                  <p className="text-xs md:text-sm text-gray-500 mb-0 md:mb-1">Đơn hàng</p>
-                  <p className="text-base md:text-2xl font-bold text-gray-800 leading-tight">573</p>
-                  <div className="flex items-center text-xs text-blue-600 mt-1 md:mt-2">
-                    <span className="text-[10px] md:text-xs">+54 so với tháng trước</span>
-                  </div>
-                </div>
-              </Card>
-            </Col>
-          </Row>
 
-          <Row gutter={[12, 12]}>
-            <Col xs={24} lg={12}>
-              <Card
-                title={<span className="text-gray-800 font-bold text-base md:text-lg">Doanh thu theo tháng</span>}
-                className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-                headStyle={{
-                  borderBottom: "1px solid #f0f0f0",
-                  padding: "12px 16px",
-                }}
-                bodyStyle={{ padding: "16px" }}
-              >
-                <div style={{ height: "250px", minHeight: "250px" }}>
-                  <Line data={lineData} options={chartOptions} />
-                </div>
-              </Card>
-            </Col>
-            <Col xs={24} lg={12}>
-              <Card
-                title={<span className="text-gray-800 font-bold text-base md:text-lg">Doanh thu theo danh mục</span>}
-                className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300 mt-4 lg:mt-0"
-                headStyle={{
-                  borderBottom: "1px solid #f0f0f0",
-                  padding: "12px 16px",
-                }}
-                bodyStyle={{ padding: "16px" }}
-              >
-                <div style={{ height: "250px", minHeight: "250px" }}>
-                  <Pie data={pieData} options={pieOptions} />
-                </div>
-              </Card>
-            </Col>
-          </Row>
-        </TabPane>
-        <TabPane tab="Theo quý" key="quarterly">
+      <OptionsStatistics
+        selectedOptions={selectedOptions}
+        selectedYear={selectedYear}
+        selectedMonth={selectedMonth}
+        selectedDate={selectedDate}
+        selectedQuarter={selectedQuarter}
+        onSelectOptions={handleSelectOptions}
+        onDateChange={handleDateChange}
+        onStatistic={handleStatistic}
+      />
+
+      <Row gutter={[12, 12]} className="my-4 md:my-6">
+        <Col xs={24} sm={8}>
           <Card
             className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
             bodyStyle={{ padding: "16px" }}
           >
-            <div className="text-center py-8 md:py-12 text-gray-500 flex flex-col items-center justify-center">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                <span className="text-blue-500 text-xl md:text-2xl">Q</span>
+            <div className="flex flex-col">
+              <p className="text-xs md:text-sm text-gray-500 mb-0 md:mb-1">Tổng doanh thu</p>
+              <p className="text-base md:text-2xl font-bold text-gray-800 leading-tight">152.000.000 ₫</p>
+              <div className="flex items-center text-xs text-green-600 mt-1 md:mt-2">
+                <ArrowUpOutlined />
+                <span className="ml-1 text-[10px] md:text-xs">20.1% so với tháng trước</span>
               </div>
-              <p className="text-base md:text-lg">Dữ liệu doanh thu theo quý sẽ được hiển thị ở đây</p>
             </div>
           </Card>
-        </TabPane>
-        <TabPane tab="Theo năm" key="yearly">
+        </Col>
+        <Col xs={24} sm={8}>
           <Card
             className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
             bodyStyle={{ padding: "16px" }}
           >
-            <div className="text-center py-8 md:py-12 text-gray-500 flex flex-col items-center justify-center">
-              <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                <span className="text-blue-500 text-xl md:text-2xl">Y</span>
+            <div className="flex flex-col">
+              <p className="text-xs md:text-sm text-gray-500 mb-0 md:mb-1">Lợi nhuận</p>
+              <p className="text-base md:text-2xl font-bold text-gray-800 leading-tight">57.000.000 ₫</p>
+              <div className="flex items-center text-xs text-green-600 mt-1 md:mt-2">
+                <ArrowUpOutlined />
+                <span className="ml-1 text-[10px] md:text-xs">15.3% so với tháng trước</span>
               </div>
-              <p className="text-base md:text-lg">Dữ liệu doanh thu theo năm sẽ được hiển thị ở đây</p>
             </div>
           </Card>
-        </TabPane>
-      </Tabs>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card
+            className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
+            bodyStyle={{ padding: "16px" }}
+          >
+            <div className="flex flex-col">
+              <p className="text-xs md:text-sm text-gray-500 mb-0 md:mb-1">Đơn hàng</p>
+              <p className="text-base md:text-2xl font-bold text-gray-800 leading-tight">573</p>
+              <div className="flex items-center text-xs text-blue-600 mt-1 md:mt-2">
+                <span className="text-[10px] md:text-xs">+54 so với tháng trước</span>
+              </div>
+            </div>
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={[12, 12]}>
+        <Col xs={24} lg={12}>
+          <Card
+            title={<span className="text-gray-800 font-bold text-base md:text-lg">Doanh thu theo tháng</span>}
+            className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
+            headStyle={{
+              borderBottom: "1px solid #f0f0f0",
+              padding: "12px 16px",
+            }}
+            bodyStyle={{ padding: "16px" }}
+          >
+            <div style={{ height: "250px", minHeight: "250px" }}>
+              <Line data={lineData} options={chartOptions} />
+            </div>
+          </Card>
+        </Col>
+        <Col xs={24} lg={12}>
+          <Card
+            title={<span className="text-gray-800 font-bold text-base md:text-lg">Doanh thu theo danh mục</span>}
+            className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300 mt-4 lg:mt-0"
+            headStyle={{
+              borderBottom: "1px solid #f0f0f0",
+              padding: "12px 16px",
+            }}
+            bodyStyle={{ padding: "16px" }}
+          >
+            <div style={{ height: "250px", minHeight: "250px" }}>
+              <Pie data={pieData} options={pieOptions} />
+            </div>
+          </Card>
+        </Col>
+      </Row>
     </div>
   )
 }

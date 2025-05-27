@@ -24,12 +24,14 @@ import OrderDetailDrawer from "../../components/drawers/OrderDetailDrawer";
 import { useNavigate } from "react-router-dom";
 import orderService from "../../service/orderService";
 import './index.css'
+import searchService from "../../service/searchService";
+import { debounce } from "lodash";
+import useToastNotify from "../../utils/useToastNotify";
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
 
 const OrderManagement = () => {
-  const [searchText, setSearchText] = useState("");
   const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -49,6 +51,20 @@ const OrderManagement = () => {
       useToastNotify("Không thể tải danh sách sản phẩm.", "error");
     }
   };
+  const handleSearch = debounce(async (value) => {
+    if (!value) {
+      fetchOrders(); // gọi lại toàn bộ đơn hàng
+      return;
+    }
+    try {
+      const response = await searchService.searchOrdersByPhone(value);
+      const data = response.data || [];
+      setOrdersData(data.map(order => ({ ...order, key: order.order_id })));
+    } catch (error) {
+      useToastNotify("Không thể tìm đơn hàng theo số điện thoại.", 'error');
+    }
+  }, 500);
+
   const updateOrderStatus = async (orderId, order_status) => {
     const data = { order_status };
     try {
@@ -67,9 +83,9 @@ const OrderManagement = () => {
   // Filter data based on search text and status
   const filteredData = (ordersData || []).filter(
     (item) =>
-      (item.order_id?.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.order_code?.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.customer?.toLowerCase().includes(searchText.toLowerCase()))
+    (item.order_id?.toLowerCase() ||
+      item.order_code?.toLowerCase() ||
+      item.customer?.toLowerCase())
   );
   // Format price
   const formatPrice = (price) => {
@@ -122,7 +138,7 @@ const OrderManagement = () => {
       dataIndex: "order_date",
       key: "order_date",
       sorter: (a, b) => new Date(a.order_date) - new Date(b.order_date),
-      render: (date) => new Date(date).toLocaleDateString("vi-VN"), // hoặc định dạng tùy ý
+      render: (date) => new Date(date).toLocaleDateString("vi-VN"),
       responsive: ["md"],
     },
     {
@@ -149,6 +165,22 @@ const OrderManagement = () => {
       key: "final_amount",
       render: (final) => formatPrice(final),
       sorter: (a, b) => a.final_amount - b.final_amount,
+      align: "right",
+    },
+
+    {
+      title: "Ngày tạo",
+      dataIndex: "created_at",
+      key: "created_at",
+      sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
+      render: (date) => new Date(date).toLocaleString("vi-VN"),
+    },
+    {
+      title: "Chỉnh sửa gần nhất",
+      dataIndex: "updated_at",
+      key: "updated_at",
+      sorter: (a, b) => new Date(a.updated_at) - new Date(b.updated_at),
+      render: (date) => new Date(date).toLocaleString("vi-VN"),
       align: "right",
     },
     {
@@ -301,9 +333,9 @@ const OrderManagement = () => {
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1 w-full">
             <Input
-              placeholder="Tìm kiếm theo mã đơn hàng, tên khách hàng..."
+              placeholder="Tìm kiếm theo số điện thoại khách hàng"
               prefix={<SearchOutlined className="text-gray-400" />}
-              onChange={(e) => setSearchText(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
               allowClear
               className="md:max-w-md"
             />

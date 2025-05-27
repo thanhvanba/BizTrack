@@ -28,7 +28,7 @@ export const PURCHASE_ORDERS_URL = `${API_URL}/purchase-orders`;
 export const WAREHOUSES_URL = `${API_URL}/warehouses`;
 
 // INVENTORY URL
-export const INVENTORY_URL =  `${API_URL}/inventories`;
+export const INVENTORY_URL = `${API_URL}/inventories`;
 
 // CUSTOMER URL
 export const CUSTOMERS_URL = `${API_URL}/customers`;
@@ -38,3 +38,9 @@ export const ORDERS_URL = `${API_URL}/orders`;
 
 // ORDER DETAIL URL
 export const ORDERS_DETAIL_URL = `${API_URL}/order-details`;
+
+// ANALYSIS URL
+export const ANALYSIS_URL = `${API_URL}/analysis`;
+
+// SEARCH URL
+export const SEARCH_URL = `${API_URL}/search`;

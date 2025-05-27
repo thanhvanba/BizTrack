@@ -7,6 +7,8 @@ import productService from "../../service/productService"
 import categoryService from "../../service/categoryService"
 import ProductModal from "../../components/modals/ProductModal"
 import useToastNotify from "../../utils/useToastNotify"
+import searchService from "../../service/searchService"
+import { debounce } from "lodash"
 
 const { Title } = Typography
 const { Option } = Select
@@ -44,6 +46,19 @@ const ProductManagement = () => {
       useToastNotify("Không thể tải danh sách danh mục.", 'error')
     }
   }
+  const handleSearch = debounce(async (value) => {
+    if (!value) {
+      fetchProducts(); // gọi lại toàn bộ đơn hàng
+      return;
+    }
+    try {
+      const response = await searchService.searchProductsByName(value);
+      const data = response.data || [];
+      setProductsData(data.map(product => ({ ...product, key: product.product_id, })));
+    } catch (error) {
+      useToastNotify("Không thể tìm sản phẩm.", 'error');
+    }
+  }, 500);
   useEffect(() => {
     fetchProducts()
     fetchCategories()
@@ -53,8 +68,8 @@ const ProductManagement = () => {
   const filteredData = productsData.filter(
     (item) =>
       (categoryFilter === "all" || item.category_id === categoryFilter) &&
-      (item.product_name?.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.product_barcode?.toLowerCase().includes(searchText.toLowerCase()))
+      (item.product_name?.toLowerCase() ||
+        item.product_barcode?.toLowerCase())
   )
 
   const formatPrice = (price) => {
@@ -273,9 +288,9 @@ const ProductManagement = () => {
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1 w-full">
             <Input
-              placeholder="Tìm kiếm sản phẩm theo tên hoặc mã vạch..."
+              placeholder="Tìm kiếm sản phẩm theo tên"
               prefix={<SearchOutlined className="text-gray-400" />}
-              onChange={(e) => setSearchText(e.target.value)}
+              onChange={(e) => handleSearch(e.target.value)}
               allowClear
               className="md:max-w-md"
             />
