@@ -232,7 +232,7 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
               style={{ width: "100%" }}
               status={errors.warehouse_id ? "error" : ""}
             >
-              {warehouses.map((w) => (
+              {warehouses?.map((w) => (
                 <Option key={w.warehouse_id} value={w.warehouse_id}>
                   {w.warehouse_name}
                 </Option>

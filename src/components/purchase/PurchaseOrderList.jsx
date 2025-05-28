@@ -1,102 +1,82 @@
-import { useState } from "react"
-import { Table, Button, Input, Tag, Space, Modal } from "antd"
-import { useSelector } from "react-redux"
-import purchaseOrderService from "../../service/purchaseService"
-import PurchaseOrderDetail from "./PurchaseOrderDetail"
-
-const { Search } = Input
+import { useState } from "react";
+import { Table, Tag, Input, Button, Modal } from "antd";
+import { SearchOutlined, PlusOutlined } from "@ant-design/icons";
+import { useSelector } from "react-redux";
+import PurchaseOrderDetail from "./PurchaseOrderDetail";
+import purchaseOrderService from "../../service/purchaseService";
 
 export default function PurchaseOrderList({ purchaseOrders, onEdit, onApprove, onCreateNew }) {
-  const warehouses = useSelector(state => state.warehouse.warehouses.data)
-  const [searchText, setSearchText] = useState("")
-  const [detailVisible, setDetailVisible] = useState(false)
-  const [selectedOrder, setSelectedOrder] = useState(null)
+  const mockWarehouses = useSelector(state => state.warehouse.warehouses.data);
+  const warehouseMap = new Map(
+    mockWarehouses?.map(wh => [wh.warehouse_id, wh.warehouse_name])
+  );
 
-  const warehouseMap = new Map(warehouses.map(w => [w.warehouse_id, w.warehouse_name]))
+  const [searchText, setSearchText] = useState("");
+  const [detailVisible, setDetailVisible] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   const handleViewDetail = async (id) => {
-    const res = await purchaseOrderService.getPurchaseOrderDetail(id)
-    if (res?.data) {
-      const warehouse = warehouses.find(w => w.warehouse_id === res.data.warehouse_id)
-      setSelectedOrder({
+    const res = await purchaseOrderService.getPurchaseOrderDetail(id);
+
+    if (res && res.data) {
+      const warehouse = mockWarehouses.find(w => w.warehouse_id === res.data.warehouse_id);
+      const dataWithWarehouseName = {
         ...res.data,
-        warehouse_name: warehouse ? warehouse.warehouse_name : "Không rõ",
-      })
-      setDetailVisible(true)
+        warehouse_name: warehouse ? warehouse.warehouse_name : 'Không rõ'
+      };
+      setSelectedOrder(dataWithWarehouseName);
+      setDetailVisible(true);
+    }
+  };
+
+  const handleApprove = (order) => {
+    if (confirm(`Bạn có chắc chắn muốn phê duyệt đơn nhập hàng ${order.po_id}?`)) {
+      onApprove(order.po_id)
     }
   }
 
-  const handleApprove = (order) => {
-    Modal.confirm({
-      title: `Phê duyệt đơn hàng ${order.po_id}`,
-      content: "Bạn có chắc chắn muốn phê duyệt đơn hàng này?",
-      okText: "Phê duyệt",
-      cancelText: "Hủy",
-      onOk: () => onApprove(order.po_id),
-    })
-  }
-
-  const filteredOrders = purchaseOrders
-    .map(po => ({
-      ...po,
-      warehouse_name: warehouseMap.get(po.warehouse_id) || "Không rõ",
-    }))
-    .filter(order =>
-      order.po_id.toLowerCase().includes(searchText.toLowerCase()) ||
-      order.supplier_name.toLowerCase().includes(searchText.toLowerCase())
-    )
+  const filteredOrders = purchaseOrders.map(po => ({
+    ...po,
+    warehouse_name: warehouseMap.get(po.warehouse_id) || 'Unknown',
+  }));
 
   const columns = [
     {
-      title: "Mã đơn",
-      dataIndex: "po_id",
-      key: "po_id",
-      render: (text) => <strong>{text}</strong>,
+      title: 'Mã đơn',
+      dataIndex: 'po_id',
+      key: 'po_id',
     },
     {
-      title: "Nhà cung cấp",
-      dataIndex: "supplier_name",
-      key: "supplier_name",
+      title: 'Nhà cung cấp',
+      dataIndex: 'supplier_name',
+      key: 'supplier_name',
     },
     {
-      title: "Kho",
-      dataIndex: "warehouse_name",
-      key: "warehouse_name",
+      title: 'Kho',
+      dataIndex: 'warehouse_name',
+      key: 'warehouse_name',
     },
     {
-      title: "Ngày tạo",
-      dataIndex: "created_at",
-      key: "created_at",
-      render: (date) => new Date(date).toLocaleString("vi-VN"),
+      title: 'Trạng thái',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status) => (
+        <Tag color={status === "draft" ? "orange" : "green"}>
+          {status === "draft" ? "Nháp" : "Đã phê duyệt"}
+        </Tag>
+      ),
     },
     {
-      title: "Cập nhật lần cuối",
-      dataIndex: "updated_at",
-      key: "updated_at",
-      render: (date) => new Date(date).toLocaleString("vi-VN"),
-    },
-    {
-      title: "Ngày phê duyệt",
-      dataIndex: "posted_at",
-      key: "posted_at",
+      title: 'Ngày phê duyệt',
+      dataIndex: 'posted_at',
+      key: 'posted_at',
       render: (date) => date ? new Date(date).toLocaleDateString() : "-",
     },
     {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      render: (status) =>
-        status === "draft" ? (
-          <Tag color="orange">Nháp</Tag>
-        ) : (
-          <Tag color="green">Đã phê duyệt</Tag>
-        ),
-    },
-    {
-      title: "Hành động",
-      key: "actions",
+      title: 'Thao tác',
+      key: 'action',
       render: (_, record) => (
-        <Space>
+        <div className="flex space-x-2">
           <Button type="link" onClick={() => handleViewDetail(record.po_id)}>
             Chi tiết
           </Button>
@@ -105,49 +85,57 @@ export default function PurchaseOrderList({ purchaseOrders, onEdit, onApprove, o
               <Button type="link" onClick={() => onEdit(record)}>
                 Sửa
               </Button>
-              <Button type="link" onClick={() => handleApprove(record)}>
+              <Button
+                type="link"
+                style={{ color: '#52c41a' }}
+                onClick={() => handleApprove(record)}
+              >
                 Phê duyệt
               </Button>
             </>
           )}
-        </Space>
+        </div>
       ),
     },
-  ]
+  ];
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between mb-4">
-        <Search
+      <div className="flex justify-between items-center mb-4">
+        <Input
           placeholder="Tìm kiếm theo mã đơn hoặc nhà cung cấp"
-          allowClear
-          onSearch={value => setSearchText(value)}
-          onChange={e => setSearchText(e.target.value)}
-          style={{ width: 300 }}
+          prefix={<SearchOutlined />}
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ width: 400 }}
         />
-        <Button type="primary" onClick={onCreateNew}>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={onCreateNew}
+        >
           Tạo đơn nhập hàng
         </Button>
       </div>
 
       <Table
-        rowKey="po_id"
         columns={columns}
         dataSource={filteredOrders}
-        pagination={{ pageSize: 10 }}
+        rowKey="po_id"
+        locale={{
+          emptyText: 'Không có đơn nhập hàng nào'
+        }}
       />
 
-      {detailVisible && selectedOrder && (
-        <Modal
-          open={detailVisible}
-          title={`Chi tiết đơn hàng: ${selectedOrder.po_id}`}
-          onCancel={() => setDetailVisible(false)}
-          footer={null}
-          width="80%"
-        >
-          <PurchaseOrderDetail order={selectedOrder} />
-        </Modal>
-      )}
+      <Modal
+        title={`Chi tiết đơn nhập hàng: ${selectedOrder?.po_id}`}
+        open={detailVisible}
+        onCancel={() => setDetailVisible(false)}
+        footer={null}
+        width="80%"
+      >
+        {selectedOrder && <PurchaseOrderDetail order={selectedOrder} />}
+      </Modal>
     </div>
-  )
+  );
 }
