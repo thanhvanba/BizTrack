@@ -751,6 +751,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                                 >
                                     <DatePicker
                                         placeholder="Chọn ngày"
+                                        disabledDate={(current) => current && current < dayjs().startOf('day')}
                                         variant="filled"
                                         className="w-full"
                                         format="DD/MM/YYYY"

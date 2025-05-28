@@ -15,6 +15,7 @@ import {
 import OptionsStatistics from "../../components/OptionsStatistics"
 import { useEffect, useState } from "react"
 import analysisService from "../../service/analysisService"
+import dayjs from "dayjs"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, Tooltip, Legend)
 
@@ -22,73 +23,54 @@ const { Title: TitleTypography } = Typography
 const { TabPane } = Tabs
 
 const RevenueTracking = () => {
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1;
-
-  const [selectedOptions, setSelectedOptions] = useState('day');
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
-  const [selectedQuarter, setSelectedQuarter] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(null);
+  const currentDate = dayjs();
+  const [selectedOptions, setSelectedOptions] = useState("day");
+  const [selectedDate, setSelectedDate] = useState(
+    selectedOptions === "range" ? null : currentDate
+  );
 
   const handleSelectOptions = (value) => {
     if (value !== selectedOptions) {
       setSelectedOptions(value);
-
-      if (value === 'month') {
-        setSelectedMonth(currentMonth);
-        setSelectedYear(currentYear);
-      } else if (value === 'year') {
-        setSelectedYear(currentYear);
-      } else if (value === 'quarter') {
-        setSelectedQuarter(null);
-        setSelectedYear(currentYear);
-      } else if (value === 'range') {
-        setSelectedDate(null); // chỉ reset nếu chuyển từ loại khác sang "range"
-      }
+      setSelectedDate(value === "range" ? null : currentDate);
     }
-  }
+  };
 
   const handleDateChange = (date, dateString) => {
     setSelectedDate(date);
+
     if (selectedOptions === "range") {
       console.log("Từ:", dateString[0], "Đến:", dateString[1]);
-    } else if (selectedOptions === 'day') {
-      console.log("Ngày:", dateString);
-    } else if (selectedOptions === 'month') {
-      const [year, month] = dateString.split('-');
-      setSelectedYear(Number(year));
-      setSelectedMonth(Number(month));
-      console.log("Tháng:", month, "Năm:", year);
-    } else if (selectedOptions === 'quarter') {
-      const [year, q] = dateString.split('-');
-      const quarter = Number(q.replace('Q', ''));
-      setSelectedYear(Number(year));
-      setSelectedQuarter(quarter);
-      setSelectedMonth(quarter * 3 - 2);
+    } else if (selectedOptions === "quarter") {
+      const [year, q] = dateString.split("-");
+      const quarter = Number(q.replace("Q", ""));
       console.log("Quý:", quarter, "Năm:", year);
-    } else if (selectedOptions === 'year') {
-      setSelectedYear(Number(dateString));
-      console.log("Năm:", dateString);
+    } else if (selectedOptions === "month") {
+      const [year, month] = dateString.split("-");
+      console.log("Tháng:", month, "Năm:", year);
+    } else {
+      console.log(
+        selectedOptions === "day"
+          ? "Ngày:"
+          : selectedOptions === "year"
+            ? "Năm:"
+            : "",
+        dateString
+      );
     }
   };
 
   const handleStatistic = () => {
     console.log("Thống kê theo:", selectedOptions);
-    if (selectedOptions === 'range') {
+
+    if (selectedOptions === "range") {
       const [start, end] = selectedDate || [];
-      console.log("Từ ngày:", start?.format('YYYY-MM-DD'), "đến ngày:", end?.format('YYYY-MM-DD'));
-    } else if (selectedOptions === 'day') {
-      console.log("Ngày được chọn:", selectedDate?.format('YYYY-MM-DD'));
-    } else if (selectedOptions === 'month') {
-      console.log("Tháng:", selectedMonth, "Năm:", selectedYear);
-    } else if (selectedOptions === 'quarter') {
-      console.log("Quý:", selectedQuarter, "Năm:", selectedYear);
-    } else if (selectedOptions === 'year') {
-      console.log("Năm:", selectedYear);
+      console.log("Từ ngày:", start?.format("YYYY-MM-DD"), "đến ngày:", end?.format("YYYY-MM-DD"));
+    } else {
+      console.log("Giá trị chọn:", selectedDate?.format("YYYY-MM-DD"));
     }
 
-    // TODO: Call API thống kê ở đây nếu cần
+    // TODO: Gọi API ở đây nếu cần
   };
 
   // Line chart data
@@ -278,10 +260,7 @@ const RevenueTracking = () => {
 
       <OptionsStatistics
         selectedOptions={selectedOptions}
-        selectedYear={selectedYear}
-        selectedMonth={selectedMonth}
         selectedDate={selectedDate}
-        selectedQuarter={selectedQuarter}
         onSelectOptions={handleSelectOptions}
         onDateChange={handleDateChange}
         onStatistic={handleStatistic}

@@ -1,5 +1,5 @@
 import axiosService from '../axiosService';
-import {ANALYSIS_URL } from '../apiUrl';
+import { ANALYSIS_URL } from '../apiUrl';
 
 const analysisService = {
 
@@ -14,22 +14,22 @@ const analysisService = {
             .catch(error => { throw error; });
     },
 
+    // Tổng thu chi
+    getOutstandingDebt: async () => {
+        return axiosService()({
+            url: `${ANALYSIS_URL}/dashboard/money`,
+            method: 'GET',
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
+
     // Lấy doanh thu theo khoảng thời gian
     getRevenueByTimePeriod: async (params) => {
         return axiosService()({
             url: `${ANALYSIS_URL}/finance/revenue`,
             method: 'GET',
             params, // e.g., { start_date, end_date }
-        })
-            .then(res => res.data)
-            .catch(error => { throw error; });
-    },
-
-    // Lấy công nợ phải thu
-    getOutstandingDebt: async () => {
-        return axiosService()({
-            url: `${ANALYSIS_URL}/finance/debt`,
-            method: 'GET',
         })
             .then(res => res.data)
             .catch(error => { throw error; });

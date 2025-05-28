@@ -17,10 +17,78 @@ import {
     Tooltip,
     Legend,
 } from "chart.js"
+import analysisService from "../../service/analysisService"
+import { useEffect, useState } from "react"
+import customerService from "../../service/customerService"
+import productService from "../../service/productService"
+import orderService from "../../service/orderService"
+import formatPrice from '../../utils/formatPrice'
+import { useNavigate } from "react-router-dom"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 const Dashboard = () => {
+    const [revenue, setRevenueData] = useState(null)
+    const [customerData, setCustomerData] = useState([])
+    const [productData, setProductData] = useState([])
+    const [orderData, setOrderData] = useState([])
+
+    const navigate = useNavigate()
+
+    const handleGetAnalysisData = async () => {
+        try {
+            const resRevenue = await analysisService.getOutstandingDebt()
+            console.log("🚀 ~ handleGetAnalysisData ~ resRevenue:", resRevenue)
+            setRevenueData(resRevenue)
+
+            const resCustomer = await customerService.getAllCustomers()
+            console.log("🚀 ~ handleGetAnalysisData ~ resCustomer:", resCustomer)
+            setCustomerData(resCustomer)
+
+            const resProduct = await productService.getAllProducts()
+            console.log("🚀 ~ handleGetAnalysisData ~ resProduct:", resProduct)
+            setProductData(resProduct)
+
+            const formatCustomerInitials = (data) => {
+                return data.map((order) => {
+                    const name = order.customer?.customer_name || "";
+                    const nameParts = name.trim().split(" ");
+                    const initials =
+                        nameParts.length >= 2
+                            ? nameParts[0][0].toUpperCase() + nameParts[nameParts.length - 1][0].toUpperCase()
+                            : nameParts[0]?.[0]?.toUpperCase() || "";
+
+                    return {
+                        ...order,
+                        customer: {
+                            ...order.customer,
+                            initials,
+                        },
+                    };
+                });
+            };
+
+            // Sau khi gọi API:
+            const params = { page: 1, limit: 5 };
+            const resOrder = await orderService.getAllOrder(params);
+
+            const modifiedOrder = {
+                ...resOrder,
+                data: formatCustomerInitials(resOrder.data),
+            };
+
+            setOrderData(modifiedOrder);
+            console.log("🚀 ~ handleGetAnalysisData ~ modifiedOrder:", modifiedOrder)
+        } catch (error) {
+            console.error("❌ Lỗi khi lấy dữ liệu phân tích:", error)
+        }
+    }
+
+
+    useEffect(() => {
+        handleGetAnalysisData()
+    }, [])
+
     // Chart data
     const revenueData = {
         labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6"],
@@ -134,13 +202,13 @@ const Dashboard = () => {
     const recentOrdersColumns = [
         {
             title: "Mã đơn hàng",
-            dataIndex: "id",
-            key: "id",
+            dataIndex: "order_code",  // sửa từ "id" thành "order_code"
+            key: "order_code",
             className: "text-gray-700",
         },
         {
             title: "Khách hàng",
-            dataIndex: "customer",
+            dataIndex: ["customer", "customer_name"], // lấy tên khách từ customer.customer_name
             key: "customer",
             render: (text, record) => (
                 <div className="flex items-center">
@@ -151,7 +219,7 @@ const Dashboard = () => {
                             fontWeight: "600",
                         }}
                     >
-                        {record.initials}
+                        {record.customer?.initials || ""}
                     </Avatar>
                     <span className="ml-3 font-medium text-gray-800">{text}</span>
                 </div>
@@ -159,95 +227,69 @@ const Dashboard = () => {
         },
         {
             title: "Trạng thái",
-            dataIndex: "status",
-            key: "status",
+            dataIndex: "order_status",  // sửa từ "status" thành "order_status"
+            key: "order_status",
             render: (status) => {
-                let color, bgColor, textColor
+                let color, bgColor, textColor;
                 switch (status) {
-                    case "Đã giao":
-                        color = "green"
-                        bgColor = "bg-green-100"
-                        textColor = "text-green-800"
-                        break
+                    case "Mới":
+                        color = "blue";
+                        bgColor = "bg-blue-100";
+                        textColor = "text-blue-800";
+                        break;
+                    case "Xác nhận":
+                        color = "cyan";
+                        bgColor = "bg-cyan-100";
+                        textColor = "text-cyan-800";
+                        break;
+                    case "Đang đóng hàng":
+                        color = "orange";
+                        bgColor = "bg-orange-100";
+                        textColor = "text-orange-800";
+                        break;
                     case "Đang giao":
-                        color = "blue"
-                        bgColor = "bg-blue-100"
-                        textColor = "text-blue-800"
-                        break
-                    case "Đang xử lý":
-                        color = "yellow"
-                        bgColor = "bg-yellow-100"
-                        textColor = "text-yellow-800"
-                        break
-                    case "Đã hủy":
-                        color = "red"
-                        bgColor = "bg-red-100"
-                        textColor = "text-red-800"
-                        break
+                        color = "purple";
+                        bgColor = "bg-purple-100";
+                        textColor = "text-purple-800";
+                        break;
+                    case "Hoàn tất":
+                        color = "green";
+                        bgColor = "bg-green-100";
+                        textColor = "text-green-800";
+                        break;
+                    case "Huỷ đơn":
+                    case "Huỷ điều chỉnh":
+                        color = "red";
+                        bgColor = "bg-red-100";
+                        textColor = "text-red-800";
+                        break;
                     default:
-                        color = "gray"
-                        bgColor = "bg-gray-100"
-                        textColor = "text-gray-800"
+                        color = "gray";
+                        bgColor = "bg-gray-100";
+                        textColor = "text-gray-800";
                 }
                 return (
                     <div className={`flex items-center ${textColor}`}>
                         <Badge color={color} />
-                        <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${bgColor} ${textColor}`}>{status}</span>
+                        <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${bgColor} ${textColor}`}>
+                            {status}
+                        </span>
                     </div>
-                )
-            },
+                );
+            }
+
         },
         {
             title: "Tổng tiền",
-            dataIndex: "amount",
-            key: "amount",
+            dataIndex: "final_amount", // sửa từ "amount" thành "final_amount"
+            key: "final_amount",
             align: "right",
             className: "font-medium text-gray-800",
+            render: (value) =>
+                new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(parseFloat(value))
         },
-    ]
+    ];
 
-    const recentOrdersData = [
-        {
-            key: "1",
-            id: "ORD-001",
-            customer: "Nguyễn Văn A",
-            initials: "NA",
-            status: "Đã giao",
-            amount: "2.500.000 ₫",
-        },
-        {
-            key: "2",
-            id: "ORD-002",
-            customer: "Trần Thị B",
-            initials: "TB",
-            status: "Đang giao",
-            amount: "1.800.000 ₫",
-        },
-        {
-            key: "3",
-            id: "ORD-003",
-            customer: "Lê Văn C",
-            initials: "LC",
-            status: "Đang xử lý",
-            amount: "3.200.000 ₫",
-        },
-        {
-            key: "4",
-            id: "ORD-004",
-            customer: "Phạm Thị D",
-            initials: "PD",
-            status: "Đã giao",
-            amount: "950.000 ₫",
-        },
-        {
-            key: "5",
-            id: "ORD-005",
-            customer: "Hoàng Văn E",
-            initials: "HE",
-            status: "Đã hủy",
-            amount: "1.500.000 ₫",
-        },
-    ]
 
     return (
         <div>
@@ -264,7 +306,7 @@ const Dashboard = () => {
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Doanh thu</p>
-                                <p className="text-2xl font-bold text-gray-800">152.000.000 ₫</p>
+                                <p className="text-2xl font-bold text-gray-800">{formatPrice(revenue?.total_money?.total_outstanding) || 0}</p>
                                 <div className="flex items-center text-xs text-green-600 mt-2">
                                     <ArrowUpOutlined />
                                     <span className="ml-1">20.1% so với tháng trước</span>
@@ -284,7 +326,7 @@ const Dashboard = () => {
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Khách hàng</p>
-                                <p className="text-2xl font-bold text-gray-800">1,245</p>
+                                <p className="text-2xl font-bold text-gray-800">{customerData?.pagination?.total || 0}</p>
                                 <div className="flex items-center text-xs text-blue-600 mt-2">
                                     <span>+180 khách hàng mới</span>
                                 </div>
@@ -303,7 +345,7 @@ const Dashboard = () => {
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Sản phẩm</p>
-                                <p className="text-2xl font-bold text-gray-800">342</p>
+                                <p className="text-2xl font-bold text-gray-800">{productData?.pagination?.total || 0}</p>
                                 <div className="flex items-center text-xs text-purple-600 mt-2">
                                     <span>+24 sản phẩm mới</span>
                                 </div>
@@ -322,7 +364,7 @@ const Dashboard = () => {
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Đơn hàng</p>
-                                <p className="text-2xl font-bold text-gray-800">573</p>
+                                <p className="text-2xl font-bold text-gray-800">{orderData?.pagination?.total || 0}</p>
                                 <div className="flex items-center text-xs text-orange-600 mt-2">
                                     <span>+201 đơn hàng mới</span>
                                 </div>
@@ -352,9 +394,12 @@ const Dashboard = () => {
                     <Card
                         title={<span className="text-gray-800 font-bold">Đơn hàng gần đây</span>}
                         extra={
-                            <a href="#" className="text-blue-500 hover:text-blue-600 font-medium">
+                            <div
+                                onClick={() => navigate('/orders')}
+                                className="text-blue-500 hover:text-blue-600 font-medium cursor-pointer"
+                            >
                                 Xem tất cả
-                            </a>
+                            </div>
                         }
                         className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
                         headStyle={{
@@ -365,7 +410,7 @@ const Dashboard = () => {
                     >
                         <Table
                             columns={recentOrdersColumns}
-                            dataSource={recentOrdersData}
+                            dataSource={orderData?.data}
                             pagination={false}
                             size="middle"
                             className="custom-table"

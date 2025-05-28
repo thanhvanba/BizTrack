@@ -2,10 +2,11 @@ import { ORDERS_URL } from "../apiUrl";
 import axiosService from "../axiosService";
 
 const orderService = {
-  getAllOrder: async () => {
+  getAllOrder: async (params) => {
     return axiosService()({
       url: ORDERS_URL,
       method: "GET",
+      params,
     })
       .then((res) => res.data)
       .catch((error) => {

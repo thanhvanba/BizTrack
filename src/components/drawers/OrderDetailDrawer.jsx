@@ -12,6 +12,7 @@ import { PrinterOutlined, DownloadOutlined } from "@ant-design/icons";
 import orderDetailService from "../../service/orderDetailService";
 import { useEffect, useState } from "react";
 import useToastNotify from "../../utils/useToastNotify";
+import formatPrice from '../../utils/formatPrice'
 
 const { Title, Text } = Typography;
 
@@ -79,16 +80,6 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
   const totalProductDiscount = calculateTotalDiscount(orderDetailsData);
 
   if (!order) return null;
-
-  const formatPrice = (price) => {
-    const value = parseFloat(price) || 0;
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(value);
-  };
-
-  console.log(formatPrice(totalProductDiscount));
 
   const getStatusColor = (status) => {
     switch (status) {

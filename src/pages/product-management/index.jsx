@@ -9,6 +9,7 @@ import ProductModal from "../../components/modals/ProductModal"
 import useToastNotify from "../../utils/useToastNotify"
 import searchService from "../../service/searchService"
 import { debounce } from "lodash"
+import formatPrice from '../../utils/formatPrice'
 
 const { Title } = Typography
 const { Option } = Select
@@ -71,10 +72,6 @@ const ProductManagement = () => {
       (item.product_name?.toLowerCase() ||
         item.product_barcode?.toLowerCase())
   )
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(price)
-  }
 
   // Create product
   const handleCreateProduct = async (productData) => {

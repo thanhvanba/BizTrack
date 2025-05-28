@@ -27,6 +27,10 @@ import './index.css'
 import searchService from "../../service/searchService";
 import { debounce } from "lodash";
 import useToastNotify from "../../utils/useToastNotify";
+import formatPrice from '../../utils/formatPrice'
+import CustomRangePicker from "../../components/CustomRangePicker";
+import OptionsStatistics from "../../components/OptionsStatistics";
+import dayjs from "dayjs";
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
@@ -38,9 +42,90 @@ const OrderManagement = () => {
   const navigate = useNavigate();
   const [ordersData, setOrdersData] = useState([]);
 
-  const fetchOrders = async () => {
+  const currentDate = dayjs();
+  const [selectedOptions, setSelectedOptions] = useState("day");
+  const [selectedDate, setSelectedDate] = useState(
+    selectedOptions === "range" ? null : currentDate
+  );
+
+  const handleSelectOptions = (value) => {
+    if (value !== selectedOptions) {
+      setSelectedOptions(value);
+      setSelectedDate(value === "range" ? null : currentDate);
+    }
+  };
+
+  const handleDateChange = (date, dateString) => {
+    setSelectedDate(date);
+
+    if (selectedOptions === "range") {
+      console.log("Từ:", dateString[0], "Đến:", dateString[1]);
+    } else if (selectedOptions === "quarter") {
+      const [year, q] = dateString.split("-");
+      const quarter = Number(q.replace("Q", ""));
+      console.log("Quý:", quarter, "Năm:", year);
+    } else if (selectedOptions === "month") {
+      const [year, month] = dateString.split("-");
+      console.log("Tháng:", month, "Năm:", year);
+    } else {
+      console.log(
+        selectedOptions === "day"
+          ? "Ngày:"
+          : selectedOptions === "year"
+            ? "Năm:"
+            : "",
+        dateString
+      );
+    }
+  };
+
+  const handleStatistic = () => {
+    console.log("Thống kê theo:", selectedOptions);
+
+    let params = { type: selectedOptions };
+
+    if (selectedOptions === "range") {
+      const [start, end] = selectedDate || [];
+      if (start && end) {
+        params.start_date = start.format("YYYY-MM-DD");
+        params.end_date = end.format("YYYY-MM-DD");
+        console.log("Từ ngày:", params.start_date, "đến ngày:", params.end_date);
+      }
+    } else if (selectedDate) {
+      const date = selectedDate;
+
+      const day = date.date();
+      const month = date.month() + 1;
+      const year = date.year();
+
+      if (selectedOptions === "day") {
+        params.day = day;
+        params.month = month;
+        params.year = year;
+        console.log("Ngày:", day, "Tháng:", month, "Năm:", year);
+      } else if (selectedOptions === "month") {
+        params.month = month;
+        params.year = year;
+        console.log("Tháng:", month, "Năm:", year);
+      } else if (selectedOptions === "quarter") {
+        const quarter = Math.ceil((month) / 3);
+        params.quarter = quarter;
+        params.year = year;
+        console.log("Quý:", quarter, "Năm:", year);
+      } else if (selectedOptions === "year") {
+        params.year = year;
+        console.log("Năm:", year);
+      }
+    }
+
+    // Gọi API
+    fetchOrders({ params });
+  };
+
+
+  const fetchOrders = async ({ params }) => {
     try {
-      const response = await orderService.getAllOrder();
+      const response = await orderService.getAllOrder(params);
       setOrdersData(
         response.data.map((order) => ({
           ...order,
@@ -87,30 +172,7 @@ const OrderManagement = () => {
       item.order_code?.toLowerCase() ||
       item.customer?.toLowerCase())
   );
-  // Format price
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
-    }).format(price);
-  };
 
-  // Handle edit order
-  const handleEditOrder = (updatedOrder) => {
-    // Update order in the list
-    const updatedData = ordersData.map((order) =>
-      order.key === updatedOrder.key ? { ...updatedOrder } : order
-    );
-    console.log(updatedData)
-    // Update state
-    setOrdersData(updatedData);
-
-    // Close modal and show success message
-    setEditModalVisible(false);
-    message.success(
-      `Đơn hàng ${updatedOrder.order_code} đã được cập nhật thành công!`
-    );
-  };
 
   // View order details
   const viewOrderDetails = (order) => {
@@ -341,9 +403,12 @@ const OrderManagement = () => {
             />
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
-            <RangePicker
-              placeholder={["Từ ngày", "Đến ngày"]}
-              className="w-full sm:w-auto"
+            <OptionsStatistics
+              selectedOptions={selectedOptions}
+              selectedDate={selectedDate}
+              onSelectOptions={handleSelectOptions}
+              onDateChange={handleDateChange}
+              onStatistic={handleStatistic}
             />
           </div>
         </div>
