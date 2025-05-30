@@ -210,6 +210,7 @@ const InventoryManagement = () => {
           }}
           scroll={{ x: "max-content" }}
           rowClassName="hover:bg-gray-50"
+          locale={{ emptyText: "Không có sản phẩm nào" }}
         />
       </Card>
     </div >

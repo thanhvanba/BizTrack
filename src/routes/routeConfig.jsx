@@ -9,6 +9,7 @@ import PurchaseManagement from '../pages/warehouse-management/PurchaseManagement
 import InventoryManagement from '../pages/warehouse-management/InventoryManagement';
 import WarehouseManagement from '../pages/warehouse-management';
 import OrderFormPage from '../pages/order-management/OrderFormPage';
+import TransferManagement from '../pages/warehouse-management/TransferManagement';
 
 export const privateRoutes = [
   { path: '', element: <Dashboard /> }, // index route
@@ -24,4 +25,5 @@ export const privateRoutes = [
   { path: 'warehouses', element: <WarehouseManagement /> },
   { path: 'inventory', element: <InventoryManagement /> },
   { path: 'purchase', element: <PurchaseManagement /> },
+  { path: 'transfer', element: <TransferManagement /> },
 ];

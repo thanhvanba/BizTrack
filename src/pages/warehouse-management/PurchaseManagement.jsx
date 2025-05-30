@@ -6,12 +6,14 @@ import { fetchWarehouses } from "../../redux/warehouses/warehouses.slice"
 import purchaseOrderService from "../../service/purchaseService"
 import { useSearchParams } from "react-router-dom"
 import useToastNotify from "../../utils/useToastNotify"
-
+import { Tabs } from "antd"
+const { TabPane } = Tabs;
 export default function PurchaseManagement() {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const initialTab = searchParams.get("tab") || "list";
+    // const [searchParams, setSearchParams] = useSearchParams();
+    // const initialTab = searchParams.get("tab") || "list";
 
-    const [activeTab, setActiveTab] = useState(initialTab)
+    const [activeTab, setActiveTab] = useState('list')
+    console.log("🚀 ~ PurchaseManagement ~ activeTab:", activeTab)
     const [purchaseOrders, setPurchaseOrders] = useState([])
     const [selectedOrder, setSelectedOrder] = useState(null)
 
@@ -20,7 +22,7 @@ export default function PurchaseManagement() {
 
     const handleTabChange = (tab) => {
         setActiveTab(tab);
-        setSearchParams({ tab });
+        // setSearchParams({ tab });
     };
 
     const handleCreatePurchaseOrder = async (order) => {
@@ -103,7 +105,7 @@ export default function PurchaseManagement() {
             <h1 className="text-2xl font-bold mb-6">Quản lý kho</h1>
 
             <div className="bg-white p-4 rounded-lg shadow">
-                <div className="border-b border-gray-200 mb-4">
+                {/* <div className="border-b border-gray-200 mb-4">
                     <nav className="-mb-px flex space-x-8">
                         <button
                             onClick={() => handleTabChange("list")}
@@ -142,7 +144,32 @@ export default function PurchaseManagement() {
                         initialValues={selectedOrder}
                         onCancel={handleCancelEdit}
                     />
-                )}
+                )} */}
+
+                <Tabs activeKey={activeTab} onChange={setActiveTab}>
+                    <TabPane tab="Danh sách đơn nhập hàng" key="list">
+                        {activeTab === "list" && (
+                            <PurchaseOrderList
+                                purchaseOrders={purchaseOrders}
+                                onEdit={handleEditPurchaseOrder}
+                                onApprove={handleApprovePurchaseOrder}
+                                onCreateNew={() => {
+                                    setSelectedOrder(null)
+                                    handleTabChange("form")
+                                }}
+                            />
+                        )}
+                    </TabPane>
+                    <TabPane tab="Tạo đơn nhập hàng" key="form">
+                        {activeTab === "form" && (
+                            <PurchaseOrderForm
+                                onSubmit={handleCreatePurchaseOrder}
+                                initialValues={selectedOrder}
+                                onCancel={handleCancelEdit}
+                            />
+                        )}
+                    </TabPane>
+                </Tabs>
             </div>
         </div>
     )

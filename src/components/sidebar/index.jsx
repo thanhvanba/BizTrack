@@ -74,6 +74,7 @@ const menuItems = [
       { key: 'warehouses', label: 'Danh sách kho' },
       { key: 'inventory', label: 'Tồn kho' },
       { key: 'purchase', label: 'Nhập hàng' },
+      { key: 'transfer', label: 'Điều chỉnh kho' },
     ],
   },
 ];

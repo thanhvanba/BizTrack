@@ -450,6 +450,7 @@ const OrderManagement = () => {
           className="custom-table"
           rowClassName="hover:bg-gray-50 transition-colors"
           scroll={{ x: "max-content" }}
+          locale={{ emptyText: "Không có đơn hàng nào" }}
         />
       </Card>
 
