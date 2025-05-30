@@ -3,10 +3,11 @@ import axiosService from "../axiosService";
 import qs from "qs";
 
 const customerService = {
-  getAllCustomers: async () => {
+  getAllCustomers: async (params) => {
     return axiosService()({
       url: CUSTOMERS_URL,
       method: "GET",
+      params,
     })
       .then((res) => res.data)
       .catch((error) => {

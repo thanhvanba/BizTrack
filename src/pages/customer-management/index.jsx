@@ -17,16 +17,34 @@ const CustomerManagement = () => {
   const [editModalVisible, setEditModalVisible] = useState(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
   const [selectedCustomer, setSelectedCustomer] = useState(null)
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 5,
+    total: 0,
+  })
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = async (page = pagination.current, limit = pagination.pageSize) => {
+    setLoading(true);
     try {
-      const res = await customerService.getAllCustomers()
+      const res = await customerService.getAllCustomers({ page, limit })
       setCustomers(res.data.map(c => ({ ...c, key: c.customer_id })))
+      if (res.pagination) {
+        setPagination({
+          current: res.pagination.currentPage,
+          pageSize: res.pagination.pageSize,
+          total: res.pagination.total,
+        });
+      }
     } catch (err) {
       useToastNotify("Không thể tải danh sách khách hàng.", "error")
+    } finally {
+      setLoading(false);
     }
   }
-
+  const handleTableChange = (paginationInfo) => {
+    const { current, pageSize } = paginationInfo
+    fetchCustomers(current, pageSize)
+  }
   const handleSearch = debounce(async (value) => {
     if (!value) {
       fetchCustomers(); // gọi lại toàn bộ đơn hàng
@@ -205,9 +223,17 @@ const CustomerManagement = () => {
         </div>
 
         <Table
+          loading={loading}
           columns={columns}
           dataSource={customers}
-          pagination={{ pageSize: 5, showSizeChanger: true }}
+          pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
+            showSizeChanger: true,
+            pageSizeOptions: ['5', '10', '20', '50'],
+          }}
+          onChange={handleTableChange}
           rowClassName="hover:bg-gray-50 transition-colors"
           scroll={{ x: "max-content" }}
           locale={{ emptyText: "Không có khách hàng nào" }}

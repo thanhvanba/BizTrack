@@ -23,19 +23,35 @@ const ProductManagement = () => {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [loading, setLoading] = useState(false)
   const [productsData, setProductsData] = useState([])
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 5,
+    total: 0,
+  })
+
   const [categories, setCategories] = useState([])
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (page = pagination.current, limit = pagination.pageSize) => {
+    setLoading(true);
     try {
-      const response = await productService.getAllProducts()
+      const response = await productService.getAllProducts({ page, limit })
       setProductsData(
         response.data.map((product) => ({
           ...product,
           key: product.product_id,
         }))
       )
+      if (response.pagination) {
+        setPagination({
+          current: response.pagination.page,
+          pageSize: response.pagination.limit,
+          total: response.pagination.total,
+        });
+      }
     } catch (error) {
       useToastNotify("Không thể tải danh sách sản phẩm.", 'error')
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -64,14 +80,6 @@ const ProductManagement = () => {
     fetchProducts()
     fetchCategories()
   }, [])
-
-
-  const filteredData = productsData.filter(
-    (item) =>
-      (categoryFilter === "all" || item.category_id === categoryFilter) &&
-      (item.product_name?.toLowerCase() ||
-        item.product_barcode?.toLowerCase())
-  )
 
   // Create product
   const handleCreateProduct = async (productData) => {
@@ -132,6 +140,11 @@ const ProductManagement = () => {
   const confirmDelete = (product) => {
     setSelectedProduct(product)
     setDeleteModalVisible(true)
+  }
+
+  const handleTableChange = (paginationInfo) => {
+    const { current, pageSize } = paginationInfo
+    fetchProducts(current, pageSize)
   }
 
   const columns = [
@@ -308,13 +321,17 @@ const ProductManagement = () => {
         </div>
 
         <Table
+          loading={loading}
           columns={columns}
-          dataSource={filteredData}
+          dataSource={productsData}
           pagination={{
-            pageSize: 5,
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
             showSizeChanger: true,
-            className: "pt-4",
+            pageSizeOptions: ['5', '10', '20', '50'],
           }}
+          onChange={handleTableChange}
           bordered={false}
           size="middle"
           className="custom-table"

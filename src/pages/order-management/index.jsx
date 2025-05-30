@@ -33,20 +33,24 @@ import OptionsStatistics from "../../components/OptionsStatistics";
 import dayjs from "dayjs";
 
 const { Title } = Typography;
-const { RangePicker } = DatePicker;
 
 const OrderManagement = () => {
+
   const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
   const [ordersData, setOrdersData] = useState([]);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 5,
+    total: 0,
+  });
 
   const currentDate = dayjs();
-  const [selectedOptions, setSelectedOptions] = useState("day");
-  const [selectedDate, setSelectedDate] = useState(
-    selectedOptions === "range" ? null : currentDate
-  );
+  const [selectedOptions, setSelectedOptions] = useState('init');
+  const [selectedDate, setSelectedDate] = useState();
 
   const handleSelectOptions = (value) => {
     if (value !== selectedOptions) {
@@ -82,14 +86,14 @@ const OrderManagement = () => {
   const handleStatistic = () => {
     console.log("Thống kê theo:", selectedOptions);
 
-    let params = { type: selectedOptions };
+    let params = {};
 
     if (selectedOptions === "range") {
       const [start, end] = selectedDate || [];
       if (start && end) {
-        params.start_date = start.format("YYYY-MM-DD");
-        params.end_date = end.format("YYYY-MM-DD");
-        console.log("Từ ngày:", params.start_date, "đến ngày:", params.end_date);
+        params.startDate = start.format("YYYY-MM-DD");
+        params.endDate = end.format("YYYY-MM-DD");
+        console.log("Từ ngày:", params.startDate, "đến ngày:", params.endDate);
       }
     } else if (selectedDate) {
       const date = selectedDate;
@@ -119,22 +123,46 @@ const OrderManagement = () => {
     }
 
     // Gọi API
-    fetchOrders({ params });
+    fetchOrders({ page: 1, limit: pagination.pageSize, params });
   };
 
 
-  const fetchOrders = async ({ params }) => {
+  const fetchOrders = async ({ page = pagination.current, limit = pagination.pageSize, params = {} } = {}) => {
+    setLoading(true);
     try {
-      const response = await orderService.getAllOrder(params);
+      const response = await orderService.getAllOrder({
+        page,
+        limit,
+        ...params,
+      });
+
       setOrdersData(
         response.data.map((order) => ({
           ...order,
           key: order.order_id,
         }))
       );
+
+      if (response.pagination) {
+        setPagination({
+          current: response.pagination.page,
+          pageSize: response.pagination.limit,
+          total: response.pagination.total,
+        });
+      }
     } catch (error) {
-      useToastNotify("Không thể tải danh sách sản phẩm.", "error");
+      useToastNotify("Không thể tải danh sách đơn hàng.", "error");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  //HÀM XỬ LÝ CHUYỂN TRANG
+  const handleTableChange = (newPagination) => {
+    fetchOrders({
+      page: newPagination.current,
+      limit: newPagination.pageSize,
+    });
   };
   const handleSearch = debounce(async (value) => {
     if (!value) {
@@ -164,14 +192,6 @@ const OrderManagement = () => {
   useEffect(() => {
     fetchOrders();
   }, []);
-
-  // Filter data based on search text and status
-  const filteredData = (ordersData || []).filter(
-    (item) =>
-    (item.order_id?.toLowerCase() ||
-      item.order_code?.toLowerCase() ||
-      item.customer?.toLowerCase())
-  );
 
 
   // View order details
@@ -393,7 +413,7 @@ const OrderManagement = () => {
         bodyStyle={{ padding: "16px" }}
       >
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <div className="relative flex-1 w-full">
+          <div className="relative w-full">
             <Input
               placeholder="Tìm kiếm theo số điện thoại khách hàng"
               prefix={<SearchOutlined className="text-gray-400" />}
@@ -402,7 +422,7 @@ const OrderManagement = () => {
               className="md:max-w-md"
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="w-full">
             <OptionsStatistics
               selectedOptions={selectedOptions}
               selectedDate={selectedDate}
@@ -414,13 +434,17 @@ const OrderManagement = () => {
         </div>
 
         <Table
+          loading={loading}
           columns={columns}
-          dataSource={filteredData}
+          dataSource={ordersData}
           pagination={{
-            pageSize: 10,
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
             showSizeChanger: true,
-            className: "pt-4",
+            pageSizeOptions: ['5', '10', '20', '50'],
           }}
+          onChange={handleTableChange}
           bordered={false}
           size="middle"
           className="custom-table"

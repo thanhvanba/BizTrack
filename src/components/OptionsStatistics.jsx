@@ -22,7 +22,6 @@ const OptionsStatistics = ({
   onDateChange,
   onStatistic,
 }) => {
-  console.log("🚀 ~ selectedOptions:", selectedOptions)
   const getDateValue = () => {
     if (!selectedDate) return null;
     return selectedOptions === "range"
@@ -33,7 +32,7 @@ const OptionsStatistics = ({
   const { picker, format } = pickerFormatMap[selectedOptions] || {};
 
   return (
-    <Row gutter={[16, 16]} className="my-4">
+    <Row gutter={[16, 16]} className="justify-end">
       <Col xs={24} sm={8}>
         <Select
           value={selectedOptions}
@@ -41,38 +40,43 @@ const OptionsStatistics = ({
           style={{ width: "100%" }}
           size="middle"
         >
+          <Option value="init">Chọn phương thức lọc</Option>
           <Option value="range">Theo khoảng thời gian</Option>
           <Option value="day">Theo ngày</Option>
           <Option value="month">Theo tháng</Option>
-          <Option value="quarter">Theo quý</Option>
+          {/* <Option value="quarter">Theo quý</Option> */}
           <Option value="year">Theo năm</Option>
         </Select>
       </Col>
-      <Col xs={24} sm={8}>
-        {selectedOptions === "range" ? (
-          <RangePicker
-            onChange={onDateChange}
-            value={getDateValue()}
-            style={{ width: "100%" }}
-            format={format}
-          />
-        ) : (
-          <DatePicker
-            picker={picker}
-            onChange={onDateChange}
-            value={getDateValue()}
-            style={{ width: "100%" }}
-            format={format}
-            allowClear
-          />
-        )}
-      </Col>
-      <Col xs={24} sm={8}>
-        <Button type="primary" onClick={onStatistic} block>
-          Áp dụng
-        </Button>
-      </Col>
-    </Row>
+      {selectedOptions !== "init" && (
+        <Col xs={24} sm={10} >
+          {selectedOptions === "range" ? (
+            <RangePicker
+              onChange={onDateChange}
+              value={getDateValue()}
+              style={{ width: "100%" }}
+              format={format}
+            />
+          ) : (
+            <DatePicker
+              picker={picker}
+              onChange={onDateChange}
+              value={getDateValue()}
+              style={{ width: "100%" }}
+              format={format}
+              allowClear
+            />
+          )}
+        </Col>
+      )}
+
+
+        < Col xs={24} sm={6} md={6} lg={6}>
+      <Button type="primary" onClick={onStatistic} block>
+        Áp dụng
+      </Button>
+    </Col>
+    </Row >
   );
 };
 

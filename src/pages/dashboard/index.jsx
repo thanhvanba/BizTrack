@@ -5,6 +5,7 @@ import {
     ShoppingOutlined,
     ShoppingCartOutlined,
     ArrowUpOutlined,
+    ArrowDownOutlined,
 } from "@ant-design/icons"
 import { Line } from "react-chartjs-2"
 import {
@@ -24,40 +25,50 @@ import productService from "../../service/productService"
 import orderService from "../../service/orderService"
 import formatPrice from '../../utils/formatPrice'
 import { useNavigate } from "react-router-dom"
+import dayjs from "dayjs"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 const Dashboard = () => {
-    const [revenue, setRevenueData] = useState(null)
-    const [customerData, setCustomerData] = useState([])
-    const [productData, setProductData] = useState([])
-    const [orderData, setOrderData] = useState([])
-
+    const [analysisData, setAnalysisData] = useState({
+        revenue: null,
+        totalCustomer: 0,
+        totalProduct: 0,
+        orderData: [],
+        revenueMoM: 0,
+        totalCustomersThisMonth: 0,
+        totalProductsThisMonth: 0,
+        totalOrdersThisMonth: 0,
+    });
     const navigate = useNavigate()
-
     const handleGetAnalysisData = async () => {
         try {
-            const resRevenue = await analysisService.getOutstandingDebt()
-            console.log("🚀 ~ handleGetAnalysisData ~ resRevenue:", resRevenue)
-            setRevenueData(resRevenue)
+            const currentMonth = dayjs().month() + 1;
+            const currentYear = dayjs().year();
+            const currentMonthFormatted = dayjs().format('YYYY-MM');
 
-            const resCustomer = await customerService.getAllCustomers()
-            console.log("🚀 ~ handleGetAnalysisData ~ resCustomer:", resCustomer)
-            setCustomerData(resCustomer)
+            const previousMonth = dayjs().subtract(1, 'month').month() + 1;
+            const previousMonthFormatted = dayjs().subtract(1, 'month').format('YYYY-MM');
 
-            const resProduct = await productService.getAllProducts()
-            console.log("🚀 ~ handleGetAnalysisData ~ resProduct:", resProduct)
-            setProductData(resProduct)
+            const [resCurrentRevenue, resPreviousRevenue, resRevenue, resCustomer, resCustomersByMonth, resProduct, resProductsByMonth, resOrdersByMonth, resOrder] = await Promise.all([
+                analysisService.getRevenueByTimePeriod({ startDate: currentMonthFormatted, period: 'month' }),
+                analysisService.getRevenueByTimePeriod({ startDate: previousMonthFormatted, period: 'month' }),
+                analysisService.getOutstandingDebt(),
+                customerService.getAllCustomers(),
+                customerService.getAllCustomers({ year: currentYear, month: currentMonth }),
+                productService.getAllProducts(),
+                productService.getAllProducts({ year: currentYear, month: currentMonth }),
+                orderService.getAllOrder({ year: currentYear, month: currentMonth }),
+                orderService.getAllOrder({ page: 1, limit: 5 }),
+            ]);
 
             const formatCustomerInitials = (data) => {
                 return data.map((order) => {
                     const name = order.customer?.customer_name || "";
                     const nameParts = name.trim().split(" ");
-                    const initials =
-                        nameParts.length >= 2
-                            ? nameParts[0][0].toUpperCase() + nameParts[nameParts.length - 1][0].toUpperCase()
-                            : nameParts[0]?.[0]?.toUpperCase() || "";
-
+                    const initials = nameParts.length >= 2
+                        ? nameParts[0][0].toUpperCase() + nameParts[nameParts.length - 1][0].toUpperCase()
+                        : nameParts[0]?.[0]?.toUpperCase() || "";
                     return {
                         ...order,
                         customer: {
@@ -68,28 +79,30 @@ const Dashboard = () => {
                 });
             };
 
-            // Sau khi gọi API:
-            const params = { page: 1, limit: 5 };
-            const resOrder = await orderService.getAllOrder(params);
+            setAnalysisData({
+                revenue: resRevenue,
+                totalCustomer: resCustomer?.pagination?.total || 0,
+                totalProduct: resProduct?.pagination?.total || 0,
+                orderData: {
+                    ...resOrder,
+                    data: formatCustomerInitials(resOrder.data),
+                },
+                revenueMoM: ((resCurrentRevenue[0]?.total_revenue - resPreviousRevenue[0]?.total_revenue) / resPreviousRevenue[0]?.total_revenue) * 100,
+                totalCustomersThisMonth: resCustomersByMonth?.pagination?.total || 0,
+                totalProductsThisMonth: resProductsByMonth?.pagination?.total || 0,
+                totalOrdersThisMonth: resOrdersByMonth?.pagination?.total || 0,
+            });
 
-            const modifiedOrder = {
-                ...resOrder,
-                data: formatCustomerInitials(resOrder.data),
-            };
-
-            setOrderData(modifiedOrder);
-            console.log("🚀 ~ handleGetAnalysisData ~ modifiedOrder:", modifiedOrder)
         } catch (error) {
-            console.error("❌ Lỗi khi lấy dữ liệu phân tích:", error)
+            console.error("❌ Lỗi khi lấy dữ liệu phân tích:", error);
         }
-    }
+    };
 
 
     useEffect(() => {
         handleGetAnalysisData()
     }, [])
 
-    // Chart data
     const revenueData = {
         labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6"],
         datasets: [
@@ -198,17 +211,16 @@ const Dashboard = () => {
         },
     }
 
-    // Recent orders data
     const recentOrdersColumns = [
         {
             title: "Mã đơn hàng",
-            dataIndex: "order_code",  // sửa từ "id" thành "order_code"
+            dataIndex: "order_code",
             key: "order_code",
             className: "text-gray-700",
         },
         {
             title: "Khách hàng",
-            dataIndex: ["customer", "customer_name"], // lấy tên khách từ customer.customer_name
+            dataIndex: ["customer", "customer_name"],
             key: "customer",
             render: (text, record) => (
                 <div className="flex items-center">
@@ -227,7 +239,7 @@ const Dashboard = () => {
         },
         {
             title: "Trạng thái",
-            dataIndex: "order_status",  // sửa từ "status" thành "order_status"
+            dataIndex: "order_status",
             key: "order_status",
             render: (status) => {
                 let color, bgColor, textColor;
@@ -277,11 +289,10 @@ const Dashboard = () => {
                     </div>
                 );
             }
-
         },
         {
             title: "Tổng tiền",
-            dataIndex: "final_amount", // sửa từ "amount" thành "final_amount"
+            dataIndex: "final_amount",
             key: "final_amount",
             align: "right",
             className: "font-medium text-gray-800",
@@ -290,7 +301,16 @@ const Dashboard = () => {
         },
     ];
 
-
+    const {
+        revenue,
+        totalCustomer,
+        totalProduct,
+        orderData,
+        totalCustomersThisMonth,
+        totalProductsThisMonth,
+        totalOrdersThisMonth,
+        revenueMoM,
+    } = analysisData;
     return (
         <div>
             {/* <h1 className="text-2xl font-bold mb-6 text-gray-800 absolute z-20 top-6 left-4">Tổng quan</h1> */}
@@ -307,9 +327,9 @@ const Dashboard = () => {
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Doanh thu</p>
                                 <p className="text-2xl font-bold text-gray-800">{formatPrice(revenue?.total_money?.total_outstanding) || 0}</p>
-                                <div className="flex items-center text-xs text-green-600 mt-2">
-                                    <ArrowUpOutlined />
-                                    <span className="ml-1">20.1% so với tháng trước</span>
+                                <div className={`flex items-center text-xs ${revenueMoM > 0 ? 'text-green-600' : 'text-red-600'} mt-2`}>
+                                    {revenueMoM > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                                    <span className="ml-1">{Math.round(revenueMoM * 10) / 10}% so với tháng trước</span>
                                 </div>
                             </div>
                         </div>
@@ -326,9 +346,9 @@ const Dashboard = () => {
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Khách hàng</p>
-                                <p className="text-2xl font-bold text-gray-800">{customerData?.pagination?.total || 0}</p>
+                                <p className="text-2xl font-bold text-gray-800">{totalCustomer}</p>
                                 <div className="flex items-center text-xs text-blue-600 mt-2">
-                                    <span>+180 khách hàng mới</span>
+                                    <span>+{totalCustomersThisMonth} khách hàng mới trong tháng</span>
                                 </div>
                             </div>
                         </div>
@@ -345,9 +365,9 @@ const Dashboard = () => {
                             </div>
                             <div>
                                 <p className="text-sm text-gray-500 mb-1">Sản phẩm</p>
-                                <p className="text-2xl font-bold text-gray-800">{productData?.pagination?.total || 0}</p>
+                                <p className="text-2xl font-bold text-gray-800">{totalProduct}</p>
                                 <div className="flex items-center text-xs text-purple-600 mt-2">
-                                    <span>+24 sản phẩm mới</span>
+                                    <span>+{totalProductsThisMonth} sản phẩm mới trong tháng</span>
                                 </div>
                             </div>
                         </div>
@@ -366,7 +386,7 @@ const Dashboard = () => {
                                 <p className="text-sm text-gray-500 mb-1">Đơn hàng</p>
                                 <p className="text-2xl font-bold text-gray-800">{orderData?.pagination?.total || 0}</p>
                                 <div className="flex items-center text-xs text-orange-600 mt-2">
-                                    <span>+201 đơn hàng mới</span>
+                                    <span>+{totalOrdersThisMonth} đơn hàng mới trong tháng</span>
                                 </div>
                             </div>
                         </div>

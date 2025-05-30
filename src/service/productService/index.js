@@ -4,10 +4,11 @@ import axiosService from '../axiosService';
 
 const productService = {
 
-    getAllProducts: async () => {
+    getAllProducts: async (params) => {
         return axiosService()({
             url: PRODUCTS_URL,
             method: 'GET',
+            params,
         })
             .then(res => res.data)
             .catch(error => { throw error; });
