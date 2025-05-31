@@ -28,9 +28,9 @@ import searchService from "../../service/searchService";
 import { debounce } from "lodash";
 import useToastNotify from "../../utils/useToastNotify";
 import formatPrice from '../../utils/formatPrice'
-import CustomRangePicker from "../../components/CustomRangePicker";
 import OptionsStatistics from "../../components/OptionsStatistics";
 import dayjs from "dayjs";
+import OrderStatusTabs from "../../components/order/OrderStatusTabs";
 
 const { Title } = Typography;
 
@@ -126,6 +126,22 @@ const OrderManagement = () => {
     fetchOrders({ page: 1, limit: pagination.pageSize, params });
   };
 
+  const handleChangeTabs = async (order_status) => {
+    console.log("🚀 ~ handleChangeTabs ~ order_status:", order_status);
+
+    const params = {};
+    if (Number(order_status) !== -1) {
+      params.order_status = order_status;
+    }
+
+    console.log("🚀 ~ handleChangeTabs ~ params:", params);
+
+    fetchOrders({
+      page: 1,
+      limit: pagination.pageSize,
+      params,
+    });
+  };
 
   const fetchOrders = async ({ page = pagination.current, limit = pagination.pageSize, params = {} } = {}) => {
     setLoading(true);
@@ -376,14 +392,14 @@ const OrderManagement = () => {
               className="hover:bg-gray-100"
             />
           </Tooltip>
-          <Tooltip title="Tải xuống">
+          {/* <Tooltip title="Tải xuống">
             <Button
               type="text"
               icon={<DownloadOutlined />}
               size="small"
               className="hover:bg-gray-100"
             />
-          </Tooltip>
+          </Tooltip> */}
         </Space>
       ),
     },
@@ -432,7 +448,7 @@ const OrderManagement = () => {
             />
           </div>
         </div>
-
+        <OrderStatusTabs onChange={handleChangeTabs} />
         <Table
           loading={loading}
           columns={columns}

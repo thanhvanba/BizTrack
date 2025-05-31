@@ -86,6 +86,18 @@ const orderService = {
         throw error;
       });
   },
+
+  getOrderSummaryByStatus: async (params) => {
+    return axiosService()({
+      url: `${ORDERS_URL}/summary/status`,
+      method: "GET",
+      params,
+    })
+      .then((res) => res.data)
+      .catch((error) => {
+        throw error;
+      });
+  },
 };
 
 export default orderService;
