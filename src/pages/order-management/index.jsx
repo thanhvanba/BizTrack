@@ -31,6 +31,7 @@ import formatPrice from '../../utils/formatPrice'
 import OptionsStatistics from "../../components/OptionsStatistics";
 import dayjs from "dayjs";
 import OrderStatusTabs from "../../components/order/OrderStatusTabs";
+import orderDetailService from "../../service/orderDetailService";
 
 const { Title } = Typography;
 
@@ -127,15 +128,10 @@ const OrderManagement = () => {
   };
 
   const handleChangeTabs = async (order_status) => {
-    console.log("🚀 ~ handleChangeTabs ~ order_status:", order_status);
-
     const params = {};
     if (Number(order_status) !== -1) {
       params.order_status = order_status;
     }
-
-    console.log("🚀 ~ handleChangeTabs ~ params:", params);
-
     fetchOrders({
       page: 1,
       limit: pagination.pageSize,
@@ -200,6 +196,67 @@ const OrderManagement = () => {
       await orderService.updateOrder(orderId, data);
       message.success("Cập nhật trạng thái đơn hàng thành công!");
       fetchOrders(); // reload lại danh sách
+
+      if (order_status === "Huỷ điều chỉnh") {
+        const orderDetail = await orderDetailService.getOrderDetailById(orderId);
+
+        const {
+          order_id,
+          order_code,
+          order_date,
+          warehouse_id,
+          shipping_address,
+          payment_method,
+          note,
+          shipping_fee,
+          order_amount,
+          final_amount,
+          customer,
+          products
+        } = orderDetail;
+
+        // config data newtab
+        const newTab = {
+          key: order_id,
+          title: `Đơn hàng điều chỉnh của ${order_code}` || 'Đơn hàng',
+          mode: 'create', // hoặc 'edit' nếu cần chỉnh sửa
+          formKey: Date.now(),
+          order: {
+            warehouse_id,
+            customer_id: customer.customer_id,
+            shipping_address,
+            order_date,
+            payment_method,
+            note: note || '',
+            shipping_fee: Number(shipping_fee),
+            order_amount: Number(order_amount),
+            transfer_amount: Number(final_amount)
+          },
+          selectedProducts: products.map((p) => ({
+            product_id: p.product_id,
+            product_name: p.product_name,
+            product_retail_price: p.price,
+            quantity: p.quantity,
+            discount: p.discount,
+            total_quantity: 0,           // nếu không có thì mặc định
+            available_quantity: 0,
+            reserved_quantity: 0
+          }))
+        };
+        // Lưu vào localStorage
+        const existingTabs = JSON.parse(localStorage.getItem('orderTabs')) || [];
+        const updatedTabs = [...existingTabs, newTab];
+        localStorage.setItem('orderTabs', JSON.stringify(updatedTabs));
+
+        const currentActive = parseInt(localStorage.getItem('activeOrderTab')) || 0;
+        const currentCount = parseInt(localStorage.getItem('orderTabCount')) || 0;
+
+        localStorage.setItem('activeOrderTab', String(currentActive + 1));
+        localStorage.setItem('orderTabCount', String(currentCount + 1));
+
+        // Chuyển sang trang tạo đơn và truyền dữ liệu thông qua state
+        navigate("/create-order");
+      }
     } catch (error) {
       message.error("Không thể cập nhật trạng thái đơn hàng.");
     }
