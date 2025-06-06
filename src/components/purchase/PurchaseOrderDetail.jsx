@@ -16,7 +16,7 @@ export default function PurchaseOrderDetail({ order }) {
               className={`px-2 py-1 rounded-full text-xs font-medium ${order.status === "draft" ? "bg-orange-100 text-orange-800" : "bg-green-100 text-green-800"
                 }`}
             >
-              {order.status === "draft" ? "Chờ duyệt" : "Đã phê duyệt"}
+              {order.status === "draft" ? "Chờ duyệt" : "Đã nhập"}
             </span>
           </p>
         </div>

@@ -6,12 +6,14 @@ import {
   Table,
   Tag,
   Typography,
+  Image,
 } from "antd";
 import {
   SearchOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
 
+import formatPrice from '../../utils/formatPrice'
 import inventoryService from "../../service/inventoryService";
 import productService from "../../service/productService";
 
@@ -26,6 +28,7 @@ const InventoryManagement = () => {
   const [inventories, setInventories] = useState([]);
   console.log("🚀 ~ InventoryManagement ~ inventories:", inventories)
   const [products, setProducts] = useState([]);
+  console.log("🚀 ~ InventoryManagement ~ products:", products)
 
   const navigate = useNavigate()
 
@@ -109,18 +112,35 @@ const InventoryManagement = () => {
 
   const columns = [
     {
-      title: "Tên sản phẩm",
-      dataIndex: "name",
-      key: "name",
-      sorter: (a, b) => a.name.localeCompare(b.name),
-      ellipsis: true,
+      title: "Sản phẩm",
+      dataIndex: ["product", "product_name"],
+      key: "product_name",
+      render: (text, record) => (
+        <div className="flex items-center">
+          <Image
+            src={record.product.product_image || "/placeholder.svg"}
+            alt={text}
+            width={30}
+            height={30}
+            className="object-cover rounded"
+            preview={false}
+          />
+          <div className="ml-3">
+            <div className="font-medium">{text}</div>
+            <div className="text-gray-500 text-xs">{record.product?.product_barcode}</div>
+            <div className="text-gray-500 text-xs">{record.product?.sku}</div>
+          </div>
+        </div>
+      ),
+      sorter: (a, b) => a.product?.product_name.localeCompare(b.product?.product_name),
     },
     {
       title: "Danh mục",
-      dataIndex: "category",
+      dataIndex: ["product", "category", "category_name"],
       key: "category",
       filters: categoryFilters,
-      onFilter: (value, record) => record.category === value,
+      onFilter: (value, record) =>
+        record.product?.category?.category_name === value,
       render: (text) => (
         <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
           {text}
@@ -129,28 +149,50 @@ const InventoryManagement = () => {
       responsive: ["md"],
     },
     {
-      title: "Vị trí",
-      dataIndex: "location",
-      key: "location",
+      title: "Giá bán",
+      dataIndex: ["product", "product_retail_price"],
+      key: "price",
+      render: (price) => formatPrice(price),
+      sorter: (a, b) =>
+        Number(a.product?.product_retail_price) -
+        Number(b.product?.product_retail_price),
+      align: "right",
       responsive: ["lg"],
-      filters: warehouses.data?.map(w => ({
-        text: w.warehouse_name,
-        value: w.warehouse_name
-      })) || [],
-      onFilter: (value, record) => record.location === value,
+    },
+    {
+      title: "Kho",
+      dataIndex: ["warehouse", "warehouse_name"],
+      key: "location",
+      filters:
+        warehouses.data?.map((w) => ({
+          text: w.warehouse_name,
+          value: w.warehouse_name,
+        })) || [],
+      onFilter: (value, record) =>
+        record.warehouse?.warehouse_name === value,
+      responsive: ["lg"],
     },
     {
       title: "Số lượng",
-      dataIndex: "quantity",
+      dataIndex: ["product", "quantity"],
       key: "quantity",
-      sorter: (a, b) => a.quantity - b.quantity,
+      sorter: (a, b) => a.product?.quantity - b.product?.quantity,
       align: "center",
     },
     {
+      title: "Khách đặt",
+      dataIndex: ["product", "reserved_stock"],
+      key: "reserved_stock",
+      render: (val) => val ?? 0,
+      align: "center",
+      responsive: ["lg"],
+    },
+    {
       title: "Khả dụng",
-      dataIndex: "available_stock",
+      dataIndex: ["product", "available_stock"],
       key: "available_stock",
-      sorter: (a, b) => a.available_stock - b.available_stock,
+      sorter: (a, b) =>
+        a.product?.available_stock - b.product?.available_stock,
       align: "center",
     },
     {
@@ -158,17 +200,49 @@ const InventoryManagement = () => {
       dataIndex: "status",
       key: "status",
       align: "center",
-      render: (status) => {
-        return <Tag color={getStatusColor(status)}>{status}</Tag>;
+      render: (_, record) => {
+        const qty = record.product?.available_stock ?? 0;
+        let text = "Hết hàng";
+        let color = "red";
+        if (qty > 5) {
+          text = "Đủ hàng";
+          color = "green";
+        } else if (qty > 0) {
+          text = "Sắp hết";
+          color = "orange";
+        }
+        return <Tag color={color}>{text}</Tag>;
       },
       filters: [
         { text: "Đủ hàng", value: "Đủ hàng" },
         { text: "Sắp hết", value: "Sắp hết" },
         { text: "Hết hàng", value: "Hết hàng" },
       ],
-      onFilter: (value, record) => record.status === value,
+      onFilter: (value, record) => {
+        const qty = record.product?.available_stock ?? 0;
+        if (qty > 5 && value === "Đủ hàng") return true;
+        if (qty > 0 && qty <= 5 && value === "Sắp hết") return true;
+        if (qty <= 0 && value === "Hết hàng") return true;
+        return false;
+      },
+    },
+    {
+      title: "Ngày tạo",
+      dataIndex: "created_at",
+      key: "created_at",
+      sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
+      render: (date) => new Date(date).toLocaleString("vi-VN"),
+    },
+    {
+      title: "Chỉnh sửa gần nhất",
+      dataIndex: "updated_at",
+      key: "updated_at",
+      sorter: (a, b) => new Date(a.updated_at) - new Date(b.updated_at),
+      render: (date) => new Date(date).toLocaleString("vi-VN"),
+      align: "right",
     },
   ];
+
 
   return (
     <div>

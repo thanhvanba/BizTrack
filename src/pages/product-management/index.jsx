@@ -305,7 +305,7 @@ const ProductManagement = () => {
               className="md:max-w-md"
             />
           </div>
-          <Select
+          {/* <Select
             defaultValue="all"
             style={{ minWidth: 180 }}
             onChange={(value) => setCategoryFilter(value)}
@@ -317,7 +317,7 @@ const ProductManagement = () => {
                 {category.category_name}
               </Option>
             ))}
-          </Select>
+          </Select> */}
         </div>
 
         <Table

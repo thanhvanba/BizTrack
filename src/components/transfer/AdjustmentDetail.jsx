@@ -18,7 +18,7 @@ export default function AdjustmentDetail({ adjustment }) {
                   : "bg-green-100 text-green-800"
               }`}
             >
-              {adjustment.status === "draft" ? "Chờ duyệt" : "Đã phê duyệt"}
+              {adjustment.status === "draft" ? "Chờ duyệt" : "Đã nhập"}
             </span>
           </p>
         </div>

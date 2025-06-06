@@ -62,7 +62,7 @@ export default function PurchaseOrderList({ purchaseOrders, onEdit, onApprove, o
       key: 'status',
       render: (status) => (
         <Tag color={status === "draft" ? "orange" : "green"}>
-          {status === "draft" ? "Chờ duyệt" : "Đã phê duyệt"}
+          {status === "draft" ? "Chờ duyệt" : "Đã nhập"}
         </Tag>
       ),
     },
