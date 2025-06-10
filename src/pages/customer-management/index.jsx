@@ -7,6 +7,7 @@ import CustomerModal from "../../components/modals/CustomerModal"
 import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal"
 import { debounce } from "lodash"
 import searchService from "../../service/searchService"
+import ExpandedCustomerTabs from "../../components/customer/ExpandedCustomerTabs"
 
 const { Title } = Typography
 
@@ -98,6 +99,38 @@ const CustomerManagement = () => {
       useToastNotify("Xóa khách hàng không thành công.", "error")
     } finally {
       setLoading(false)
+    }
+  }
+  const [expandedRowKeys, setExpandedRowKeys] = useState([])
+  const [selectedRowKeys, setSelectedRowKeys] = useState([])
+
+  // Handle select all checkbox
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedRowKeys(customers.map((item) => item.key))
+    } else {
+      setSelectedRowKeys([])
+    }
+  }
+
+  // Handle individual row checkbox
+  const handleRowSelect = (key, checked) => {
+    if (checked) {
+      setSelectedRowKeys([...selectedRowKeys, key])
+    } else {
+      setSelectedRowKeys(selectedRowKeys.filter((k) => k !== key))
+    }
+  }
+  // Check if all rows are selected
+  const isAllSelected = selectedRowKeys.length === customers.length && customers.length > 0
+
+  // Check if some rows are selected (for indeterminate state)
+  const isIndeterminate = selectedRowKeys.length > 0 && selectedRowKeys.length < customers.length
+  const toggleExpand = (key) => {
+    if (expandedRowKeys.includes(key)) {
+      setExpandedRowKeys([])
+    } else {
+      setExpandedRowKeys([key])
     }
   }
 
@@ -233,10 +266,29 @@ const CustomerManagement = () => {
             showSizeChanger: true,
             pageSizeOptions: ['5', '10', '20', '50'],
           }}
-          onChange={handleTableChange}
-          rowClassName="hover:bg-gray-50 transition-colors"
+          expandable={{
+            expandedRowRender: (record) => (
+              <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
+                <ExpandedCustomerTabs record={record} />
+              </div>
+            ),
+            expandedRowKeys,
+            onExpand: (expanded, record) => {
+              setExpandedRowKeys(expanded ? [record.customer_id] : []);
+            },
+          }}
+          onRow={(record) => ({
+            onClick: () => toggleExpand(record.customer_id),
+            className: "cursor-pointer",
+          })}
+          rowClassName={(record) =>
+            expandedRowKeys.includes(record.customer_id)
+              ? "border-2 border-red-500 !border-collapse  z-10 bg-blue-50 rounded-md shadow-sm"
+              : "hover:bg-gray-50 transition-colors"
+          }
           scroll={{ x: "max-content" }}
           locale={{ emptyText: "Không có khách hàng nào" }}
+          onChange={handleTableChange}
         />
       </Card>
 

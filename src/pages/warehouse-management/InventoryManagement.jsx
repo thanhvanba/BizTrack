@@ -7,6 +7,7 @@ import {
   Tag,
   Typography,
   Image,
+  Tabs,
 } from "antd";
 import {
   SearchOutlined,
@@ -20,15 +21,14 @@ import productService from "../../service/productService";
 import { fetchWarehouses } from "../../redux/warehouses/warehouses.slice";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import ExpandedRowContent from "../../components/warehouse/ExpandedRowContent";
 
 const { Title } = Typography;
 
 const InventoryManagement = () => {
   const [searchText, setSearchText] = useState("");
   const [inventories, setInventories] = useState([]);
-  console.log("🚀 ~ InventoryManagement ~ inventories:", inventories)
   const [products, setProducts] = useState([]);
-  console.log("🚀 ~ InventoryManagement ~ products:", products)
 
   const navigate = useNavigate()
 
@@ -110,7 +110,58 @@ const InventoryManagement = () => {
     .filter(Boolean)
     .map((cat) => ({ text: cat, value: cat }));
 
+  const [expandedRowKeys, setExpandedRowKeys] = useState([])
+  const [selectedRowKeys, setSelectedRowKeys] = useState([])
+
+  // Handle select all checkbox
+  const handleSelectAll = (checked) => {
+    if (checked) {
+      setSelectedRowKeys(filteredData.map((item) => item.key))
+    } else {
+      setSelectedRowKeys([])
+    }
+  }
+
+  // Handle individual row checkbox
+  const handleRowSelect = (key, checked) => {
+    if (checked) {
+      setSelectedRowKeys([...selectedRowKeys, key])
+    } else {
+      setSelectedRowKeys(selectedRowKeys.filter((k) => k !== key))
+    }
+  }
+  // Check if all rows are selected
+  const isAllSelected = selectedRowKeys.length === filteredData.length && filteredData.length > 0
+
+  // Check if some rows are selected (for indeterminate state)
+  const isIndeterminate = selectedRowKeys.length > 0 && selectedRowKeys.length < filteredData.length
+
   const columns = [
+    {
+      key: "checkbox",
+      title: (
+        <input
+          type="checkbox"
+          className="w-4 h-4"
+          checked={isAllSelected}
+          ref={(input) => {
+            if (input) input.indeterminate = isIndeterminate
+          }}
+          onChange={(e) => handleSelectAll(e.target.checked)}
+        />
+      ),
+      dataIndex: "checkbox",
+      width: 40,
+      render: (_, record) => (
+        <input
+          type="checkbox"
+          className="w-4 h-4"
+          checked={selectedRowKeys.includes(record.key)}
+          onChange={(e) => handleRowSelect(record.key, e.target.checked)}
+          onClick={(e) => e.stopPropagation()}
+        />
+      ),
+    },
     {
       title: "Sản phẩm",
       dataIndex: ["product", "product_name"],
@@ -134,20 +185,20 @@ const InventoryManagement = () => {
       ),
       sorter: (a, b) => a.product?.product_name.localeCompare(b.product?.product_name),
     },
-    {
-      title: "Danh mục",
-      dataIndex: ["product", "category", "category_name"],
-      key: "category",
-      filters: categoryFilters,
-      onFilter: (value, record) =>
-        record.product?.category?.category_name === value,
-      render: (text) => (
-        <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
-          {text}
-        </span>
-      ),
-      responsive: ["md"],
-    },
+    // {
+    //   title: "Danh mục",
+    //   dataIndex: ["product", "category", "category_name"],
+    //   key: "category",
+    //   filters: categoryFilters,
+    //   onFilter: (value, record) =>
+    //     record.product?.category?.category_name === value,
+    //   render: (text) => (
+    //     <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+    //       {text}
+    //     </span>
+    //   ),
+    //   responsive: ["md"],
+    // },
     {
       title: "Giá bán",
       dataIndex: ["product", "product_retail_price"],
@@ -233,16 +284,24 @@ const InventoryManagement = () => {
       sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
       render: (date) => new Date(date).toLocaleString("vi-VN"),
     },
-    {
-      title: "Chỉnh sửa gần nhất",
-      dataIndex: "updated_at",
-      key: "updated_at",
-      sorter: (a, b) => new Date(a.updated_at) - new Date(b.updated_at),
-      render: (date) => new Date(date).toLocaleString("vi-VN"),
-      align: "right",
-    },
+    // {
+    //   title: "Chỉnh sửa gần nhất",
+    //   dataIndex: "updated_at",
+    //   key: "updated_at",
+    //   sorter: (a, b) => new Date(a.updated_at) - new Date(b.updated_at),
+    //   render: (date) => new Date(date).toLocaleString("vi-VN"),
+    //   align: "right",
+    // },
   ];
 
+
+  const toggleExpand = (key) => {
+    if (expandedRowKeys.includes(key)) {
+      setExpandedRowKeys([])
+    } else {
+      setExpandedRowKeys([key])
+    }
+  }
 
   return (
     <div>
@@ -273,7 +332,25 @@ const InventoryManagement = () => {
             className="rounded-lg"
           />
         </div>
-
+        {/* Selected items info */}
+        {selectedRowKeys.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4 flex items-center justify-between">
+            <span className="text-blue-700">
+              Đã chọn {selectedRowKeys.length} / {filteredData.length} mục
+            </span>
+            <div className="flex gap-2">
+              <button className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
+                Thao tác hàng loạt
+              </button>
+              <button
+                className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50"
+                onClick={() => setSelectedRowKeys([])}
+              >
+                Bỏ chọn tất cả
+              </button>
+            </div>
+          </div>
+        )}
         <Table
           columns={columns}
           dataSource={filteredData}
@@ -282,8 +359,34 @@ const InventoryManagement = () => {
             showSizeChanger: true,
             size: "small",
           }}
+          // size="small"
+          expandable={{
+            expandedRowRender: (record) => (
+              <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
+                <ExpandedRowContent record={record} />
+              </div>
+            ),
+            expandedRowKeys: expandedRowKeys,
+            onExpand: (expanded, record) => {
+              if (expanded) {
+                setExpandedRowKeys([record.key])
+              } else {
+                setExpandedRowKeys([])
+              }
+            },
+          }}
+          onRow={(record) => ({
+            onClick: () => {
+              toggleExpand(record.key)
+            },
+            className: "cursor-pointer",
+          })}
           scroll={{ x: "max-content" }}
-          rowClassName="hover:bg-gray-50"
+          rowClassName={(record) => {
+            return expandedRowKeys.includes(record.key)
+              ? "border-2 bg-blue-50 rounded-md shadow-sm"
+              : "hover:bg-gray-50";
+          }}
           locale={{ emptyText: "Không có sản phẩm nào" }}
         />
       </Card>
