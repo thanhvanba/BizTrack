@@ -1,8 +1,12 @@
 import { useState, useEffect } from "react"
 import { useSelector } from "react-redux"
-import { Table, Input, Select, Button, Typography, Divider, InputNumber } from "antd"
+import {
+  Table, Input, Select, Button, Typography, Divider, InputNumber
+} from "antd"
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons"
 import productService from "../../service/productService"
+import supplierService from "../../service/supplierService"
+import SupplierModal from "../modals/SupplierModal"
 
 const { TextArea } = Input
 const { Option } = Select
@@ -11,8 +15,11 @@ const { Title, Text } = Typography
 export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel }) {
   const [products, setProducts] = useState([])
   const warehouses = useSelector(state => state.warehouse.warehouses.data)
+  const [suppliers, setSuppliers] = useState([])
+  const [createSupplierVisible, setCreateSupplierVisible] = useState(false)
+
   const [formData, setFormData] = useState({
-    supplier_name: "",
+    supplier_id: "",
     warehouse_id: "",
     note: "",
   })
@@ -30,16 +37,26 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
   }, [])
 
   useEffect(() => {
+    const fetchSuppliers = async () => {
+      const res = await supplierService.getAllSuppliers()
+      if (res && res.data) {
+        setSuppliers(res.data)
+      }
+    }
+    fetchSuppliers()
+  }, [])
+
+  useEffect(() => {
     if (initialValues) {
       setFormData({
-        supplier_name: initialValues.supplier_name || "",
+        supplier_id: initialValues.supplier_id || "",
         warehouse_id: initialValues.warehouse_id || "",
         note: initialValues.note || "",
       })
       setDetails(initialValues.details || [])
     } else {
       setFormData({
-        supplier_name: "",
+        supplier_id: "",
         warehouse_id: "",
         note: "",
       })
@@ -49,12 +66,9 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setFormData({
-      ...formData,
-      [name]: value,
-    })
+    setFormData(prev => ({ ...prev, [name]: value }))
     if (errors[name]) {
-      setErrors({ ...errors, [name]: "" })
+      setErrors(prev => ({ ...prev, [name]: "" }))
     }
   }
 
@@ -88,17 +102,20 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
     setDetails(newDetails)
   }
 
+  const handleCreateSupplier = (newSupplier) => {
+    setSuppliers(prev => [...prev, newSupplier])
+    setFormData(prev => ({ ...prev, supplier_id: newSupplier.supplier_id }))
+    setCreateSupplierVisible(false)
+  }
+
   const validateForm = () => {
     const newErrors = {}
-
-    if (!formData.supplier_name.trim()) {
-      newErrors.supplier_name = "Vui lòng nhập tên nhà cung cấp"
+    if (!formData.supplier_id) {
+      newErrors.supplier_id = "Vui lòng chọn nhà cung cấp"
     }
-
     if (!formData.warehouse_id) {
       newErrors.warehouse_id = "Vui lòng chọn kho"
     }
-
     if (details.length === 0) {
       newErrors.details = "Vui lòng thêm ít nhất một sản phẩm"
     } else {
@@ -108,7 +125,6 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
         }
       })
     }
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -118,7 +134,7 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
     if (!validateForm()) return
 
     const order = {
-      supplier_name: formData.supplier_name,
+      supplier_id: formData.supplier_id,
       warehouse_id: formData.warehouse_id,
       note: formData.note,
       status: "draft",
@@ -126,7 +142,7 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
     }
 
     onSubmit(order)
-    setFormData({ supplier_name: "", warehouse_id: "", note: "" })
+    setFormData({ supplier_id: "", warehouse_id: "", note: "" })
     setDetails([])
   }
 
@@ -206,16 +222,46 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
             <label className="block font-medium mb-1">
               Nhà cung cấp <span className="text-red-500">*</span>
             </label>
-            <Input
-              name="supplier_name"
-              value={formData.supplier_name}
-              onChange={handleInputChange}
-              placeholder="Nhập tên nhà cung cấp"
-              status={errors.supplier_name ? "error" : ""}
-            />
-            {errors.supplier_name && (
-              <Text type="danger">{errors.supplier_name}</Text>
+            <div className="flex gap-2">
+              <Select
+                className="w-full"
+                value={formData.supplier_id}
+                onChange={(value) =>
+                  handleInputChange({ target: { name: "supplier_id", value } })
+                }
+                placeholder="Chọn nhà cung cấp"
+                status={errors.supplier_id ? "error" : ""}
+                showSearch
+                optionFilterProp="label"
+                filterOption={(input, option) =>
+                  option?.label?.toLowerCase().includes(input.toLowerCase())
+                }
+              >
+                {suppliers.map((s) => (
+                  <Option
+                    key={s.supplier_id}
+                    value={s.supplier_id}
+                    label={`${s.supplier_name} - ${s.phone || ""}`}
+                  >
+                    {s.supplier_name} - {s.phone || ""}
+                  </Option>
+                ))}
+              </Select>
+              <Button type="primary" onClick={() => setCreateSupplierVisible(true)}>
+                + Thêm
+              </Button>
+            </div>
+            {errors.supplier_id && (
+              <Text type="danger" className="block mt-1">
+                {errors.supplier_id}
+              </Text>
             )}
+            <SupplierModal
+              open={createSupplierVisible}
+              onCancel={() => setCreateSupplierVisible(false)}
+              onSubmit={handleCreateSupplier}
+              mode="create"
+            />
           </div>
 
           <div>

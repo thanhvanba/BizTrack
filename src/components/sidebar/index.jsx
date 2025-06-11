@@ -73,6 +73,7 @@ const menuItems = [
     children: [
       { key: 'warehouses', label: 'Danh sách kho' },
       { key: 'inventory', label: 'Tồn kho' },
+      { key: 'suppliers', label: 'Nhà cung cấp' },
       { key: 'purchase', label: 'Nhập hàng' },
       { key: 'transfer', label: 'Điều chỉnh kho' },
     ],

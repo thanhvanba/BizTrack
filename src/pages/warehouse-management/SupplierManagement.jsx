@@ -2,33 +2,34 @@ import { useEffect, useState } from "react"
 import { Card, Input, Button, Table, Tag, Space, Tooltip, Typography } from "antd"
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons"
 import useToastNotify from "../../utils/useToastNotify"
-import customerService from "../../service/customerService"
+import supplierService from "../../service/supplierService"
 import CustomerModal from "../../components/modals/CustomerModal"
 import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal"
 import { debounce } from "lodash"
 import searchService from "../../service/searchService"
 import ExpandedCustomerTabs from "../../components/customer/ExpandedCustomerTabs"
+import SupplierModal from "../../components/modals/SupplierModal"
 
 const { Title } = Typography
 
-const CustomerManagement = () => {
-  const [customers, setCustomers] = useState([])
+const SupplierManagement = () => {
+  const [suppliers, setSuppliers] = useState([])
   const [loading, setLoading] = useState(false)
   const [createModalVisible, setCreateModalVisible] = useState(false)
   const [editModalVisible, setEditModalVisible] = useState(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
-  const [selectedCustomer, setSelectedCustomer] = useState(null)
+  const [selectedSupplier, setSelectedSupplier] = useState(null)
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 5,
     total: 0,
   })
 
-  const fetchCustomers = async (page = pagination.current, limit = pagination.pageSize) => {
+  const fetchSuppliers = async (page = pagination.current, limit = pagination.pageSize) => {
     setLoading(true);
     try {
-      const res = await customerService.getAllCustomers({ page, limit })
-      setCustomers(res.data.map(c => ({ ...c, key: c.customer_id })))
+      const res = await supplierService.getAllSuppliers({ page, limit })
+      setSuppliers(res.data.map(c => ({ ...c, key: c.supplier_id })))
       if (res.pagination) {
         setPagination({
           current: res.pagination.currentPage,
@@ -37,66 +38,66 @@ const CustomerManagement = () => {
         });
       }
     } catch (err) {
-      useToastNotify("Không thể tải danh sách khách hàng.", "error")
+      useToastNotify("Không thể tải danh sách nhà cung cấp.", "error")
     } finally {
       setLoading(false);
     }
   }
   const handleTableChange = (paginationInfo) => {
     const { current, pageSize } = paginationInfo
-    fetchCustomers(current, pageSize)
+    fetchSuppliers(current, pageSize)
   }
   const handleSearch = debounce(async (value) => {
     if (!value) {
-      fetchCustomers(); // gọi lại toàn bộ đơn hàng
+      fetchSuppliers(); // gọi lại toàn bộ đơn hàng
       return;
     }
     try {
       const response = await searchService.searchCustomerByPhone(value);
       const data = response.data || [];
-      setCustomers(data.map(customer => ({ ...customer, key: customer?.customer_id, })));
+      setSupplier(data.map(supplier => ({ ...supplier, key: supplier?.supplier_id, })));
     } catch (error) {
-      useToastNotify("Không thể tìm thấy khách hàng theo số điện thoại.", 'error');
+      useToastNotify("Không thể tìm thấy nhà cung cấp theo số điện thoại.", 'error');
     }
   }, 500);
 
   useEffect(() => {
-    fetchCustomers()
+    fetchSuppliers()
   }, [])
 
-  const handleCreateCustomer = async (data) => {
+  const handleCreateSupplier = async (data) => {
     try {
-      await customerService.createCustomer(data)
+      await supplierService.createSupplier (data)
       setCreateModalVisible(false)
-      fetchCustomers()
-      useToastNotify(`Đã thêm khách hàng "${data.customer_name}" thành công!`, "success")
+      fetchSuppliers()
+      useToastNotify(`Đã thêm nhà cung cấp "${data.supplier_name}" thành công!`, "success")
     } catch {
-      useToastNotify("Thêm khách hàng không thành công.", "error")
+      useToastNotify("Thêm nhà cung cấp không thành công.", "error")
     }
   }
 
-  const handleEditCustomer = async (data) => {
+  const handleEditSupplier = async (data) => {
     try {
-      await customerService.updateCustomer(data.customer_id, data)
+      await supplierService.updateSupplier(data.supplier_id, data)
       setEditModalVisible(false)
-      fetchCustomers()
-      useToastNotify(`Đã cập nhật khách hàng "${data.customer_name}" thành công!`, "success")
+      fetchSuppliers()
+      useToastNotify(`Đã cập nhật nhà cung cấp "${data.supplier_name}" thành công!`, "success")
     } catch {
-      useToastNotify("Cập nhật khách hàng không thành công.", "error")
+      useToastNotify("Cập nhật nhà cung cấp không thành công.", "error")
     }
   }
 
-  const handleDeleteCustomer = async () => {
+  const handleDeleteSupplier = async () => {
     setLoading(true)
     try {
-      await customerService.deleteCustomer(selectedCustomer.customer_id)
+      await supplierService.deleteSupplier(selectedSupplier.supplier_id)
       setDeleteModalVisible(false)
-      setSelectedCustomer(null)
-      fetchCustomers()
-      useToastNotify(`Đã xóa khách hàng "${selectedCustomer.customer_name}" thành công!`, "success")
+      setSelectedSupplier(null)
+      fetchSuppliers()
+      useToastNotify(`Đã xóa nhà cung cấp "${selectedSupplier.supplier_name}" thành công!`, "success")
     } catch (err) {
-      console.log("🚀 ~ handleDeleteCustomer ~ err:", err)
-      useToastNotify("Xóa khách hàng không thành công.", "error")
+      console.log("🚀 ~ handleDeleteSupplier ~ err:", err)
+      useToastNotify("Xóa nhà cung cấp không thành công.", "error")
     } finally {
       setLoading(false)
     }
@@ -107,7 +108,7 @@ const CustomerManagement = () => {
   // Handle select all checkbox
   const handleSelectAll = (checked) => {
     if (checked) {
-      setSelectedRowKeys(customers.map((item) => item.key))
+      setSelectedRowKeys(suppliers.map((item) => item.key))
     } else {
       setSelectedRowKeys([])
     }
@@ -122,10 +123,10 @@ const CustomerManagement = () => {
     }
   }
   // Check if all rows are selected
-  const isAllSelected = selectedRowKeys.length === customers.length && customers.length > 0
+  const isAllSelected = selectedRowKeys.length === suppliers.length && suppliers.length > 0
 
   // Check if some rows are selected (for indeterminate state)
-  const isIndeterminate = selectedRowKeys.length > 0 && selectedRowKeys.length < customers.length
+  const isIndeterminate = selectedRowKeys.length > 0 && selectedRowKeys.length < suppliers.length
   const toggleExpand = (key) => {
     if (expandedRowKeys.includes(key)) {
       setExpandedRowKeys([])
@@ -136,11 +137,11 @@ const CustomerManagement = () => {
 
   const columns = [
     {
-      title: "Tên khách hàng",
-      dataIndex: "customer_name",
-      key: "customer_name",
+      title: "Tên nhà cung cấp",
+      dataIndex: "supplier_name",
+      key: "supplier_name",
       render: (name) => <span className="font-medium">{name}</span>,
-      sorter: (a, b) => a.customer_name.localeCompare(b.customer_name),
+      sorter: (a, b) => a.supplier_name.localeCompare(b.supplier_name),
     },
     {
       title: "Email",
@@ -155,39 +156,23 @@ const CustomerManagement = () => {
       key: "phone",
       responsive: ["md"]
     },
-    {
-      title: "Tổng đơn hàng",
-      dataIndex: "total_orders",
-      key: "total_orders",
-      align: "center",
-      responsive: ["lg"]
-    },
-    {
-      title: "Tổng chi tiêu",
-      dataIndex: "total_expenditure",
-      key: "total_expenditure",
-      render: (value) =>
-        new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value),
-      align: "right",
-      responsive: ["lg"]
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      align: "center",
-      responsive: ["lg"],
-      render: (status) => status || "-"
-      // render: (status) =>
-      //   <Tag color={status === "active" ? "success" : "default"}>
-      //     {status === "active" ? "Đang hoạt động" : "Ngừng hoạt động"}
-      //   </Tag>,
-      // filters: [
-      //   { text: "Đang hoạt động", value: "active" },
-      //   { text: "Ngừng hoạt động", value: "inactive" }
-      // ],
-      // onFilter: (value, record) => record.status === value,
-    },
+    // {
+    //   title: "Trạng thái",
+    //   dataIndex: "status",
+    //   key: "status",
+    //   align: "center",
+    //   responsive: ["lg"],
+    //   render: (status) => status || "-"
+    //   // render: (status) =>
+    //   //   <Tag color={status === "active" ? "success" : "default"}>
+    //   //     {status === "active" ? "Đang hoạt động" : "Ngừng hoạt động"}
+    //   //   </Tag>,
+    //   // filters: [
+    //   //   { text: "Đang hoạt động", value: "active" },
+    //   //   { text: "Ngừng hoạt động", value: "inactive" }
+    //   // ],
+    //   // onFilter: (value, record) => record.status === value,
+    // },
     {
       title: "Thao tác",
       key: "action",
@@ -202,7 +187,7 @@ const CustomerManagement = () => {
               type="text"
               icon={<EditOutlined />}
               onClick={() => {
-                setSelectedCustomer(record)
+                setSelectedSupplier(record)
                 setEditModalVisible(true)
               }}
               className="text-green-500 hover:text-green-600 hover:bg-green-50"
@@ -214,7 +199,7 @@ const CustomerManagement = () => {
               danger
               icon={<DeleteOutlined />}
               onClick={() => {
-                setSelectedCustomer(record)
+                setSelectedSupplier(record)
                 setDeleteModalVisible(true)
               }}
               className="hover:bg-red-50"
@@ -229,7 +214,7 @@ const CustomerManagement = () => {
     <div>
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 md:mb-6 gap-3">
         <Title level={2} className="text-xl md:text-2xl font-bold m-0 text-gray-800">
-          Quản lý khách hàng
+          Quản lý nhà cung cấp
         </Title>
         <Button
           type="primary"
@@ -237,7 +222,7 @@ const CustomerManagement = () => {
           onClick={() => setCreateModalVisible(true)}
           className="bg-blue-500 hover:bg-blue-600 border-0 shadow-md hover:shadow-lg transition-all"
         >
-          Thêm khách hàng
+          Thêm nhà cung cấp
         </Button>
       </div>
 
@@ -258,7 +243,7 @@ const CustomerManagement = () => {
         <Table
           loading={loading}
           columns={columns}
-          dataSource={customers}
+          dataSource={suppliers}
           pagination={{
             current: pagination.current,
             pageSize: pagination.pageSize,
@@ -266,56 +251,56 @@ const CustomerManagement = () => {
             showSizeChanger: true,
             pageSizeOptions: ['5', '10', '20', '50'],
           }}
-          expandable={{
-            expandedRowRender: (record) => (
-              <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
-                <ExpandedCustomerTabs record={record} />
-              </div>
-            ),
-            expandedRowKeys,
-            onExpand: (expanded, record) => {
-              setExpandedRowKeys(expanded ? [record.customer_id] : []);
-            },
-          }}
-          onRow={(record) => ({
-            onClick: () => toggleExpand(record.customer_id),
-            className: "cursor-pointer",
-          })}
+          // expandable={{
+          //   expandedRowRender: (record) => (
+          //     <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
+          //       <ExpandedCustomerTabs record={record} />
+          //     </div>
+          //   ),
+          //   expandedRowKeys,
+          //   onExpand: (expanded, record) => {
+          //     setExpandedRowKeys(expanded ? [record.supplier_id] : []);
+          //   },
+          // }}
+          // onRow={(record) => ({
+          //   onClick: () => toggleExpand(record.supplier_id),
+          //   className: "cursor-pointer",
+          // })}
           rowClassName={(record) =>
-            expandedRowKeys.includes(record.customer_id)
+            expandedRowKeys.includes(record.supplier_id)
               ? "border-x-2 border-t-2 border-blue-500 !border-collapse z-10 bg-blue-50 rounded-md shadow-sm"
               : "hover:bg-gray-50 transition-colors"
           }
           scroll={{ x: "max-content" }}
-          locale={{ emptyText: "Không có khách hàng nào" }}
+          locale={{ emptyText: "Không có nhà cung cấp nào" }}
           onChange={handleTableChange}
         />
       </Card>
 
       {/* Modals */}
-      <CustomerModal
+      <SupplierModal
         mode="create"
         open={createModalVisible}
         onCancel={() => setCreateModalVisible(false)}
-        onSubmit={handleCreateCustomer}
+        onSubmit={handleCreateSupplier}
       />
-      <CustomerModal
+      <SupplierModal
         mode="edit"
         open={editModalVisible}
         onCancel={() => setEditModalVisible(false)}
-        onSubmit={handleEditCustomer}
-        customer={selectedCustomer}
+        onSubmit={handleEditSupplier}
+        customer={selectedSupplier}
       />
       <DeleteConfirmModal
         open={deleteModalVisible}
         onCancel={() => setDeleteModalVisible(false)}
-        onConfirm={handleDeleteCustomer}
-        title="Xác nhận xóa khách hàng"
-        content={`Bạn có chắc chắn muốn xóa khách hàng "${selectedCustomer?.customer_name}" không?`}
+        onConfirm={handleDeleteSupplier}
+        title="Xác nhận xóa nhà cung cấp"
+        content={`Bạn có chắc chắn muốn xóa nhà cung cấp "${selectedSupplier?.supplier_name}" không?`}
         loading={loading}
       />
     </div>
   )
 }
 
-export default CustomerManagement
+export default SupplierManagement

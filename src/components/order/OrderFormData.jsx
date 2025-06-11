@@ -39,8 +39,6 @@ const { Text } = Typography;
 const { TextArea } = Input;
 
 const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: selectedProductsProps, onSave, onChange }) => {
-
-    console.log("🚀 ~ OrderFormData ~ orderProp:", orderProp)
     const { orderId } = useParams();
     const [customers, setCustomers] = useState([]);
     const [products, setProducts] = useState([]);
@@ -59,9 +57,11 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
 
     const [form] = Form.useForm();
     const [selectedProducts, setSelectedProducts] = useState(selectedProductsProps || []);
+    console.log("🚀 ~ OrderFormData ~ selectedProducts:", selectedProducts)
 
     const [shippingFee, setShippingFee] = useState(0);
     const [orderDiscount, setOrderDiscount] = useState(0);
+    console.log("🚀 ~ OrderFormData ~ orderDiscount:", orderDiscount)
     const [transferAmount, setTransferAmount] = useState(0);
 
     const formatCurrency = (value) =>
@@ -72,44 +72,6 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
 
     const [searchText, setSearchText] = useState("");
     const navigate = useNavigate();
-
-    // useEffect(() => {
-    //     dispatch(fetchWarehouses());
-    //     fetchCustomers();
-
-    //     if (mode === 'edit') {
-    //         fetchOrderDetails();
-    //     }
-    // }, [orderId]);
-
-    // useEffect(() => {
-    //     fetchInventoryByWarehouseId(orderProp.warehouse_id);
-    // }, [orderProp?.warehouse_id]);
-
-    // Gọi fetchInventory chỉ khi warehouse_id tồn tại
-
-    // useEffect(() => {
-    //   if (mode === "edit" && orderId) {
-    //     const fetchOrder = async () => {
-    //       try {
-    //         const res = await orderService.getOrderById(orderId);
-    //         if (res?.data) {
-    //           setOrder(res.data);
-    //         }
-    //       } catch (error) {
-    //         console.error("Lỗi khi fetch order:", error);
-    //       } finally {
-    //         setLoading(false);
-    //       }
-    //     };
-
-    //     fetchOrder();
-    //   }
-    // }, [mode, orderId]);
-
-    // useEffect(() => {
-    //   console.log("🚀 ~ order:", order);
-    // }, [order]);
 
     // Chỉ gọi fetchWarehouses nếu chưa có trong store
     useEffect(() => {
@@ -240,10 +202,10 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
             const formattedOrderDate = dayjs(values.order_date).format("YYYY-MM-DD");
 
             const orderDetails = selectedProducts.map((item) => ({
-                product_id: item.product_id,
+                product_id: item?.product_id,
                 quantity: item.quantity,
-                price: Number(item.product_retail_price),
-                discount: item.discountAmount || item.discount || 0,
+                price: Number(item?.product_retail_price),
+                discount: item?.discountAmount || item?.discount || 0,
             }));
 
             const rqOrder = {
@@ -292,7 +254,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
 
     // xử lý form
     const filteredProducts = products.filter((product) =>
-        product.product_name.toLowerCase().includes(searchText.toLowerCase())
+        product?.product?.product_name.toLowerCase().includes(searchText.toLowerCase())
     );
 
     const calculateTotalAmount = () => {
@@ -304,12 +266,15 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
 
     const calculateDiscountAmount = () => {
         const discountProduct = selectedProducts.reduce(
-            (sum, item) => sum + (item.discountAmount || 0),
+            (sum, item) => sum + (item?.discountAmount || item?.discount || 0),
             0
         );
-        return discountProduct + orderDiscount;
+        console.log("🚀 ~ calculateDiscountAmount ~ discountProduct:", discountProduct)
+        console.log("🚀 ~ calculateDiscountAmount ~ orderDiscount:", orderDiscount)
+        return discountProduct + parseFloat(orderDiscount);
     };
 
+    console.log("🚀 ~ calculateDiscountAmount ~ calculateDiscountAmount:", calculateDiscountAmount())
     const calculateFinalAmount = () => {
         return (
             Number(calculateTotalAmount()) -
@@ -318,15 +283,18 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         );
     };
 
-    const addProduct = (product) => {
+    const addProduct = (inventory) => {
+        const product = inventory?.product;
+        const productId = product?.product_id;
+
         const existingProduct = selectedProducts.find(
-            (item) => item.product_id === product.product_id
+            (item) => item.product_id === productId
         );
 
         if (existingProduct) {
             setSelectedProducts(
                 selectedProducts.map((item) =>
-                    item.product_id === product.product_id
+                    item.product_id === productId
                         ? { ...item, quantity: item.quantity + 1 }
                         : item
                 )
@@ -334,7 +302,12 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         } else {
             setSelectedProducts([
                 ...selectedProducts,
-                { ...product, quantity: 1, discount: 0 },
+                {
+                    ...product,
+                    quantity: 1,
+                    discount: 0,
+                    discountAmount: 0,
+                },
             ]);
         }
     };
@@ -373,12 +346,12 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                 if (item.product_id !== productId) return item;
 
                 const discountType = type || discountTypes[productId] || "đ";
-                let discountAmount = 0;
+                const price = item.product_retail_price || 0;
+                const quantity = item.quantity || 1;
 
+                let discountAmount = 0;
                 if (discountType === "%") {
-                    discountAmount = Math.round(
-                        (discount / 100) * (item.product_retail_price * item.quantity)
-                    );
+                    discountAmount = Math.round((discount / 100) * (price * quantity));
                 } else {
                     discountAmount = discount;
                 }
@@ -411,13 +384,13 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
     const productColumns = [
         {
             title: "Mã SP",
-            dataIndex: "product_id",
+            dataIndex: ["product", "product_id"],
             key: "product_id",
             width: 220,
         },
         {
             title: "Sản phẩm",
-            dataIndex: "product_name",
+            dataIndex: ["product", "product_name"],
             key: "product_name",
             render: (text, record) => (
                 <div className="flex items-center">
@@ -433,14 +406,14 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         },
         {
             title: "Giá",
-            dataIndex: "product_retail_price",
+            dataIndex: ["product", "product_retail_price"],
             key: "product_retail_price",
             align: "right",
             render: (product_retail_price) => formatCurrency(product_retail_price),
         },
         {
             title: "Tồn kho",
-            dataIndex: "available_quantity",
+            dataIndex: ["product", "available_quantity"],
             key: "available_quantity",
             align: "center",
         },

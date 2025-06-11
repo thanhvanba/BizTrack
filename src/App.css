@@ -1,0 +1,7 @@
+:where(.css-dev-only-do-not-override-1l289hr).ant-table-wrapper table {
+    width: 100%;
+    text-align: start;
+    border-radius: 10px 10px 0 0;
+    border-collapse: collapse;
+    border-spacing: 0;
+}

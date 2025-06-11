@@ -10,13 +10,14 @@ import InventoryManagement from '../pages/warehouse-management/InventoryManageme
 import WarehouseManagement from '../pages/warehouse-management';
 import OrderFormPage from '../pages/order-management/OrderFormPage';
 import TransferManagement from '../pages/warehouse-management/TransferManagement';
+import SupplierManagement from '../pages/warehouse-management/SupplierManagement';
 
 export const privateRoutes = [
   { path: '', element: <Dashboard /> }, // index route
   { path: 'dashboard', element: <Dashboard /> },
   { path: 'orders', element: <OrderManagement /> },
   { path: 'create-order', element: <OrderFormPage /> },
-  { path: 'edit-order/:orderId', element: <OrderFormPage/> },
+  { path: 'edit-order/:orderId', element: <OrderFormPage /> },
   { path: 'products', element: <ProductManagement /> },
   { path: 'product-category', element: <ProductCategory /> },
   { path: 'revenue', element: <RevenueTracking /> },
@@ -26,4 +27,5 @@ export const privateRoutes = [
   { path: 'inventory', element: <InventoryManagement /> },
   { path: 'purchase', element: <PurchaseManagement /> },
   { path: 'transfer', element: <TransferManagement /> },
+  { path: 'suppliers', element: <SupplierManagement /> },
 ];

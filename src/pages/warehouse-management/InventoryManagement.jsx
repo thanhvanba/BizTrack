@@ -384,7 +384,7 @@ const InventoryManagement = () => {
           scroll={{ x: "max-content" }}
           rowClassName={(record) => {
             return expandedRowKeys.includes(record.key)
-              ? "border-2 bg-blue-50 rounded-md shadow-sm"
+              ? "border-x-2 border-t-2 border-blue-500 bg-blue-50 rounded-md shadow-sm"
               : "hover:bg-gray-50";
           }}
           locale={{ emptyText: "Không có sản phẩm nào" }}
