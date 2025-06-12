@@ -47,3 +47,6 @@ export const SEARCH_URL = `${API_URL}/search`;
 
 // SUPPLIER_URL
 export const SUPPLIERS_URL = `${API_URL}/suppliers`;
+
+// PRODUCT_REPORT_URL
+export const PRODUCT_REPORT_URL = `${API_URL}/product-report`;

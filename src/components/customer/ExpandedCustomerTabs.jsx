@@ -2,7 +2,6 @@ import React from "react";
 import { Tabs, Card } from "antd";
 import CustomerInfoTab from "./CustomerInfoTab";
 import CustomerSaleReturnTab from "./CustomerSaleReturnTab";
-import CustomerOrderTab from "./CustomerOrderTab";
 import CustomerReceivablesTab from "./CustomerReceivablesTab";
 
 const ExpandedCustomerTabs = ({ record }) => {
@@ -15,17 +14,12 @@ const ExpandedCustomerTabs = ({ record }) => {
         },
         {
             key: "sale_return",
-            label: "Lịch sử bán/trả",
+            label: "Lịch sử bán/trả hàng",
             children: <CustomerSaleReturnTab />,
         },
         {
-            key: "orders",
-            label: "Lịch sử đơn hàng",
-            children: <CustomerOrderTab />,
-        },
-        {
             key: "debt",
-            label: "Công nợ cần thu",
+            label: "Nợ cần thu từ khách",
             children: <CustomerReceivablesTab />,
         },
     ];

@@ -5,20 +5,27 @@ const ProductInfoTab = ({ productData }) => {
     console.log("🚀 ~ productData:", productData)
     return (
         <div>
-            <div>
+            <div className="grid grid-cols-4 gap-4">
                 {/* Product Info Header */}
-                <div className="flex gap-4 items-start mb-6">
-                    <div className="w-28 h-28 bg-gray-100 rounded-md flex items-center justify-center text-3xl text-blue-500">
-                        <Image
-                            src={productData?.product_image || "/placeholder.svg"}
-                            alt={productData?.product_image}
-                            width={100}
-                            height={100}
-                            className="object-cover rounded"
-                            preview={false}
-                        />
+                <div className="gap-4 items-start">
+                    <Image
+                        src={productData?.product_image || "/placeholder.svg"}
+                        alt={productData?.product_image}
+                        // width={100}
+                        // height={100}
+                        className="object-cover rounded"
+                        preview={false}
+                    />
+
+
+                    <div>
+
                     </div>
-                    <div className="flex-1">
+                </div>
+
+                {/* Product Details Grid */}
+                <div className="col-span-3 grid grid-cols-3 gap-6 mb-6">
+                    <div className="col-span-3">
                         <h3 className="text-lg font-medium mb-2">{productData?.product_name}</h3>
 
                         <div className="mb-2">
@@ -42,14 +49,6 @@ const ProductInfoTab = ({ productData }) => {
                             </Tag>
                         </div>
                     </div>
-
-                    <div>
-
-                    </div>
-                </div>
-
-                {/* Product Details Grid */}
-                <div className="grid grid-cols-4 gap-6 mb-6">
                     <div>
                         <div className="text-gray-600 text-xs mb-1">Mã hàng</div>
                         <div className="font-medium">{productData?.sku}</div>
@@ -63,10 +62,6 @@ const ProductInfoTab = ({ productData }) => {
                         <div className="font-medium">{productData?.quantity}</div>
                     </div>
                     <div>
-                        <div className="text-gray-600 text-xs mb-1">Định mức tồn</div>
-                        <div className="font-medium">0 - 999,999,999</div>
-                    </div>
-                    <div>
                         <div className="text-gray-600 text-xs mb-1">Giá vốn</div>
                         <div className="font-medium">100,000</div>
                     </div>
@@ -78,10 +73,6 @@ const ProductInfoTab = ({ productData }) => {
                         <div className="text-gray-600 text-xs mb-1">Thương hiệu</div>
                         <div className="text-gray-600">Chưa có</div>
                     </div>
-                    <div>
-                        <div className="text-gray-600 text-xs mb-1">Trọng lượng</div>
-                        <div className="font-medium">0 g</div>
-                    </div>
                 </div>
 
                 {/* Additional Options */}
@@ -90,7 +81,7 @@ const ProductInfoTab = ({ productData }) => {
                     <div className="text-blue-500 cursor-pointer hover:text-blue-600">+ Thêm thuộc tính</div>
                 </div> */}
             </div>
-            <div className="flex justify-between mt-4">
+            {/* <div className="flex justify-between mt-4">
                 <div className="flex gap-2">
                     <Button danger icon={<span>🗑️</span>}>
                         Xóa
@@ -107,7 +98,7 @@ const ProductInfoTab = ({ productData }) => {
                         In tem mã
                     </Button>
                 </div>
-            </div>
+            </div> */}
         </div>
     )
 }

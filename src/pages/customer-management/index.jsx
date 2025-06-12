@@ -171,23 +171,23 @@ const CustomerManagement = () => {
       align: "right",
       responsive: ["lg"]
     },
-    {
-      title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      align: "center",
-      responsive: ["lg"],
-      render: (status) => status || "-"
-      // render: (status) =>
-      //   <Tag color={status === "active" ? "success" : "default"}>
-      //     {status === "active" ? "Đang hoạt động" : "Ngừng hoạt động"}
-      //   </Tag>,
-      // filters: [
-      //   { text: "Đang hoạt động", value: "active" },
-      //   { text: "Ngừng hoạt động", value: "inactive" }
-      // ],
-      // onFilter: (value, record) => record.status === value,
-    },
+    // {
+    //   title: "Trạng thái",
+    //   dataIndex: "status",
+    //   key: "status",
+    //   align: "center",
+    //   responsive: ["lg"],
+    //   render: (status) => status || "-"
+    //   // render: (status) =>
+    //   //   <Tag color={status === "active" ? "success" : "default"}>
+    //   //     {status === "active" ? "Đang hoạt động" : "Ngừng hoạt động"}
+    //   //   </Tag>,
+    //   // filters: [
+    //   //   { text: "Đang hoạt động", value: "active" },
+    //   //   { text: "Ngừng hoạt động", value: "inactive" }
+    //   // ],
+    //   // onFilter: (value, record) => record.status === value,
+    // },
     {
       title: "Thao tác",
       key: "action",

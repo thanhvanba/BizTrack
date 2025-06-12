@@ -8,6 +8,7 @@ import {
   Typography,
   Image,
   Tabs,
+  Select,
 } from "antd";
 import {
   SearchOutlined,
@@ -24,29 +25,25 @@ import { useNavigate } from "react-router-dom";
 import ExpandedRowContent from "../../components/warehouse/ExpandedRowContent";
 
 const { Title } = Typography;
+const { Option } = Select;
 
 const InventoryManagement = () => {
   const [searchText, setSearchText] = useState("");
   const [inventories, setInventories] = useState([]);
-  const [products, setProducts] = useState([]);
+  console.log("🚀 ~ InventoryManagement ~ inventories:", inventories)
 
   const navigate = useNavigate()
 
   const dispatch = useDispatch();
   const warehouses = useSelector((state) => state.warehouse.warehouses);
+  console.log("🚀 ~ InventoryManagement ~ warehouses:", warehouses)
 
-  const fetchProducts = async () => {
+  const fetchInventories = async (warehouseId) => {
     try {
-      const response = await productService.getAllProducts();
-      setProducts(response.data);
-    } catch (error) {
-      console.error("Không thể tải danh sách sản phẩm.");
-    }
-  };
+      const response = warehouseId
+        ? await inventoryService.getInventoryByWarehouseId(warehouseId)
+        : await inventoryService.getAllInventories();
 
-  const fetchInventories = async () => {
-    try {
-      const response = await inventoryService.getAllInventories();
       const enrichedData = response.data.map((item) => {
         const available_stock = item.product?.available_stock;
 
@@ -61,28 +58,32 @@ const InventoryManagement = () => {
           category: item.product?.category?.category_name || "Không rõ",
           location: item.warehouse?.warehouse_name || "Không rõ",
           status,
-          available_stock: available_stock,
-          reserved_stock: item.product?.reserved_stock,
-          quantity: item.product?.quantity,
+          available_stock: item.product?.available_stock || item?.product?.available_quantity,
+          reserved_stock: item.product?.reserved_stock || item?.product?.reserved_quantity,
+          quantity: item.product?.quantity || item?.product?.total_quantity,
         };
       });
-      console.log("🚀 ~ enrichedData ~ enrichedData:", enrichedData)
+
+      console.log("🚀 ~ enrichedData:", enrichedData);
       setInventories(enrichedData);
     } catch (error) {
-      console.error("Không thể tải danh sách tồn kho.");
+      console.error("Lỗi khi tải danh sách tồn kho:", error);
     }
   };
 
+  const handleWarehouseChange = (warehouseId) => {
+    console.log('change')
+    fetchInventories(warehouseId);
+  };
   useEffect(() => {
     dispatch(fetchWarehouses());
-    fetchProducts();
   }, []);
 
   useEffect(() => {
-    if (products.length && warehouses.data?.length) {
+    if (warehouses.data?.length) {
       fetchInventories();
     }
-  }, [products, warehouses]);
+  }, [warehouses]);
 
   const filteredData = inventories.filter(
     (item) =>
@@ -104,11 +105,6 @@ const InventoryManagement = () => {
         return "default";
     }
   };
-  const categoryFilters = Array.from(
-    new Set(products.map((p) => p.category_name))
-  )
-    .filter(Boolean)
-    .map((cat) => ({ text: cat, value: cat }));
 
   const [expandedRowKeys, setExpandedRowKeys] = useState([])
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
@@ -225,14 +221,14 @@ const InventoryManagement = () => {
     },
     {
       title: "Số lượng",
-      dataIndex: ["product", "quantity"],
+      dataIndex: ["quantity"],
       key: "quantity",
       sorter: (a, b) => a.product?.quantity - b.product?.quantity,
       align: "center",
     },
     {
       title: "Khách đặt",
-      dataIndex: ["product", "reserved_stock"],
+      dataIndex: ["reserved_stock"],
       key: "reserved_stock",
       render: (val) => val ?? 0,
       align: "center",
@@ -240,7 +236,7 @@ const InventoryManagement = () => {
     },
     {
       title: "Khả dụng",
-      dataIndex: ["product", "available_stock"],
+      dataIndex: ["available_stock"],
       key: "available_stock",
       sorter: (a, b) =>
         a.product?.available_stock - b.product?.available_stock,
@@ -323,15 +319,33 @@ const InventoryManagement = () => {
       </div>
 
       <Card className="rounded-xl shadow-md" bodyStyle={{ padding: "16px" }}>
-        <div className="mb-4">
+        <div className="mb-4 grid grid-cols-3 gap-3 p-4 bg-white rounded-lg shadow-md">
+          {/* Ô tìm kiếm */}
           <Input
             placeholder="Tìm kiếm sản phẩm, danh mục, vị trí..."
             prefix={<SearchOutlined />}
             onChange={(e) => setSearchText(e.target.value)}
             allowClear
-            className="rounded-lg"
+            className="rounded-lg border-gray-300 focus:border-blue-500 col-span-2"
           />
+
+          {/* Dropdown chọn kho hàng */}
+          <Select
+            placeholder="Chọn kho hàng"
+            onChange={handleWarehouseChange}
+            className="rounded-lg w-full border-gray-300 focus:border-blue-500"
+          >
+            <Option key="all" value="">
+              📦 Tất cả kho hàng
+            </Option>
+            {warehouses?.data?.map((warehouse) => (
+              <Option key={warehouse.warehouse_id} value={warehouse.warehouse_id}>
+                🏢 {warehouse.warehouse_name}
+              </Option>
+            ))}
+          </Select>
         </div>
+
         {/* Selected items info */}
         {selectedRowKeys.length > 0 && (
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4 flex items-center justify-between">

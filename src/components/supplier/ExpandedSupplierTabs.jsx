@@ -1,0 +1,34 @@
+import React from "react";
+import { Tabs, Card } from "antd";
+import SupplierInfoTab from "./SupplierInfoTab";
+import SupplierSaleReturnTab from "./SupplierSaleReturnTab";
+import SupplierPayablesTab from "./SupplierPayablesTab";
+
+const ExpandedSupplierTabs = ({ record }) => {
+    console.log("🚀 ~ ExpandedSupplierTabs ~ record:", record)
+    const tabItems = [
+        {
+            key: "info",
+            label: "Thông tin",
+            children: <SupplierInfoTab supplierData={record} />,
+        },
+        {
+            key: "sale_return",
+            label: "Lịch sử nhập/trả hàng",
+            children: <SupplierSaleReturnTab />,
+        },
+        {
+            key: "debt",
+            label: "Nợ cần trả nhà cung cấp",
+            children: <SupplierPayablesTab />,
+        },
+    ];
+
+    return (
+        <div className="bg-white p-6 rounded-md shadow-sm">
+            <Tabs items={tabItems} className="mb-6" />
+        </div>
+    );
+};
+
+export default ExpandedSupplierTabs;

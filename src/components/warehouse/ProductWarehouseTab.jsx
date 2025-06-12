@@ -1,116 +1,87 @@
-import { Table } from "antd"
-
-const warehouseTransactions = [
-    {
-        id: "PN000049",
-        time: "06/06/2025 14:59",
-        type: "Nhập hàng",
-        partner: "Công ty Hoàng Gia",
-        transactionPrice: 300000,
-        costPrice: 300000,
-        quantity: 10,
-        inventory: 10,
-    },
-    {
-        id: "HD000049",
-        time: "05/06/2025 15:56",
-        type: "Bán hàng",
-        partner: "Anh Hoàng - Sài Gòn",
-        transactionPrice: 235000,
-        costPrice: 200000,
-        quantity: -2,
-        inventory: null,
-    },
-    {
-        id: "PN000048",
-        time: "05/06/2025 15:41",
-        type: "Nhập hàng",
-        partner: "Công ty Hoàng Gia",
-        transactionPrice: 300000,
-        costPrice: 200000,
-        quantity: 1,
-        inventory: null,
-    },
-    {
-        id: "TH000002",
-        time: "05/06/2025 15:36",
-        type: "Trả hàng",
-        partner: "Khách lẻ",
-        transactionPrice: 0,
-        costPrice: 100000,
-        quantity: 1,
-        inventory: null,
-    },
-    {
-        id: "HD000048",
-        time: "05/06/2025 15:32",
-        type: "Bán hàng",
-        partner: "Khách lẻ",
-        transactionPrice: 0,
-        costPrice: 100000,
-        quantity: -1,
-        inventory: null,
-    },
-]
+import { Table } from "antd";
+import { useEffect, useState } from "react";
+import dayjs from "dayjs";
+import productReportService from "../../service/productReportService";
 
 const columns = [
     {
         title: "Chứng từ",
-        dataIndex: "id",
-        key: "id",
+        dataIndex: "chung_tu",
+        key: "chung_tu",
     },
     {
         title: "Thời gian",
-        dataIndex: "time",
-        key: "time",
+        dataIndex: "thoi_gian",
+        key: "thoi_gian",
+        render: (value) => dayjs(value).format("DD/MM/YYYY HH:mm"),
     },
     {
         title: "Loại giao dịch",
-        dataIndex: "type",
-        key: "type",
+        dataIndex: "loai_giao_dich",
+        key: "loai_giao_dich",
     },
     {
         title: "Đối tác",
-        dataIndex: "partner",
-        key: "partner",
+        dataIndex: "doi_tac",
+        key: "doi_tac",
     },
     {
         title: "Giá GD",
-        dataIndex: "transactionPrice",
-        key: "transactionPrice",
-        render: (value) => value.toLocaleString(),
-    },
-    {
-        title: "Giá vốn",
-        dataIndex: "costPrice",
-        key: "costPrice",
-        render: (value) => value.toLocaleString(),
+        dataIndex: "gia_gd",
+        key: "gia_gd",
+        render: (value) => Number(value).toLocaleString(),
     },
     {
         title: "Số lượng",
-        dataIndex: "quantity",
-        key: "quantity",
+        dataIndex: "so_luong",
+        key: "so_luong",
     },
     {
         title: "Khả dụng",
-        dataIndex: "inventory",
-        key: "inventory",
+        dataIndex: "ton_cuoi",
+        key: "ton_cuoi",
     },
-]
+];
 
-const ProductWarehouseTab = () => {
+const ProductWarehouseTab = ({ productId, warehouseId }) => {
+    console.log("🚀 ~ ProductWarehouseTab ~ productId:", productId)
+    console.log("🚀 ~ ProductWarehouseTab ~ warehouseId:", warehouseId)
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    const fetchHistory = async () => {
+        setLoading(true);
+        try {
+            const res = await productReportService.getProductHistoryByProductAndWarehouse(
+                productId,
+                warehouseId
+            );
+            setData(res.data || []);
+        } catch (err) {
+            console.error("Error fetching product history:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (productId && warehouseId) {
+            fetchHistory();
+        }
+    }, [productId, warehouseId]);
+
     return (
         <div className="relative">
             <Table
                 columns={columns}
-                dataSource={warehouseTransactions}
-                rowKey="id"
+                dataSource={data}
+                rowKey="chung_tu"
                 size="small"
+                loading={loading}
                 pagination={false}
             />
         </div>
+    );
+};
 
-    )
-}
-
-export default ProductWarehouseTab
+export default ProductWarehouseTab;

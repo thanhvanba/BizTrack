@@ -10,9 +10,11 @@ const SupplierModal = ({
   mode = "create", // "create" or "edit"
   supplier = null,
 }) => {
+  console.log("🚀 ~ supplier:", supplier)
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
 
+  console.log("🚀 ~ mode:", mode)
   useEffect(() => {
     if (open) {
       if (mode === "edit" && supplier) {
@@ -33,22 +35,18 @@ const SupplierModal = ({
       const values = await form.validateFields()
       setLoading(true)
 
-      if (mode === "create") {
-        const created = await supplierService.createSupplier(values)
-        useToastNotify("Tạo nhà cung cấp thành công!", "success")
-        onSubmit?.(created)
-      } else {
-        const updated = await supplierService.updateSupplier(supplier.supplier_id, values)
-        useToastNotify("Cập nhật nhà cung cấp thành công!", "success")
-        onSubmit?.(updated)
+      const supplierData = {
+        ...(mode === "edit" ? supplier : {}),
+        ...values,
       }
 
-      form.resetFields()
-      setLoading(false)
+      setTimeout(() => {
+        setLoading(false)
+        onSubmit(supplierData)
+        form.resetFields()
+      }, 500)
     } catch (error) {
-      console.error("Lỗi xử lý nhà cung cấp:", error)
-      useToastNotify("Đã xảy ra lỗi. Vui lòng thử lại.", "error")
-      setLoading(false)
+      console.error("Validation failed:", error)
     }
   }
 

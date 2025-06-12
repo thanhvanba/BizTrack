@@ -1,29 +1,25 @@
 import { Button } from "antd";
 
-const CustomerInfoTab = ({ customerData }) => {
-  console.log("🚀 ~ CustomerInfoTab ~ customerData:", customerData)
+const SupplierInfoTab = ({ supplierData }) => {
+  console.log("🚀 ~ supplierInfoTab ~ supplierData:", supplierData)
   return (
     <div>
       <div className="grid grid-cols-2 gap-4 text-sm">
-        <div className="flex items-end space-x-2 col-span-2">
-          <p>Tên khách hàng:</p>
-          <p className="font-medium text-2xl">{customerData.customer_name}</p>
+        <div className="flex items-end col-span-2 space-x-2">
+          <p>Nhà cung cấp:</p>
+          <p className="font-medium text-2xl">{supplierData.supplier_name}</p>
         </div>
         <div>
           <p className="font-medium">Số điện thoại:</p>
-          <p>{customerData.phone}</p>
+          <p>{supplierData.phone}</p>
         </div>
         <div>
           <p className="font-medium">Email:</p>
-          <p>{customerData.email || "Chưa có"}</p>
+          <p>{supplierData.email || "Chưa có"}</p>
         </div>
-        <div>
-          <p className="font-medium">Tổng số đơn hàng:</p>
-          <p>{customerData.total_orders}</p>
-        </div>
-        <div>
-          <p className="font-medium">Tổng chi tiêu:</p>
-          <p>{customerData.total_expenditure?.toLocaleString()}₫</p>
+        <div className="col-span-2">
+          <p className="font-medium">Địa chỉ:</p>
+          <p>{supplierData.address}</p>
         </div>
       </div>
       <div className="flex justify-between mt-4">
@@ -45,4 +41,4 @@ const CustomerInfoTab = ({ customerData }) => {
   );
 };
 
-export default CustomerInfoTab;
+export default SupplierInfoTab;

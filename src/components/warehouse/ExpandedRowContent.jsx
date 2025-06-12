@@ -3,6 +3,7 @@ import ProductInfoTab from "./ProductInfoTab"
 import ProductWarehouseTab from "./ProductWarehouseTab"
 
 const ExpandedRowContent = ({ record }) => {
+    console.log("🚀 ~ ExpandedRowContent ~ record:", record)
     const tabItems = [
         {
             key: "info",
@@ -12,7 +13,7 @@ const ExpandedRowContent = ({ record }) => {
         {
             key: "warehouse",
             label: "Thẻ kho",
-            children: <ProductWarehouseTab />,
+            children: <ProductWarehouseTab productId={record?.product?.product_id} warehouseId={record?.warehouse?.warehouse_id}/>,
         },
     ]
 

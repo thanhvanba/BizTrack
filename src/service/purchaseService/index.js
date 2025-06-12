@@ -29,7 +29,7 @@ const purchaseOrderService = {
             .catch(error => { throw error; });
     },
     ApprovePO: async (id) => {
-        return axios({
+        return axiosService()({
             url: `${PURCHASE_ORDERS_URL}/${id}/post`,
             method: 'POST',
         })

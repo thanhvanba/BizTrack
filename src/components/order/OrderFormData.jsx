@@ -215,6 +215,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                     order_amount: values.order_amount,
                     shipping_address: values.shipping_address,
                     shipping_fee: values.shipping_fee,
+                    amount_paid: values.amount_paid,
                     payment_method: values.payment_method,
                     note: values.note,
                     warehouse_id: values.warehouse_id,
@@ -785,7 +786,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                                 </Form.Item>
                             </div>
 
-                            <Form.Item name="transfer_amount" label="Tiền chuyển khoản">
+                            <Form.Item name="amount_paid" label="Tiền chuyển khoản">
                                 <InputNumber
                                     variant="filled"
                                     addonAfter="₫"

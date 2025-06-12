@@ -3,12 +3,11 @@ import { Card, Input, Button, Table, Tag, Space, Tooltip, Typography } from "ant
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons"
 import useToastNotify from "../../utils/useToastNotify"
 import supplierService from "../../service/supplierService"
-import CustomerModal from "../../components/modals/CustomerModal"
 import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal"
 import { debounce } from "lodash"
 import searchService from "../../service/searchService"
-import ExpandedCustomerTabs from "../../components/customer/ExpandedCustomerTabs"
 import SupplierModal from "../../components/modals/SupplierModal"
+import ExpandedSupplierTabs from "../../components/supplier/ExpandedSupplierTabs"
 
 const { Title } = Typography
 
@@ -55,7 +54,7 @@ const SupplierManagement = () => {
     try {
       const response = await searchService.searchCustomerByPhone(value);
       const data = response.data || [];
-      setSupplier(data.map(supplier => ({ ...supplier, key: supplier?.supplier_id, })));
+      setSuppliers(data.map(supplier => ({ ...supplier, key: supplier?.supplier_id, })));
     } catch (error) {
       useToastNotify("Không thể tìm thấy nhà cung cấp theo số điện thoại.", 'error');
     }
@@ -67,7 +66,7 @@ const SupplierManagement = () => {
 
   const handleCreateSupplier = async (data) => {
     try {
-      await supplierService.createSupplier (data)
+      await supplierService.createSupplier(data)
       setCreateModalVisible(false)
       fetchSuppliers()
       useToastNotify(`Đã thêm nhà cung cấp "${data.supplier_name}" thành công!`, "success")
@@ -251,21 +250,21 @@ const SupplierManagement = () => {
             showSizeChanger: true,
             pageSizeOptions: ['5', '10', '20', '50'],
           }}
-          // expandable={{
-          //   expandedRowRender: (record) => (
-          //     <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
-          //       <ExpandedCustomerTabs record={record} />
-          //     </div>
-          //   ),
-          //   expandedRowKeys,
-          //   onExpand: (expanded, record) => {
-          //     setExpandedRowKeys(expanded ? [record.supplier_id] : []);
-          //   },
-          // }}
-          // onRow={(record) => ({
-          //   onClick: () => toggleExpand(record.supplier_id),
-          //   className: "cursor-pointer",
-          // })}
+          expandable={{
+            expandedRowRender: (record) => (
+              <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
+                <ExpandedSupplierTabs record={record} />
+              </div>
+            ),
+            expandedRowKeys,
+            onExpand: (expanded, record) => {
+              setExpandedRowKeys(expanded ? [record.supplier_id] : []);
+            },
+          }}
+          onRow={(record) => ({
+            onClick: () => toggleExpand(record.supplier_id),
+            className: "cursor-pointer",
+          })}
           rowClassName={(record) =>
             expandedRowKeys.includes(record.supplier_id)
               ? "border-x-2 border-t-2 border-blue-500 !border-collapse z-10 bg-blue-50 rounded-md shadow-sm"
@@ -289,7 +288,7 @@ const SupplierManagement = () => {
         open={editModalVisible}
         onCancel={() => setEditModalVisible(false)}
         onSubmit={handleEditSupplier}
-        customer={selectedSupplier}
+        supplier={selectedSupplier}
       />
       <DeleteConfirmModal
         open={deleteModalVisible}
