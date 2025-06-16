@@ -29,23 +29,24 @@ const columns = [
         title: "Giá GD",
         dataIndex: "gia_gd",
         key: "gia_gd",
+        align: "right",
         render: (value) => Number(value).toLocaleString(),
     },
     {
         title: "Số lượng",
         dataIndex: "so_luong",
         key: "so_luong",
+        align: "right",
     },
     {
         title: "Khả dụng",
         dataIndex: "ton_cuoi",
         key: "ton_cuoi",
+        align: "right", 
     },
 ];
 
 const ProductWarehouseTab = ({ productId, warehouseId }) => {
-    console.log("🚀 ~ ProductWarehouseTab ~ productId:", productId)
-    console.log("🚀 ~ ProductWarehouseTab ~ warehouseId:", warehouseId)
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -56,6 +57,7 @@ const ProductWarehouseTab = ({ productId, warehouseId }) => {
                 productId,
                 warehouseId
             );
+            console.log("🚀 ~ fetchHistory ~ res:", res)
             setData(res.data || []);
         } catch (err) {
             console.error("Error fetching product history:", err);

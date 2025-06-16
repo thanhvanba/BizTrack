@@ -1,6 +1,6 @@
 import { Button } from "antd";
 
-const SupplierInfoTab = ({ supplierData }) => {
+const SupplierInfoTab = ({ setEditModalVisible, setDeleteModalVisible, setSelectedSupplier, supplierData }) => {
   console.log("🚀 ~ supplierInfoTab ~ supplierData:", supplierData)
   return (
     <div>
@@ -24,16 +24,25 @@ const SupplierInfoTab = ({ supplierData }) => {
       </div>
       <div className="flex justify-between mt-4">
         <div className="flex gap-2">
-          <Button danger icon={<span>🗑️</span>}>
+          <Button
+            onClick={() => {
+              setSelectedSupplier(supplierData)
+              setDeleteModalVisible(true)
+            }}
+            danger icon={<span>🗑️</span>}
+          >
             Xóa
           </Button>
         </div>
         <div className="flex gap-2">
-          <Button type="primary" icon={<span>✏️</span>}>
+          <Button
+            onClick={() => {
+              setSelectedSupplier(supplierData)
+              setEditModalVisible(true)
+            }}
+            type="primary" icon={<span>✏️</span>}
+          >
             Chỉnh sửa
-          </Button>
-          <Button icon={<span>🖨️</span>}>
-            In tem mã
           </Button>
         </div>
       </div>

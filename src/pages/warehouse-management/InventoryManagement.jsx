@@ -93,19 +93,6 @@ const InventoryManagement = () => {
   );
   console.log("🚀 ~ InventoryManagement ~ filteredData:", filteredData)
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Đủ hàng":
-        return "success";
-      case "Sắp hết":
-        return "warning";
-      case "Hết hàng":
-        return "error";
-      default:
-        return "default";
-    }
-  };
-
   const [expandedRowKeys, setExpandedRowKeys] = useState([])
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
 
@@ -196,17 +183,6 @@ const InventoryManagement = () => {
     //   responsive: ["md"],
     // },
     {
-      title: "Giá bán",
-      dataIndex: ["product", "product_retail_price"],
-      key: "price",
-      render: (price) => formatPrice(price),
-      sorter: (a, b) =>
-        Number(a.product?.product_retail_price) -
-        Number(b.product?.product_retail_price),
-      align: "right",
-      responsive: ["lg"],
-    },
-    {
       title: "Kho",
       dataIndex: ["warehouse", "warehouse_name"],
       key: "location",
@@ -220,18 +196,29 @@ const InventoryManagement = () => {
       responsive: ["lg"],
     },
     {
+      title: "Giá bán",
+      dataIndex: ["product", "product_retail_price"],
+      key: "price",
+      align: "right",
+      render: (price) => formatPrice(price),
+      sorter: (a, b) =>
+        Number(a.product?.product_retail_price) -
+        Number(b.product?.product_retail_price),
+      responsive: ["lg"],
+    },
+    {
       title: "Số lượng",
       dataIndex: ["quantity"],
       key: "quantity",
+      align: "right",
       sorter: (a, b) => a.product?.quantity - b.product?.quantity,
-      align: "center",
     },
     {
       title: "Khách đặt",
       dataIndex: ["reserved_stock"],
       key: "reserved_stock",
       render: (val) => val ?? 0,
-      align: "center",
+      align: "right",
       responsive: ["lg"],
     },
     {
@@ -240,7 +227,7 @@ const InventoryManagement = () => {
       key: "available_stock",
       sorter: (a, b) =>
         a.product?.available_stock - b.product?.available_stock,
-      align: "center",
+      align: "right", 
     },
     {
       title: "Trạng thái",

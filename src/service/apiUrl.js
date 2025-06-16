@@ -50,3 +50,6 @@ export const SUPPLIERS_URL = `${API_URL}/suppliers`;
 
 // PRODUCT_REPORT_URL
 export const PRODUCT_REPORT_URL = `${API_URL}/product-report`;
+
+// CUSTOMER_REPORT_URL
+export const CUSTOMER_REPORT_URL = `${API_URL}/customer-report`;

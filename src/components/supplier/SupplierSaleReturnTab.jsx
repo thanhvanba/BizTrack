@@ -1,11 +1,32 @@
-import { Table } from "antd";
+import { Table, Tag } from "antd";
 
 const columns = [
   { title: "Mã hóa đơn", dataIndex: "code", key: "code" },
   { title: "Thời gian", dataIndex: "date", key: "date" },
   { title: "Người bán", dataIndex: "seller", key: "seller" },
-  { title: "Tổng cộng", dataIndex: "total", key: "total", render: (val) => `${val < 0 ? '-' : ''}${Math.abs(val).toLocaleString()}₫` },
-  { title: "Trạng thái", dataIndex: "status", key: "status" },
+  {
+    title: "Tổng cộng",
+    dataIndex: "total",
+    key: "total",
+    align: "right",
+    render: (val) => `${val < 0 ? '-' : ''}${Math.abs(val).toLocaleString()}₫`
+  },
+  {
+    title: "Trạng thái", dataIndex: "status", key: "status",
+    render: (_, record) => {
+      const status = record.status;
+      let text = status;
+      let color = "default";
+
+      if (status === "Đã trả") {
+        color = "blue";
+      } else if (status === "Hoàn thành") {
+        color = "green";
+      }
+
+      return <Tag color={color}>{text}</Tag>;
+    }
+  },
 ];
 
 const data = [

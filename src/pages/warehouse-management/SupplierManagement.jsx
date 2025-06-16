@@ -155,58 +155,12 @@ const SupplierManagement = () => {
       key: "phone",
       responsive: ["md"]
     },
-    // {
-    //   title: "Trạng thái",
-    //   dataIndex: "status",
-    //   key: "status",
-    //   align: "center",
-    //   responsive: ["lg"],
-    //   render: (status) => status || "-"
-    //   // render: (status) =>
-    //   //   <Tag color={status === "active" ? "success" : "default"}>
-    //   //     {status === "active" ? "Đang hoạt động" : "Ngừng hoạt động"}
-    //   //   </Tag>,
-    //   // filters: [
-    //   //   { text: "Đang hoạt động", value: "active" },
-    //   //   { text: "Ngừng hoạt động", value: "inactive" }
-    //   // ],
-    //   // onFilter: (value, record) => record.status === value,
-    // },
     {
-      title: "Thao tác",
-      key: "action",
-      align: "center",
-      render: (_, record) => (
-        <Space size="small">
-          {/* <Tooltip title="Xem chi tiết">
-            <Button type="text" icon={<EyeOutlined />} />
-          </Tooltip> */}
-          <Tooltip title="Chỉnh sửa">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              onClick={() => {
-                setSelectedSupplier(record)
-                setEditModalVisible(true)
-              }}
-              className="text-green-500 hover:text-green-600 hover:bg-green-50"
-            />
-          </Tooltip>
-          <Tooltip title="Xóa">
-            <Button
-              type="text"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => {
-                setSelectedSupplier(record)
-                setDeleteModalVisible(true)
-              }}
-              className="hover:bg-red-50"
-            />
-          </Tooltip>
-        </Space>
-      )
-    }
+      title: "Địa chỉ",
+      dataIndex: "address",
+      key: "address",
+      responsive: ["md"]
+    },
   ]
 
   return (
@@ -253,7 +207,7 @@ const SupplierManagement = () => {
           expandable={{
             expandedRowRender: (record) => (
               <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
-                <ExpandedSupplierTabs record={record} />
+                <ExpandedSupplierTabs setEditModalVisible={setEditModalVisible} setDeleteModalVisible={setDeleteModalVisible} setSelectedSupplier={setSelectedSupplier} record={record} />
               </div>
             ),
             expandedRowKeys,

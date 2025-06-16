@@ -1,11 +1,14 @@
-import { Button, Table } from "antd";
+import { useState } from "react";
+import { Button, Table, Modal } from "antd";
+import DebtAdjustmentModal from "./DebtAdjustment";
+import PaymentModal from "./PaymentModal";
 
 const columns = [
     { title: "Mã giao dịch", dataIndex: "transaction_code", key: "transaction_code" },
     { title: "Ngày giao dịch", dataIndex: "transaction_date", key: "transaction_date" },
     { title: "Loại", dataIndex: "transaction_type", key: "transaction_type" },
-    { title: "Giá trị", dataIndex: "amount", key: "amount", render: (val) => `${val.toLocaleString()}₫` },
-    { title: "Dư nợ", dataIndex: "balance", key: "balance", render: (val) => `${val.toLocaleString()}₫` },
+    { title: "Giá trị", dataIndex: "amount", key: "amount", align: "right", render: (val) => `${val.toLocaleString()}₫` },
+    { title: "Dư nợ", dataIndex: "balance", key: "balance", align: "right", render: (val) => `${val.toLocaleString()}₫` },
 ];
 
 const data = [
@@ -14,6 +17,9 @@ const data = [
 ];
 
 const SupplierPayablesTab = () => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
     return (
         <div>
             <Table columns={columns} dataSource={data} pagination={false} size="small" />
@@ -24,17 +30,32 @@ const SupplierPayablesTab = () => {
                     </Button>
                 </div>
                 <div className="flex gap-2">
-                    <Button type="primary" icon={<span>✏️</span>}>
+                    <Button type="primary" icon={<span>✏️</span>} onClick={() => setIsModalOpen(true)}>
                         Điều chỉnh
                     </Button>
-                    <Button icon={<span>💳</span>}>
+                    <Button icon={<span>💳</span>} onClick={() => setIsPaymentModalOpen(true)}>
                         Thanh toán
-                    </Button>
-                    <Button icon={<span>🖨️</span>}>
-                        Tạo QR
                     </Button>
                 </div>
             </div>
+            <DebtAdjustmentModal
+                open={isModalOpen}
+                onCancel={() => setIsModalOpen(false)}
+                initialDebt={20000000}
+                onSubmit={(values) => {
+                    console.log("Dữ liệu điều chỉnh:", values);
+                    setIsModalOpen(false);
+                }}
+            />
+            <PaymentModal
+                open={isPaymentModalOpen}
+                onCancel={() => setIsPaymentModalOpen(false)}
+                initialDebt={10000000}
+                onSubmit={(values) => {
+                    console.log("Dữ liệu thanh toán:", values);
+                    setIsPaymentModalOpen(false);
+                }}
+            />
         </div>
     );
 };

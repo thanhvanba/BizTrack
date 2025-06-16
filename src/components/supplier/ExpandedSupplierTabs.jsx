@@ -4,13 +4,13 @@ import SupplierInfoTab from "./SupplierInfoTab";
 import SupplierSaleReturnTab from "./SupplierSaleReturnTab";
 import SupplierPayablesTab from "./SupplierPayablesTab";
 
-const ExpandedSupplierTabs = ({ record }) => {
+const ExpandedSupplierTabs = ({ setEditModalVisible, setDeleteModalVisible, setSelectedSupplier, record }) => {
     console.log("🚀 ~ ExpandedSupplierTabs ~ record:", record)
     const tabItems = [
         {
             key: "info",
             label: "Thông tin",
-            children: <SupplierInfoTab supplierData={record} />,
+            children: <SupplierInfoTab setEditModalVisible={setEditModalVisible} setDeleteModalVisible={setDeleteModalVisible} setSelectedSupplier={setSelectedSupplier} supplierData={record} />,
         },
         {
             key: "sale_return",
