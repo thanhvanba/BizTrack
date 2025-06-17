@@ -4,13 +4,13 @@ import CustomerInfoTab from "./CustomerInfoTab";
 import CustomerSaleReturnTab from "./CustomerSaleReturnTab";
 import CustomerReceivablesTab from "./CustomerReceivablesTab";
 
-const ExpandedCustomerTabs = ({ record }) => {
+const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setSelectedCustomer, record }) => {
     console.log("🚀 ~ ExpandedCustomerTabs ~ record:", record)
     const tabItems = [
         {
             key: "info",
             label: "Thông tin",
-            children: <CustomerInfoTab customerData={record} />,
+            children: <CustomerInfoTab setEditModalVisible={setEditModalVisible} setDeleteModalVisible={setDeleteModalVisible} setSelectedCustomer={setSelectedCustomer} customerData={record} />,
         },
         {
             key: "sale_return",

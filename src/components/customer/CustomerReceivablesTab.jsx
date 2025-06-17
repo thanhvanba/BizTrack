@@ -1,4 +1,7 @@
 import { Button, Table } from "antd";
+import DebtAdjustmentModal from "../supplier/DebtAdjustment";
+import PaymentModal from "../supplier/PaymentModal";
+import { useState } from "react";
 
 const columns = [
     { title: "Mã giao dịch", dataIndex: "transaction_code", key: "transaction_code" },
@@ -14,6 +17,9 @@ const data = [
 ];
 
 const CustomerReceivablesTab = () => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
     return (
         <div>
             <Table columns={columns} dataSource={data} pagination={false} size="small" />
@@ -24,17 +30,32 @@ const CustomerReceivablesTab = () => {
                     </Button>
                 </div>
                 <div className="flex gap-2">
-                    <Button type="primary" icon={<span>✏️</span>}>
+                    <Button type="primary" icon={<span>✏️</span>} onClick={() => setIsModalOpen(true)}>
                         Điều chỉnh
                     </Button>
-                    <Button icon={<span>💳</span>}>
+                    <Button icon={<span>💳</span>} onClick={() => setIsPaymentModalOpen(true)}>
                         Thanh toán
-                    </Button>
-                    <Button icon={<span>🖨️</span>}>
-                        Tạo QR
                     </Button>
                 </div>
             </div>
+            <DebtAdjustmentModal
+                open={isModalOpen}
+                onCancel={() => setIsModalOpen(false)}
+                initialDebt={20000000}
+                onSubmit={(values) => {
+                    console.log("Dữ liệu điều chỉnh:", values);
+                    setIsModalOpen(false);
+                }}
+            />
+            <PaymentModal
+                open={isPaymentModalOpen}
+                onCancel={() => setIsPaymentModalOpen(false)}
+                initialDebt={10000000}
+                onSubmit={(values) => {
+                    console.log("Dữ liệu thanh toán:", values);
+                    setIsPaymentModalOpen(false);
+                }}
+            />
         </div>
     );
 };

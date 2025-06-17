@@ -1,6 +1,6 @@
 import { Button } from "antd";
 
-const CustomerInfoTab = ({ customerData }) => {
+const CustomerInfoTab = ({ setEditModalVisible, setDeleteModalVisible, setSelectedCustomer, customerData }) => {
   console.log("🚀 ~ CustomerInfoTab ~ customerData:", customerData)
   return (
     <div>
@@ -28,16 +28,25 @@ const CustomerInfoTab = ({ customerData }) => {
       </div>
       <div className="flex justify-between mt-4">
         <div className="flex gap-2">
-          <Button danger icon={<span>🗑️</span>}>
+          <Button
+            onClick={() => {
+              setSelectedCustomer(customerData)
+              setDeleteModalVisible(true)
+            }}
+            danger icon={<span>🗑️</span>}
+          >
             Xóa
           </Button>
         </div>
         <div className="flex gap-2">
-          <Button type="primary" icon={<span>✏️</span>}>
+          <Button
+            onClick={() => {
+              setSelectedCustomer(customerData)
+              setEditModalVisible(true)
+            }}
+            type="primary" icon={<span>✏️</span>}
+          >
             Chỉnh sửa
-          </Button>
-          <Button icon={<span>🖨️</span>}>
-            In tem mã
           </Button>
         </div>
       </div>
