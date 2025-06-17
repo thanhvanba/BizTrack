@@ -227,7 +227,7 @@ const InventoryManagement = () => {
       key: "available_stock",
       sorter: (a, b) =>
         a.product?.available_stock - b.product?.available_stock,
-      align: "right", 
+      align: "right",
     },
     {
       title: "Trạng thái",
@@ -235,7 +235,7 @@ const InventoryManagement = () => {
       key: "status",
       align: "center",
       render: (_, record) => {
-        const qty = record.product?.available_stock ?? 0;
+        const qty = record.product?.available_stock || record.product?.available_quantity || 0;
         let text = "Hết hàng";
         let color = "red";
         if (qty > 5) {
@@ -318,6 +318,7 @@ const InventoryManagement = () => {
 
           {/* Dropdown chọn kho hàng */}
           <Select
+            defaultValue=""
             placeholder="Chọn kho hàng"
             onChange={handleWarehouseChange}
             className="rounded-lg w-full border-gray-300 focus:border-blue-500"

@@ -40,6 +40,7 @@ const OrderManagement = () => {
   const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [orderStatus, setOrderStatus] = useState("-1");
 
   const navigate = useNavigate();
   const [ordersData, setOrdersData] = useState([]);
@@ -128,6 +129,7 @@ const OrderManagement = () => {
   };
 
   const handleChangeTabs = async (order_status) => {
+    setOrderStatus(order_status)
     const params = {};
     if (Number(order_status) !== -1) {
       params.order_status = order_status;
@@ -170,10 +172,15 @@ const OrderManagement = () => {
   };
 
   //HÀM XỬ LÝ CHUYỂN TRANG
-  const handleTableChange = (newPagination) => {
+  const handleTableChange = (newPagination, order_status) => {
+    const params = {};
+    if (Number(orderStatus) !== -1) {
+      params.order_status = orderStatus;
+    }
     fetchOrders({
       page: newPagination.current,
       limit: newPagination.pageSize,
+      params,
     });
   };
   const handleSearch = debounce(async (value) => {
