@@ -82,10 +82,9 @@ const axiosService = () => {
                 localStorage.removeItem('refresh_token');
                 localStorage.removeItem('username');
                 setTimeout(() => {
-                    window.location.href = '/register';
-                }, 2000); 
+                    window.location.hash = '#/register';
+                }, 2000);
             }
-
             throw errors;
         }
     );

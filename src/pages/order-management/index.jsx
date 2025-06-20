@@ -32,6 +32,7 @@ import OptionsStatistics from "../../components/OptionsStatistics";
 import dayjs from "dayjs";
 import OrderStatusTabs from "../../components/order/OrderStatusTabs";
 import orderDetailService from "../../service/orderDetailService";
+import ExpandedOrderTabs from "../../components/order/ExpandedOrderTabs";
 
 const { Title } = Typography;
 
@@ -41,6 +42,8 @@ const OrderManagement = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [orderStatus, setOrderStatus] = useState("-1");
+  const [expandedRowKeys, setExpandedRowKeys] = useState([])
+  const [selectedRowKeys, setSelectedRowKeys] = useState([])
 
   const navigate = useNavigate();
   const [ordersData, setOrdersData] = useState([]);
@@ -273,6 +276,13 @@ const OrderManagement = () => {
     fetchOrders();
   }, []);
 
+  const toggleExpand = (key) => {
+    if (expandedRowKeys.includes(key)) {
+      setExpandedRowKeys([])
+    } else {
+      setExpandedRowKeys([key])
+    }
+  }
 
   // View order details
   const viewOrderDetails = (order) => {
@@ -329,7 +339,6 @@ const OrderManagement = () => {
       sorter: (a, b) => a.final_amount - b.final_amount,
       align: "right",
     },
-
     {
       title: "Ngày tạo",
       dataIndex: "created_at",
@@ -337,14 +346,14 @@ const OrderManagement = () => {
       sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
       render: (date) => new Date(date).toLocaleString("vi-VN"),
     },
-    {
-      title: "Chỉnh sửa gần nhất",
-      dataIndex: "updated_at",
-      key: "updated_at",
-      sorter: (a, b) => new Date(a.updated_at) - new Date(b.updated_at),
-      render: (date) => new Date(date).toLocaleString("vi-VN"),
-      align: "right",
-    },
+    // {
+    //   title: "Chỉnh sửa gần nhất",
+    //   dataIndex: "updated_at",
+    //   key: "updated_at",
+    //   sorter: (a, b) => new Date(a.updated_at) - new Date(b.updated_at),
+    //   render: (date) => new Date(date).toLocaleString("vi-VN"),
+    //   align: "right",
+    // },
     {
       title: "Trạng thái",
       dataIndex: "order_status",
@@ -424,49 +433,49 @@ const OrderManagement = () => {
       onFilter: (value, record) => record.order_status === value,
     },
 
-    {
-      title: "Thao tác",
-      key: "action",
-      align: "center",
-      render: (_, record) => (
-        <Space size="small">
-          <Tooltip title="Xem chi tiết">
-            <Button
-              type="text"
-              icon={<EyeOutlined />}
-              size="small"
-              onClick={() => viewOrderDetails(record.order_id)}
-              className="hover:bg-gray-100"
-            />
-          </Tooltip>
-          <Tooltip title="Cập nhật trạng thái">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              size="small"
-              onClick={() => navigate(`/edit-order/${record.order_id}`)}
-              className="hover:bg-gray-100"
-            />
-          </Tooltip>
-          <Tooltip title="In hóa đơn">
-            <Button
-              type="text"
-              icon={<PrinterOutlined />}
-              size="small"
-              className="hover:bg-gray-100"
-            />
-          </Tooltip>
-          {/* <Tooltip title="Tải xuống">
-            <Button
-              type="text"
-              icon={<DownloadOutlined />}
-              size="small"
-              className="hover:bg-gray-100"
-            />
-          </Tooltip> */}
-        </Space>
-      ),
-    },
+    // {
+    //   title: "Thao tác",
+    //   key: "action",
+    //   align: "center",
+    //   render: (_, record) => (
+    //     <Space size="small">
+    //       <Tooltip title="Xem chi tiết">
+    //         <Button
+    //           type="text"
+    //           icon={<EyeOutlined />}
+    //           size="small"
+    //           onClick={() => viewOrderDetails(record.order_id)}
+    //           className="hover:bg-gray-100"
+    //         />
+    //       </Tooltip>
+    //       <Tooltip title="Cập nhật trạng thái">
+    //         <Button
+    //           type="text"
+    //           icon={<EditOutlined />}
+    //           size="small"
+    //           onClick={() => navigate(`/edit-order/${record.order_id}`)}
+    //           className="hover:bg-gray-100"
+    //         />
+    //       </Tooltip>
+    //       <Tooltip title="In hóa đơn">
+    //         <Button
+    //           type="text"
+    //           icon={<PrinterOutlined />}
+    //           size="small"
+    //           className="hover:bg-gray-100"
+    //         />
+    //       </Tooltip>
+    //       {/* <Tooltip title="Tải xuống">
+    //         <Button
+    //           type="text"
+    //           icon={<DownloadOutlined />}
+    //           size="small"
+    //           className="hover:bg-gray-100"
+    //         />
+    //       </Tooltip> */}
+    //     </Space>
+    //   ),
+    // },
   ];
 
   return (
@@ -524,11 +533,27 @@ const OrderManagement = () => {
             showSizeChanger: true,
             pageSizeOptions: ['5', '10', '20', '50'],
           }}
+          expandable={{
+            expandedRowRender: (record) => (
+              <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
+                <ExpandedOrderTabs record={record} />
+              </div>
+            ),
+            expandedRowKeys,
+            onExpand: (expanded, record) => {
+              setExpandedRowKeys(expanded ? [record.key] : []);
+            },
+          }}
+          onRow={(record) => ({
+            onClick: () => toggleExpand(record.key),
+            className: "cursor-pointer",
+          })}
+          rowClassName={(record) =>
+            expandedRowKeys.includes(record.key)
+              ? "border-x-2 border-t-2 border-blue-500 !border-collapse z-10 bg-blue-50 rounded-md shadow-sm"
+              : "hover:bg-gray-50 transition-colors"
+          }
           onChange={handleTableChange}
-          bordered={false}
-          size="middle"
-          className="custom-table"
-          rowClassName="hover:bg-gray-50 transition-colors"
           scroll={{ x: "max-content" }}
           locale={{ emptyText: "Không có đơn hàng nào" }}
         />

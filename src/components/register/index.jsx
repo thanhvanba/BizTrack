@@ -159,9 +159,9 @@ export default function RegisterPage() {
 
             <div className="text-center">
               <span className="text-gray-600">Đã có tài khoản? </span>
-              <a href="/login" className="text-primary hover:text-primary/80 font-medium">
+              <button onClick={() => navigate("/login")} className="cursor-pointer text-blue-500 hover:text-blue-500/80 font-medium">
                 Đăng nhập ngay
-              </a>
+              </button>
             </div>
           </Form>
 

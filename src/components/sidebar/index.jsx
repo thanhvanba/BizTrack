@@ -33,6 +33,27 @@ const menuItems = [
     ],
   },
   {
+    key: 'customers',
+    label: 'Khách hàng',
+    icon: <UserOutlined />,
+    // children: [
+    //   { key: 'customer-list', label: 'Danh sách KH' },
+    //   { key: 'customer-feedback', label: 'Phản hồi' },
+    // ],
+  },
+  {
+    key: 'inventory',
+    icon: <ContainerOutlined />,
+    label: 'Quản lý kho',
+    children: [
+      { key: 'warehouses', label: 'Danh sách kho' },
+      { key: 'inventory', label: 'Tồn kho' },
+      { key: 'suppliers', label: 'Nhà cung cấp' },
+      { key: 'purchase', label: 'Nhập hàng' },
+      { key: 'transfer', label: 'Điều chỉnh kho' },
+    ],
+  },
+  {
     key: 'products',
     icon: <ShoppingOutlined />,
     label: 'Sản phẩm',
@@ -56,27 +77,6 @@ const menuItems = [
     //   { key: 'revenue-monthly', label: 'Tháng này' },
     //   { key: 'revenue-quarterly', label: 'Theo quý' },
     // ],
-  },
-  {
-    key: 'customers',
-    label: 'Khách hàng',
-    icon: <UserOutlined />,
-    // children: [
-    //   { key: 'customer-list', label: 'Danh sách KH' },
-    //   { key: 'customer-feedback', label: 'Phản hồi' },
-    // ],
-  },
-  {
-    key: 'inventory',
-    icon: <ContainerOutlined />,
-    label: 'Quản lý kho',
-    children: [
-      { key: 'warehouses', label: 'Danh sách kho' },
-      { key: 'inventory', label: 'Tồn kho' },
-      { key: 'suppliers', label: 'Nhà cung cấp' },
-      { key: 'purchase', label: 'Nhập hàng' },
-      { key: 'transfer', label: 'Điều chỉnh kho' },
-    ],
   },
 ];
 const { Sider } = Layout

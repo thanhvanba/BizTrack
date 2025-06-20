@@ -2,7 +2,7 @@ import { Button, Image, Tag } from "antd"
 import formatPrice from "../../utils/formatPrice"
 
 const ProductInfoTab = ({ productData }) => {
-    console.log("🚀 ~ productData:", productData)
+    console.log("🚀 ~ ProductInfoTab ~ productData:", productData)
     return (
         <div>
             <div className="grid grid-cols-4 gap-4">
@@ -36,13 +36,13 @@ const ProductInfoTab = ({ productData }) => {
                         <div className="mb-2">
                             <span className="text-gray-600">Trạng thái: </span>
                             <Tag color={
-                                productData?.available_stock > 5 ? "green" :
-                                    productData?.available_stock > 0 ? "orange" : "red"
+                                (productData?.available_stock > 5 || productData?.available_quantity > 5) ? "green" :
+                                    (productData?.available_stock > 0 || productData?.available_quantity > 0) ? "orange" : "red"
                             }>
                                 {
-                                    productData?.available_stock > 5
+                                    (productData?.available_stock > 5 || productData?.available_quantity > 5)
                                         ? "Đủ hàng"
-                                        : productData?.available_stock > 0
+                                        : (productData?.available_stock > 0 || productData?.available_quantity > 0)
                                             ? "Sắp hết"
                                             : "Hết hàng"
                                 }

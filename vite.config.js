@@ -8,4 +8,6 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  
+  base: '/~s3xsg7fwyb5m/',
 })
