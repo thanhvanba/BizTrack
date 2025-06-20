@@ -11,11 +11,15 @@ import {
   List,
   Tabs,
 } from "antd";
-import { PrinterOutlined, DownloadOutlined, MoneyCollectOutlined } from "@ant-design/icons";
+import {
+  PrinterOutlined,
+  DownloadOutlined,
+  MoneyCollectOutlined,
+} from "@ant-design/icons";
 import orderDetailService from "../../service/orderDetailService";
 import { useEffect, useState } from "react";
 import useToastNotify from "../../utils/useToastNotify";
-import formatPrice from '../../utils/formatPrice'
+import formatPrice from "../../utils/formatPrice";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -39,7 +43,7 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
         date: "14:42 06/03",
         payer: "Nguyen Kim An",
         description: "Thanh toán cho đơn hàng #1",
-      }
+      },
     ],
     expense: [],
     debt: [
@@ -49,10 +53,11 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
         date: "08:15 20/05",
         customer: "Trần Văn A",
         description: "Công nợ đơn hàng #2",
-        status: "Chưa thanh toán"
-      }
-    ]
+        status: "Chưa thanh toán",
+      },
+    ],
   });
+
 
   useEffect(() => {
     if (order) {
@@ -154,8 +159,28 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
         <div className="flex justify-between">
           <Button type="primary">Thêm mới</Button>
           <div>
-            <span className="mr-4">Tổng thu: <Text strong>{formatPrice(paymentHistory.income.reduce((sum, item) => sum + item.amount, 0))}</Text></span>
-            <span>Tổng chi: <Text strong>{formatPrice(paymentHistory.expense.reduce((sum, item) => sum + item.amount, 0))}</Text></span>
+            <span className="mr-4">
+              Tổng thu:{" "}
+              <Text strong>
+                {formatPrice(
+                  paymentHistory.income.reduce(
+                    (sum, item) => sum + item.amount,
+                    0
+                  )
+                )}
+              </Text>
+            </span>
+            <span>
+              Tổng chi:{" "}
+              <Text strong>
+                {formatPrice(
+                  paymentHistory.expense.reduce(
+                    (sum, item) => sum + item.amount,
+                    0
+                  )
+                )}
+              </Text>
+            </span>
           </div>
         </div>
       }
@@ -163,7 +188,9 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
       <Tabs defaultActiveKey="1">
         <TabPane tab="Thu - Chi" key="1">
           <div className="mb-6">
-            <Title level={5} className="mb-2">Thu</Title>
+            <Title level={5} className="mb-2">
+              Thu
+            </Title>
             {paymentHistory.income.length > 0 ? (
               <List
                 itemLayout="horizontal"
@@ -174,12 +201,20 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
                   >
                     <List.Item.Meta
                       avatar={<Checkbox />}
-                      title={<span className="font-medium">{formatPrice(item.amount)}</span>}
+                      title={
+                        <span className="font-medium">
+                          {formatPrice(item.amount)}
+                        </span>
+                      }
                       description={
                         <>
                           <div>{item.payer}</div>
-                          <div className="text-gray-500">{item.description}</div>
-                          <div className="text-gray-400 text-sm">{item.date}</div>
+                          <div className="text-gray-500">
+                            {item.description}
+                          </div>
+                          <div className="text-gray-400 text-sm">
+                            {item.date}
+                          </div>
                         </>
                       }
                     />
@@ -187,12 +222,16 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
                 )}
               />
             ) : (
-              <div className="text-gray-400 text-center py-4">Không có dữ liệu thu</div>
+              <div className="text-gray-400 text-center py-4">
+                Không có dữ liệu thu
+              </div>
             )}
           </div>
 
           <div>
-            <Title level={5} className="mb-2">Chi</Title>
+            <Title level={5} className="mb-2">
+              Chi
+            </Title>
             {paymentHistory.expense.length > 0 ? (
               <List
                 itemLayout="horizontal"
@@ -203,12 +242,20 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
                   >
                     <List.Item.Meta
                       avatar={<Checkbox />}
-                      title={<span className="font-medium text-red-500">-{formatPrice(item.amount)}</span>}
+                      title={
+                        <span className="font-medium text-red-500">
+                          -{formatPrice(item.amount)}
+                        </span>
+                      }
                       description={
                         <>
                           <div>{item.recipient}</div>
-                          <div className="text-gray-500">{item.description}</div>
-                          <div className="text-gray-400 text-sm">{item.date}</div>
+                          <div className="text-gray-500">
+                            {item.description}
+                          </div>
+                          <div className="text-gray-400 text-sm">
+                            {item.date}
+                          </div>
                         </>
                       }
                     />
@@ -216,7 +263,9 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
                 )}
               />
             ) : (
-              <div className="text-gray-400 text-center py-4">Không có dữ liệu chi</div>
+              <div className="text-gray-400 text-center py-4">
+                Không có dữ liệu chi
+              </div>
             )}
           </div>
         </TabPane>
@@ -233,8 +282,16 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
                   <List.Item.Meta
                     title={
                       <div className="flex justify-between">
-                        <span className="font-medium">{formatPrice(item.amount)}</span>
-                        <Tag color={item.status === "Chưa thanh toán" ? "orange" : "green"}>
+                        <span className="font-medium">
+                          {formatPrice(item.amount)}
+                        </span>
+                        <Tag
+                          color={
+                            item.status === "Chưa thanh toán"
+                              ? "orange"
+                              : "green"
+                          }
+                        >
                           {item.status}
                         </Tag>
                       </div>
@@ -251,7 +308,9 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
               )}
             />
           ) : (
-            <div className="text-gray-400 text-center py-4">Không có công nợ</div>
+            <div className="text-gray-400 text-center py-4">
+              Không có công nợ
+            </div>
           )}
         </TabPane>
       </Tabs>
@@ -277,8 +336,8 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
         open={open}
         extra={
           <Space>
-            <Button 
-              icon={<MoneyCollectOutlined />} 
+            <Button
+              icon={<MoneyCollectOutlined />}
               onClick={() => setPaymentDrawerVisible(true)}
             >
               Thu chi & Công nợ
@@ -409,7 +468,7 @@ const OrderDetailDrawer = ({ open, onClose, order }) => {
             {orderInfo?.payment_method}
           </Descriptions.Item>
           <Descriptions.Item label="Ghi chú">
-            {orderInfo?.note || 'Không'}
+            {orderInfo?.note || "Không"}
           </Descriptions.Item>
         </Descriptions>
       </Drawer>
