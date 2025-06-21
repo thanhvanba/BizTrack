@@ -405,13 +405,13 @@ const OrderManagement = () => {
         });
 
         return (
-          <Space direction="vertical">
+          <Space direction="vertical" onClick={(e) => e.stopPropagation()}>
             <Select
               size="small"
               style={{
                 width: 150,
               }}
-              className={`custom-select rounded px-2 py-1 ${color}`}
+              className={`custom-select rounded-lg px-2 py-1 ${color}`}
               placeholder="Chuyển trạng thái"
               options={availableOptions}
               value={status}
@@ -432,50 +432,6 @@ const OrderManagement = () => {
       ],
       onFilter: (value, record) => record.order_status === value,
     },
-
-    // {
-    //   title: "Thao tác",
-    //   key: "action",
-    //   align: "center",
-    //   render: (_, record) => (
-    //     <Space size="small">
-    //       <Tooltip title="Xem chi tiết">
-    //         <Button
-    //           type="text"
-    //           icon={<EyeOutlined />}
-    //           size="small"
-    //           onClick={() => viewOrderDetails(record.order_id)}
-    //           className="hover:bg-gray-100"
-    //         />
-    //       </Tooltip>
-    //       <Tooltip title="Cập nhật trạng thái">
-    //         <Button
-    //           type="text"
-    //           icon={<EditOutlined />}
-    //           size="small"
-    //           onClick={() => navigate(`/edit-order/${record.order_id}`)}
-    //           className="hover:bg-gray-100"
-    //         />
-    //       </Tooltip>
-    //       <Tooltip title="In hóa đơn">
-    //         <Button
-    //           type="text"
-    //           icon={<PrinterOutlined />}
-    //           size="small"
-    //           className="hover:bg-gray-100"
-    //         />
-    //       </Tooltip>
-    //       {/* <Tooltip title="Tải xuống">
-    //         <Button
-    //           type="text"
-    //           icon={<DownloadOutlined />}
-    //           size="small"
-    //           className="hover:bg-gray-100"
-    //         />
-    //       </Tooltip> */}
-    //     </Space>
-    //   ),
-    // },
   ];
 
   return (

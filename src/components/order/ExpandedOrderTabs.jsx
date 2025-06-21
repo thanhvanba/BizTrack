@@ -38,7 +38,7 @@ const ExpandedOrderTabs = ({ record }) => {
     ];
 
     return (
-        <div className="bg-white p-6 rounded-md shadow-sm">
+        <div className="bg-white p-6 py-4 rounded-md shadow-sm">
             <Tabs items={tabItems} className="mb-6" />
         </div>
     );

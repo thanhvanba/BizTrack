@@ -1,4 +1,5 @@
 import { Button } from "antd";
+import formatPrice from "../../utils/formatPrice";
 
 const CustomerInfoTab = ({ setEditModalVisible, setDeleteModalVisible, setSelectedCustomer, customerData }) => {
   console.log("🚀 ~ CustomerInfoTab ~ customerData:", customerData)
@@ -23,7 +24,7 @@ const CustomerInfoTab = ({ setEditModalVisible, setDeleteModalVisible, setSelect
         </div>
         <div>
           <p className="font-medium">Tổng chi tiêu:</p>
-          <p>{customerData.total_expenditure?.toLocaleString()}₫</p>
+          <p>{formatPrice(customerData.total_expenditure)}</p>
         </div>
       </div>
       <div className="flex justify-between mt-4">

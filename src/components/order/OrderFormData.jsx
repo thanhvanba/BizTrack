@@ -137,7 +137,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                 setSelectedProducts(formattedProducts);
                 setShippingFee(orderRes.shipping_fee || 0);
                 setOrderDiscount(orderRes.order_amount || 0);
-                setTransferAmount(orderRes.transfer_amount || 0);
+                setTransferAmount(orderRes.amount_paid || 0);
 
                 // Set form values
                 form.setFieldsValue({
