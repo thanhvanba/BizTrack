@@ -327,7 +327,7 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
           <Title level={3}>{totalAmount.toLocaleString()} VNĐ</Title>
         </div>
 
-        <div className="flex justify-end space-x-4 mt-6">
+        <div className="flex justify-end space-x-4 mt-6 gap-3">
           <Button onClick={onCancel}>Hủy</Button>
           <Button type="primary" htmlType="submit" disabled={details.length === 0}>
             {initialValues ? "Cập nhật" : "Tạo đơn nhập hàng"}

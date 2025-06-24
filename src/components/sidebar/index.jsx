@@ -30,6 +30,10 @@ const menuItems = [
         label: "Tạo đơn hàng",
         key: "create-order",
       },
+      {
+        label: "Trả hàng",
+        key: "return-order",
+      },
     ],
   },
   {
@@ -50,7 +54,7 @@ const menuItems = [
       { key: 'inventory', label: 'Tồn kho' },
       { key: 'suppliers', label: 'Nhà cung cấp' },
       { key: 'purchase', label: 'Nhập hàng' },
-      { key: 'transfer', label: 'Điều chỉnh kho' },
+      // { key: 'transfer', label: 'Điều chỉnh kho' },
     ],
   },
   {

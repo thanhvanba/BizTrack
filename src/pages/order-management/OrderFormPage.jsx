@@ -1,12 +1,20 @@
 import MultiOrderFormTabs from "../../components/order/MultiOrderFormTabs";
 import OrderFormData from "../../components/order/OrderFormData";
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 
 const OrderFormPage = () => {
-  const { orderId } = useParams(); // nếu có orderId → là edit
-  const mode = orderId ? "edit" : "create";
+  const location = useLocation();
+  const { orderId } = useParams();
 
-  console.log("Detected mode:", mode); // Debug
+  let mode = 'create';
+
+  if (location.pathname.includes('edit-order') && orderId) {
+    mode = 'edit';
+  } else if (location.pathname.includes('return-order') && orderId) {
+    mode = 'return';
+  }
+
+  console.log("Detected mode:", mode);
   return (
     <div>
       {mode === "create" ? (

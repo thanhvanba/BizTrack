@@ -6,9 +6,9 @@ const CustomerInfoTab = ({ setEditModalVisible, setDeleteModalVisible, setSelect
   return (
     <div>
       <div className="grid grid-cols-2 gap-4 text-sm">
-        <div className="flex items-end space-x-2 col-span-2">
+        <div className="flex items-center space-x-2 col-span-2">
           <p>Tên khách hàng:</p>
-          <p className="font-medium text-2xl">{customerData.customer_name}</p>
+          <p className="font-medium text-lg">{customerData.customer_name}</p>
         </div>
         <div>
           <p className="font-medium">Số điện thoại:</p>

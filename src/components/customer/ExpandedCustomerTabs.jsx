@@ -15,12 +15,12 @@ const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setS
         {
             key: "sale_return",
             label: "Lịch sử bán/trả hàng",
-            children: <CustomerSaleReturnTab customerId={record.customer_id}/>,
+            children: <CustomerSaleReturnTab customerId={record.customer_id} />,
         },
         {
             key: "debt",
             label: "Nợ cần thu từ khách",
-            children: <CustomerReceivablesTab customerData={record}/>,
+            children: <CustomerReceivablesTab customerId={record.customer_id} />,
         },
     ];
 

@@ -78,7 +78,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         fetchCustomers();
         dispatch(fetchWarehouses());
 
-        if (mode === "edit" && orderId) {
+        if (mode !== "create" && orderId) {
             fetchOrderDetails();
         }
     }, [orderId]);
@@ -579,9 +579,9 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
     return (
         <div className="relative">
 
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center">
                 <h1 className="text-xl font-semibold">
-                    {mode === 'edit' && `Chỉnh sửa đơn hàng #${order?.order_code}`}
+                    {mode === 'edit' ? `Chỉnh sửa đơn hàng #${order?.order_code}` : mode === 'return' ? `Trả hàng đơn hàng #${order?.order_code}` : ''}
                 </h1>
             </div>
             <Form
@@ -915,7 +915,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                     <Tag color="cyan" style={{ fontSize: 14 }}>
                         Trạng thái: <Text strong>Mới</Text>
                     </Tag>
-                    <Button onClick={() => navigate("/orders")} className="mr-2">
+                    <Button onClick={() => navigate("/orders")}>
                         Hủy
                     </Button>
                     <Button

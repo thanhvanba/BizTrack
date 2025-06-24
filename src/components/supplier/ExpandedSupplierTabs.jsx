@@ -15,12 +15,12 @@ const ExpandedSupplierTabs = ({ setEditModalVisible, setDeleteModalVisible, setS
         {
             key: "sale_return",
             label: "Lịch sử nhập/trả hàng",
-            children: <SupplierSaleReturnTab />,
+            children: <SupplierSaleReturnTab supplierId={record.supplier_id} />,
         },
         {
             key: "debt",
             label: "Nợ cần trả nhà cung cấp",
-            children: <SupplierPayablesTab />,
+            children: <SupplierPayablesTab supplierId={record.supplier_id} />,
         },
     ];
 

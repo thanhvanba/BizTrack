@@ -1,4 +1,5 @@
-import { SUPPLIERS_URL } from "../apiUrl";
+import axios from "axios";
+import { SUPPLIERS_URL, PURCHASE_ORDERS_URL } from "../apiUrl";
 import axiosService from "../axiosService";
 
 const supplierService = {
@@ -59,6 +60,26 @@ const supplierService = {
         throw error;
       });
   },
+
+  // Lấy lịch sử nhập hàng từ nhà cung cấp
+  getSupplierHistory: async (supplierId) => {
+    try {
+      const response = await axios.get(`${PURCHASE_ORDERS_URL}/supplier/${supplierId}/history`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Lấy công nợ nhà cung cấp
+  getSupplierReceivables: async (supplierId) => {
+    try {
+      const response = await axios.get(`${PURCHASE_ORDERS_URL}/supplier/${supplierId}/receivables`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 };
 
 export default supplierService;

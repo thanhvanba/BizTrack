@@ -37,9 +37,6 @@ import ExpandedOrderTabs from "../../components/order/ExpandedOrderTabs";
 const { Title } = Typography;
 
 const OrderManagement = () => {
-
-  const [detailDrawerVisible, setDetailDrawerVisible] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [orderStatus, setOrderStatus] = useState("-1");
   const [expandedRowKeys, setExpandedRowKeys] = useState([])
@@ -47,6 +44,7 @@ const OrderManagement = () => {
 
   const navigate = useNavigate();
   const [ordersData, setOrdersData] = useState([]);
+  console.log("🚀 ~ OrderManagement ~ ordersData:", ordersData)
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 5,
@@ -175,7 +173,7 @@ const OrderManagement = () => {
   };
 
   //HÀM XỬ LÝ CHUYỂN TRANG
-  const handleTableChange = (newPagination, order_status) => {
+  const handleTableChange = (newPagination) => {
     const params = {};
     if (Number(orderStatus) !== -1) {
       params.order_status = orderStatus;
@@ -200,7 +198,7 @@ const OrderManagement = () => {
     }
   }, 500);
 
-  const updateOrderStatus = async (orderId, order_status) => {
+  const handleUpdateOrderStatus = async (orderId, order_status) => {
     const data = { order_status };
     try {
       await orderService.updateOrder(orderId, data);
@@ -284,12 +282,6 @@ const OrderManagement = () => {
     }
   }
 
-  // View order details
-  const viewOrderDetails = (order) => {
-    console.log(order)
-    setSelectedOrder(order);
-    setDetailDrawerVisible(true);
-  };
   // Table columns
   const columns = [
     {
@@ -314,7 +306,7 @@ const OrderManagement = () => {
       responsive: ["md"],
     },
     {
-      title: "Tổng tiền",
+      title: "Tổng tiền hàng",
       dataIndex: "total_amount",
       key: "total_amount",
       render: (total) => formatPrice(total),
@@ -322,15 +314,15 @@ const OrderManagement = () => {
       align: "right",
       responsive: ["md"],
     },
-    {
-      title: "Giảm giá",
-      dataIndex: "discount_amount",
-      key: "discount_amount",
-      render: (discount) => formatPrice(discount),
-      sorter: (a, b) => a.discount_amount - b.discount_amount,
-      align: "right",
-      responsive: ["lg"],
-    },
+    // {
+    //   title: "Giảm giá",
+    //   dataIndex: "discount_amount",
+    //   key: "discount_amount",
+    //   render: (discount) => formatPrice(discount),
+    //   sorter: (a, b) => a.discount_amount - b.discount_amount,
+    //   align: "right",
+    //   responsive: ["lg"],
+    // },
     {
       title: "Thành tiền",
       dataIndex: "final_amount",
@@ -372,7 +364,7 @@ const OrderManagement = () => {
             color = "bg-orange-400";
             break;
           case "Xác nhận":
-            color = "bg-sky-400";
+            color = "bg-cyan-400";
             break;
           case "Mới":
             color = "bg-gray-400";
@@ -415,7 +407,7 @@ const OrderManagement = () => {
               placeholder="Chuyển trạng thái"
               options={availableOptions}
               value={status}
-              onChange={(value) => updateOrderStatus(record.order_id, value)}
+              onChange={(value) => handleUpdateOrderStatus(record.order_id, value)}
               disabled={status === "Hoàn tất" || status === "Huỷ đơn" || status === "Huỷ điều chỉnh"}
             />
           </Space>
@@ -492,7 +484,7 @@ const OrderManagement = () => {
           expandable={{
             expandedRowRender: (record) => (
               <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
-                <ExpandedOrderTabs record={record} />
+                <ExpandedOrderTabs record={record} onUpdateOrderStatus={handleUpdateOrderStatus} />
               </div>
             ),
             expandedRowKeys,
@@ -514,13 +506,6 @@ const OrderManagement = () => {
           locale={{ emptyText: "Không có đơn hàng nào" }}
         />
       </Card>
-
-      {/* Order Detail Drawer */}
-      <OrderDetailDrawer
-        open={detailDrawerVisible}
-        onClose={() => setDetailDrawerVisible(false)}
-        order={selectedOrder}
-      />
     </div>
   );
 };

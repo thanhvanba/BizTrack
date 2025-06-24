@@ -11,13 +11,16 @@ import WarehouseManagement from '../pages/warehouse-management';
 import OrderFormPage from '../pages/order-management/OrderFormPage';
 import TransferManagement from '../pages/warehouse-management/TransferManagement';
 import SupplierManagement from '../pages/warehouse-management/SupplierManagement';
+import ReturnOrderPage from '../pages/order-management/ReturnOrderPage';
 
 export const privateRoutes = [
   { path: '', element: <Dashboard /> }, // index route
   { path: 'dashboard', element: <Dashboard /> },
   { path: 'orders', element: <OrderManagement /> },
   { path: 'create-order', element: <OrderFormPage /> },
+  { path: 'return-order', element: <ReturnOrderPage /> },
   { path: 'edit-order/:orderId', element: <OrderFormPage /> },
+  { path: 'return-order/:orderId', element: <OrderFormPage /> },
   { path: 'products', element: <ProductManagement /> },
   { path: 'product-category', element: <ProductCategory /> },
   { path: 'revenue', element: <RevenueTracking /> },

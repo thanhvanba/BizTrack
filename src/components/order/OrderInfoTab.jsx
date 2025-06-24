@@ -22,12 +22,13 @@ import {
 } from "@ant-design/icons";
 
 import formatPrice from "../../utils/formatPrice";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const { Text, Title } = Typography;
 const { TextArea } = Input;
 
-export default function OrderInfoTab({ orderData }) {
+export default function OrderInfoTab({ orderData, onUpdateOrderStatus }) {
+  const location = useLocation();
   console.log("🚀 ~ OrderInfoTab ~ orderData:", orderData)
   const navigate = useNavigate()
   const {
@@ -97,12 +98,14 @@ export default function OrderInfoTab({ orderData }) {
       {/* Header */}
       <Row justify="space-between" align="middle">
         <Col>
-          <Title level={5} className="mb-1">{customer?.customer_name}</Title>
-          <Text className="mr-2">{order_code}</Text>
-          <Tag color="green">{order_status}</Tag>
+          <Title level={4} className="mb-1">
+            {customer?.customer_name}
+            <Text className="mx-2 font-normal">{order_code}</Text>
+            <Tag color="green">{order_status}</Tag>
+          </Title>
         </Col>
         <Col>
-          <Text strong>Ngày giao: {new Date(order_date).toLocaleDateString("vi-VN")}</Text>
+          <Text strong>Ngày giao: {new Date(order_date).toLocaleDateString()}</Text>
         </Col>
       </Row>
 
@@ -185,19 +188,31 @@ export default function OrderInfoTab({ orderData }) {
       {/* Action Buttons */}
       <Row justify="space-between" align="middle" className="mt-6">
         <Col>
-          <Button
-            icon={<DeleteOutlined />}
-            color="danger"
-            variant="filled"
-          >
-            Hủy
-          </Button>
-          <Button className="ml-2">Xuất file</Button>
+          {order_status === "Mới" ?
+            <Button
+              color="primary"
+              variant="filled"
+              style={{ marginRight: 8 }}
+              onClick={() => onUpdateOrderStatus(order_id, "Xác nhận")}
+            >
+              Xác nhận
+            </Button>
+            : <Button
+              icon={<DeleteOutlined />}
+              color="danger"
+              variant="filled"
+              style={{ marginRight: 8 }}
+              onClick={() => onUpdateOrderStatus(order_id, "Huỷ đơn")}
+            >
+              Hủy
+            </Button>}
+          <Button>Xuất file</Button>
         </Col>
         <Col>
           <Button
             icon={<EditOutlined />}
             type="primary"
+            style={{ marginRight: 8 }}
             onClick={() => navigate(`/edit-order/${order_id}`)}
           >
             Chỉnh sửa
@@ -206,11 +221,12 @@ export default function OrderInfoTab({ orderData }) {
             icon={<RollbackOutlined />}
             color="danger"
             variant="outlined"
-            className="ml-2"
+            style={{ marginRight: 8 }}
+            onClick={() => navigate(`/return-order/${order_id}`)}
           >
             Trả hàng
           </Button>
-          <Button icon={<PrinterOutlined />} className="ml-2">In</Button>
+          <Button icon={<PrinterOutlined />}>In</Button>
         </Col>
       </Row>
     </div>

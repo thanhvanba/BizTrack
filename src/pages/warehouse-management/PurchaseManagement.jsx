@@ -9,11 +9,10 @@ import useToastNotify from "../../utils/useToastNotify"
 import { Tabs } from "antd"
 const { TabPane } = Tabs;
 export default function PurchaseManagement() {
-    // const [searchParams, setSearchParams] = useSearchParams();
-    // const initialTab = searchParams.get("tab") || "list";
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initialTab = searchParams.get("tab") || "list";
 
-    const [activeTab, setActiveTab] = useState('list')
-    console.log("🚀 ~ PurchaseManagement ~ activeTab:", activeTab)
+    const [activeTab, setActiveTab] = useState(initialTab)
     const [purchaseOrders, setPurchaseOrders] = useState([])
     const [selectedOrder, setSelectedOrder] = useState(null)
 
@@ -22,7 +21,7 @@ export default function PurchaseManagement() {
 
     const handleTabChange = (tab) => {
         setActiveTab(tab);
-        // setSearchParams({ tab });
+        setSearchParams({ tab });
     };
 
     const handleCreatePurchaseOrder = async (order) => {
@@ -105,48 +104,7 @@ export default function PurchaseManagement() {
             <h1 className="text-2xl font-bold mb-6">Quản lý kho</h1>
 
             <div className="bg-white p-4 rounded-lg shadow">
-                {/* <div className="border-b border-gray-200 mb-4">
-                    <nav className="-mb-px flex space-x-8">
-                        <button
-                            onClick={() => handleTabChange("list")}
-                            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "list"
-                                ? "border-blue-500 text-blue-600"
-                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                                }`}
-                        >
-                            Danh sách đơn nhập hàng
-                        </button>
-                        <button
-                            onClick={() => handleTabChange("form")}
-                            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === "form"
-                                ? "border-blue-500 text-blue-600"
-                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                                }`}
-                        >
-                            {selectedOrder ? "Chỉnh sửa đơn nhập hàng" : "Tạo đơn nhập hàng"}
-                        </button>
-                    </nav>
-                </div>
-
-                {activeTab === "list" ? (
-                    <PurchaseOrderList
-                        purchaseOrders={purchaseOrders}
-                        onEdit={handleEditPurchaseOrder}
-                        onApprove={handleApprovePurchaseOrder}
-                        onCreateNew={() => {
-                            setSelectedOrder(null)
-                            handleTabChange("form")
-                        }}
-                    />
-                ) : (
-                    <PurchaseOrderForm
-                        onSubmit={handleCreatePurchaseOrder}
-                        initialValues={selectedOrder}
-                        onCancel={handleCancelEdit}
-                    />
-                )} */}
-
-                <Tabs activeKey={activeTab} onChange={setActiveTab}>
+                <Tabs activeKey={activeTab} onChange={handleTabChange}>
                     <TabPane tab="Danh sách đơn nhập hàng" key="list">
                         {activeTab === "list" && (
                             <PurchaseOrderList

@@ -1,6 +1,6 @@
 import { Alert, Spin, Table, Tag } from "antd";
 import { useEffect, useState } from "react";
-import CustomerReportService from "../../service/customerReportService";
+import customerReportService from "../../service/customerService";
 const columns = [
   { title: "Mã hóa đơn", dataIndex: "code", key: "code" },
   { title: "Thời gian", dataIndex: "date", key: "date" },
@@ -18,14 +18,32 @@ const columns = [
     key: "status",
     render: (_, record) => {
       const status = record.status;
-      let text = status;
-      let color = "default";
-
-      if (status === "Đã trả") {
-        color = "blue";
-      } else if (status === "Hoàn thành") {
-        color = "green";
+      console.log("🚀 ~ status:", status)
+      let color;
+      switch (status) {
+        case "Hoàn tất":
+          color = "green";
+          break;
+        case "Đang giao":
+          color = "blue";
+          break;
+        case "Đang đóng hàng":
+          color = "orange";
+          break;
+        case "Xác nhận":
+          color = "cyan";
+          break;
+        case "Mới":
+          color = "gray";
+          break;
+        case "Huỷ đơn":
+        case "Huỷ điều chỉnh":
+          color = "red";
+          break;
+        default:
+          color = "gray";
       }
+      let text = status;
 
       return <Tag color={color}>{text}</Tag>;
     },
@@ -56,19 +74,21 @@ const CustomerSaleReturnTab = ({ customerId }) => {
         setLoading(true);
         setError(null);
         const orderHistory =
-          await CustomerReportService.getCustomerOrderHistory(customerId);
+          await customerReportService.getCustomerOrderHistory(customerId);
         const mappedData = orderHistory.data?.map((order, index) => {
           console.log("🚀 ~ CustomerSaleReturnTab ~ orderHistory:", order);
 
           return {
-            key: order.order_id || index.toString(), 
-            code: order.order_code, 
-            date: new Date(order.created_at).toLocaleString(), 
-            performer: order.customer_id, 
-            total: parseFloat(order.final_amount), 
-            status: order.order_status, 
+            key: order.order_id || index.toString(),
+            code: order.order_code,
+            date: new Date(order.created_at).toLocaleString("vi-VN"),
+            performer: order.customer_id,
+            total: parseFloat(order.final_amount),
+            status: order.order_status,
           };
         });
+        
+          console.log("🚀 ~ fetchOrderHistory ~ mappedData:", mappedData)
         setDataSource(mappedData);
       } catch (err) {
         console.error("Lỗi khi tải lịch sử đơn hàng:", err);

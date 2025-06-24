@@ -1,7 +1,7 @@
 import { Table } from "antd";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import productReportService from "../../service/productReportService";
+import productReportService from "../../service/productService";
 
 const columns = [
     {
