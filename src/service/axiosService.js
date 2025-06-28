@@ -82,7 +82,7 @@ const axiosService = () => {
                 localStorage.removeItem('refresh_token');
                 localStorage.removeItem('username');
                 setTimeout(() => {
-                    window.location.hash = '#/register';
+                    window.location.hash = '#/login';
                 }, 2000);
             }
             throw errors;

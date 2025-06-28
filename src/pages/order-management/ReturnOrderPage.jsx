@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Table, Button, Input, Tag } from 'antd';
-import 'antd/dist/reset.css';
 import './index.css'; // file này cần chứa tailwind directives
 import ExpandedOrderTabs from '../../components/order/ExpandedOrderTabs';
+import ReturnInvoiceModal from '../../components/modals/ReturnInvoiceModal';
+import { useNavigate } from 'react-router-dom';
 
 const { Search } = Input;
 
 const dataSource = [
     {
         key: '1',
-        order_id: "c87da9cf-dedc-428f-ac45-d6a4baf0a9c3",
+        order_id: "27413d44-5245-427b-8841-4ffe3c1076b2",
         returnCode: 'TH000006',
         seller: 'Hoàng Nam Quang',
         time: '21/06/2025 10:36',
@@ -43,7 +44,9 @@ const columns = [
 const ReturnOrderPage = () => {
     const [expandedRowKeys, setExpandedRowKeys] = useState([])
     const [selectedRowKeys, setSelectedRowKeys] = useState([])
+    const [open, setOpen] = useState(false);
 
+    const navigate = useNavigate()
     const toggleExpand = (key) => {
         if (expandedRowKeys.includes(key)) {
             setExpandedRowKeys([])
@@ -51,15 +54,21 @@ const ReturnOrderPage = () => {
             setExpandedRowKeys([key])
         }
     }
+
+    const handleSelectInvoice = (invoice) => {
+        navigate(`/return-order/${invoice.order_id}`)
+        setOpen(false);
+    };
     return (
         <div className="p-5">
             <div className="flex justify-between items-center mb-4">
                 <Search placeholder="Tìm theo mã phiếu trả" style={{ width: 220 }} />
                 <div className="flex gap-3">
-                    <Button type="primary">Trả hàng</Button>
+                    <Button type="primary" onClick={() => setOpen(true)} >Trả hàng</Button>
                     <Button>Xuất file</Button>
                 </div>
             </div>
+            <ReturnInvoiceModal visible={open} onClose={() => setOpen(false)} onSelect={handleSelectInvoice} />
             <Table
                 dataSource={dataSource}
                 columns={columns}

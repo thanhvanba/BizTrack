@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CUSTOMERS_URL, CUSTOMER_REPORT_URL } from "../apiUrl";
+import { CUSTOMERS_URL, CUSTOMER_REPORT_URL, INVOICES_URL } from "../apiUrl";
 import axiosService from "../axiosService";
 
 const customerService = {
@@ -114,13 +114,51 @@ const customerService = {
   },
 
   getCustomerFinancialLedger: async (customerId) => {
-    try {
-      const response = await axios.get(`${CUSTOMER_REPORT_URL}/${customerId}/financial`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  }
+    return axios({
+      url: `${CUSTOMER_REPORT_URL}/${customerId}/financial`,
+      method: 'GET',
+    })
+      .then(res => res.data)
+      .catch(error => { throw error; });
+  },
+
+  recordInvoicePayment: async (invoiceId, paymentData) => {
+    return axios({
+      url: `${INVOICES_URL}/${invoiceId}/payments`,
+      method: 'POST',
+      data: paymentData,
+    })
+      .then(res => res.data)
+      .catch(error => { throw error; });
+  },
+
+  recordBulkPayment: async (paymentData) => {
+    return axios({
+      url: `${INVOICES_URL}/bulk-payment`,
+      method: 'POST',
+      data: paymentData,
+    })
+      .then(res => res.data)
+      .catch(error => { throw error; });
+  },
+
+  getCustomerTransactions: async (customerId) => {
+    return axios({
+      url: `${CUSTOMER_REPORT_URL}/${customerId}/transactions`,
+      method: 'GET',
+    })
+      .then(res => res.data)
+      .catch(error => { throw error; });
+  },
+
+  getCustomerTransactionLedger: async (customerId) => {
+    return axios({
+      url: `${CUSTOMER_REPORT_URL}/${customerId}/transaction-ledger`,
+      method: 'GET',
+    })
+      .then(res => res.data)
+      .catch(error => { throw error; });
+  },
 };
 
 export default customerService;

@@ -553,7 +553,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
     ];
 
     if (loading) {
-        return <Spin size="large" className="flex justify-center mt-10" />;
+        return <div className="flex justify-center mt-10"><Spin size="large" /></div>;
     }
 
     if (mode === "edit" && (!order || order.order_status !== "Mới")) {
@@ -580,7 +580,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         <div className="relative">
 
             <div className="flex justify-between items-center">
-                <h1 className="text-xl font-semibold">
+                <h1 className="text-xl font-semibold mb-3">
                     {mode === 'edit' ? `Chỉnh sửa đơn hàng #${order?.order_code}` : mode === 'return' ? `Trả hàng đơn hàng #${order?.order_code}` : ''}
                 </h1>
             </div>

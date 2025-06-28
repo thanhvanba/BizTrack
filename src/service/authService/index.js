@@ -32,20 +32,20 @@ const authService = {
             data: payload,
         });
     },
-    // refreshToken: async (refresh_token) => {
-    //     return axios({
-    //         method: 'POST',
-    //         url: REFRESH_TOKEN_URL,
-    //         headers: {
-    //             'Content-Type': 'text/plain',
-    //         },
-    //         data: refresh_token,
-    //     })
-    //         .then((res) => res.data)
-    //         .catch((error) => {
-    //             throw error;
-    //         });
-    // },
+    refreshToken: async (refresh_token) => {
+        return axios({
+            method: 'POST',
+            url: REFRESH_TOKEN_URL,
+            headers: {
+                'Content-Type': 'text/plain',
+            },
+            data: refresh_token,
+        })
+            .then((res) => res.data)
+            .catch((error) => {
+                throw error;
+            });
+    },
     getUserInfo: async () => {
         return axiosService()({
             baseURL: `${PROFILE_URL}`,

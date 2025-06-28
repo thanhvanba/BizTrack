@@ -53,3 +53,6 @@ export const PRODUCT_REPORT_URL = `${API_URL}/product-report`;
 
 // CUSTOMER_REPORT_URL
 export const CUSTOMER_REPORT_URL = `${API_URL}/customer-report`;
+
+// INVOICES_URL
+export const INVOICES_URL = `${API_URL}/invoices`;

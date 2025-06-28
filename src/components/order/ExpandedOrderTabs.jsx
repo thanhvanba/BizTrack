@@ -27,24 +27,31 @@ const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
         fetchOrderDetails()
     }, [])
 
-    const tabItems = [
-        {
-            key: "info",
-            label: "Thông tin",
-            children: <OrderInfoTab orderData={orderInfo} onUpdateOrderStatus={onUpdateOrderStatus} />,
-        },
-        {
-            key: "payment_history",
-            label: "Lịch sử thanh toán",
-            children: <PaymentHistory />,
-        },
-        location.pathname.includes('edit-order') &&
-        {
-            key: "sale_return",
-            label: "Lịch sử trả hàng",
-            children: <OrderReturnHistoryTab />,
-        },
-    ];
+    const tabItems = location.pathname.includes('return-order')
+        ? [
+            {
+                key: "info",
+                label: "Thông tin",
+                children: <OrderInfoTab orderData={orderInfo} onUpdateOrderStatus={onUpdateOrderStatus} />,
+            },
+        ]
+        : [
+            {
+                key: "info",
+                label: "Thông tin",
+                children: <OrderInfoTab orderData={orderInfo} onUpdateOrderStatus={onUpdateOrderStatus} />,
+            },
+            {
+                key: "payment_history",
+                label: "Lịch sử thanh toán",
+                children: <PaymentHistory />,
+            },
+            {
+                key: "sale_return",
+                label: "Lịch sử trả hàng",
+                children: <OrderReturnHistoryTab />,
+            },
+        ];
 
     return (
         <div className="bg-white p-6 py-4 rounded-md shadow-sm">
