@@ -56,3 +56,6 @@ export const CUSTOMER_REPORT_URL = `${API_URL}/customer-report`;
 
 // INVOICES_URL
 export const INVOICES_URL = `${API_URL}/invoices`;
+
+// CUSTOMER_RETURN_URL
+export const CUSTOMER_RETURN_URL = `${API_URL}/customer-returns`;

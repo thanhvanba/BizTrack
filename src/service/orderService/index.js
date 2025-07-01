@@ -1,4 +1,5 @@
-import { ORDERS_URL } from "../apiUrl";
+import axios from "axios";
+import { ORDERS_URL, CUSTOMER_RETURN_URL } from "../apiUrl";
 import axiosService from "../axiosService";
 
 const orderService = {
@@ -98,6 +99,117 @@ const orderService = {
         throw error;
       });
   },
+
+  createReturn: async (data) => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}`,
+      method: "POST",
+      data,
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  getReturns: async () => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}`,
+      method: "GET",
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  getReturnStatistics: async () => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}/statistics`,
+      method: "GET",
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  getReturnReport: async () => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}/report`,
+      method: "GET",
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  getReturnById: async (returnId) => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}/${returnId}`,
+      method: "GET",
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  updateReturn: async (returnId, data) => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}/${returnId}`,
+      method: "PUT",
+      data,
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  deleteReturn: async (returnId) => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}/${returnId}`,
+      method: "DELETE",
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  processReturn: async (returnId, data) => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}/${returnId}/process`,
+      method: "POST",
+      data,
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  approveReturn: async (returnId) => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}/${returnId}/approve`,
+      method: "POST",
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  rejectReturn: async (returnId, data) => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}/${returnId}/reject`,
+      method: "POST",
+      data,
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  calculateRefund: async (returnId) => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}/${returnId}/calculate-refund`,
+      method: "GET",
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  checkOrderEligibility: async (orderId) => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}/order/${orderId}/eligibility`,
+      method: "GET",
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  getReturnsByCustomer: async (customerId) => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}/customer/${customerId}`,
+      method: "GET",
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  getReturnsByOrder: async (orderId) => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}/order/${orderId}/returns`,
+      method: "GET",
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  updateRefundAmount: async (returnItemId, data) => {
+    return axios({
+      url: `${CUSTOMER_RETURN_URL}/item/${returnItemId}/refund-amount`,
+      method: "PUT",
+      data,
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
 };
 
 export default orderService;

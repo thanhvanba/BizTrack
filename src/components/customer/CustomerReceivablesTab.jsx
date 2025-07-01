@@ -5,6 +5,14 @@ import { useEffect, useState } from "react";
 import customerService from "../../service/customerService";
 import formatPrice from "../../utils/formatPrice";
 
+const statusMap = {
+    pending: 'Tạo đơn hàng',
+    partial_paid: 'Thanh toán một phần',
+    payment: 'Thanh toán',
+    completed: 'Hoàn tất',
+    cancelled: 'Hủy bỏ',
+};
+
 const columns = [
     { title: "Mã giao dịch", dataIndex: "ma_giao_dich", key: "ma_giao_dich" },
     {
@@ -13,13 +21,19 @@ const columns = [
             return new Date(val).toLocaleString("vi-VN")
         }
     },
-    { title: "Loại", dataIndex: "loai", key: "loai" },
     {
-        title: "Giá trị", dataIndex: "gia_tri", key: "gia_tri",
-        render: (val) => `${formatPrice(val)}`
+        title: "Loại", dataIndex: "loai", key: "loai",
+        render: (value) => statusMap[value] || value,
     },
     {
-        title: "Dư nợ", dataIndex: "du_no", key: "du_no",
+        title: "Giá trị", dataIndex: "gia_tri", key: "gia_tri", align: "right",
+        render: (val, record) => {
+            const isNegative = ["payment", "partial_paid"].includes(record.loai);
+            return `${isNegative ? "-" : ""}${formatPrice(val)}`;
+        },
+    },
+    {
+        title: "Dư nợ", dataIndex: "du_no", key: "du_no", align: "right",
         render: (val) => `${formatPrice(val)}`
     },
 ];
