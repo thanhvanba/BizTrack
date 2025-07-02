@@ -43,6 +43,8 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
     const [customers, setCustomers] = useState([]);
     const [products, setProducts] = useState([]);
     const [order, setOrder] = useState(null);
+    const [orderEligibility, setOrderEligibility] = useState(null);
+    console.log("🚀 ~ OrderFormData ~ orderEligibility:", orderEligibility?.products)
     const [returnOrderData, setReturnOrderData] = useState({
         customer_id: "",
         order_id: "",
@@ -125,6 +127,12 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         try {
             setLoading(true);
             // const orderRes = await orderService.getOrderById(orderId);
+
+            const resOrderEligibility = await orderService.checkOrderEligibility(orderId)
+
+            if (resOrderEligibility && resOrderEligibility.data) {
+                setOrderEligibility(resOrderEligibility.data)
+            }
             const orderRes = await orderDetailService.getOrderDetailById(orderId);
             if (orderRes) {
                 setOrder(orderRes);
@@ -358,8 +366,8 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
     };
     const updateQuantityReturn = (productId, quantity_return) => {
         if (quantity_return >= 0) {
-            setSelectedProducts(
-                selectedProducts.map((item) =>
+                setOrderEligibility(
+                orderEligibility.map((item) =>
                     item.product_id === productId ? { ...item, quantity_return } : item
                 )
             );
@@ -550,14 +558,14 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                         <div className="flex justify-center items-center">
                             <InputNumber
                                 min={0}
-                                max={record.quantity}
+                                max={record.quantity - record.returned_quantity}
                                 defaultValue={0}
                                 value={record.quantity_return}
                                 onChange={(value) => updateQuantityReturn(record.product_id, value)}
                                 className="w-14"
                             />
                             <div className="w-6 text-lg text-neutral-400">
-                                / {record.quantity}
+                                / {record.quantity - record.returned_quantity}
                             </div>
                         </div>
                     ),
@@ -626,7 +634,8 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
             align: "right",
             width: 140,
             render: (_, record) => {
-                const quantity = mode === "return" ? record.quantity_return : record.quantity;
+                const quantity = mode === "return" ? record.quantity_return ?? 0 : record.quantity ?? 0;
+                console.log("🚀 ~ OrderFormData ~ record:", record)
                 return formatCurrency(
                     (record.product_return_price !== undefined ? record.product_return_price : record.product_retail_price) * (quantity || 0) - (record.discountAmount || 0)
                 );
@@ -753,7 +762,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                                 </div>
                                 <Table
                                     columns={selectedProductColumns}
-                                    dataSource={selectedProducts}
+                                    dataSource={mode === 'return' ? orderEligibility?.products : selectedProducts}
                                     rowKey="product_id"
                                     size="small"
                                     pagination={false}
@@ -761,19 +770,21 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                             </div>
                         )}
 
-                        <TextArea
-                            className="!mt-3"
-                            placeholder="Ghi chú"
-                            variant="outlined"
-                            rows={2}
-                            value={returnOrderData.note} // binding value để TextArea phản ánh đúng state
-                            onChange={(e) =>
-                                setReturnOrderData((prev) => ({
-                                    ...prev,
-                                    note: e.target.value,
-                                }))
-                            }
-                        />
+                        {mode === 'return' &&
+                            <TextArea
+                                className="!mt-3"
+                                placeholder="Ghi chú"
+                                variant="outlined"
+                                rows={2}
+                                value={returnOrderData.note} // binding value để TextArea phản ánh đúng state
+                                onChange={(e) =>
+                                    setReturnOrderData((prev) => ({
+                                        ...prev,
+                                        note: e.target.value,
+                                    }))
+                                }
+                            />
+                        }
                     </div>
 
                     {/* Order information */}

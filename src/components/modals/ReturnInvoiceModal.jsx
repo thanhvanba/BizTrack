@@ -20,47 +20,47 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
     total: 0,
   });
 
-  const data = Array.from({ length: 31 }).map((_, i) => ({
-    key: i + 1,
-    code: `HD0000${i + 1}`,
-    time: dayjs().subtract(i, "day").format("DD/MM/YYYY HH:mm"),
-    employee: "Nguyễn Anh Nhân",
-    customer: "Trần Cao Vân",
-    total: Math.floor(Math.random() * 100000000),
-  }));
+  const fetchOrders = async ({ page = pagination.current, limit = pagination.pageSize, params = {} } = {}) => {
+    setLoading(true);
+    try {
+      const response = await orderService.getAllOrder({
+        page,
+        limit,
+        ...params,
+      });
 
-  useEffect(() => {
-    const fetchOrders = async ({ page = pagination.current, limit = pagination.pageSize, params = {} } = {}) => {
-      setLoading(true);
-      try {
-        const response = await orderService.getAllOrder({
-          page,
-          limit,
-          ...params,
+      setOrdersData(
+        response.data.map((order) => ({
+          ...order,
+          key: order.order_id,
+        }))
+      );
+
+      if (response.pagination) {
+        setPagination({
+          current: response.pagination.page,
+          pageSize: response.pagination.limit,
+          total: response.pagination.total,
         });
-
-        setOrdersData(
-          response.data.map((order) => ({
-            ...order,
-            key: order.order_id,
-          }))
-        );
-
-        if (response.pagination) {
-          setPagination({
-            current: response.pagination.page,
-            pageSize: response.pagination.limit,
-            total: response.pagination.total,
-          });
-        }
-      } catch (error) {
-        useToastNotify("Không thể tải danh sách đơn hàng.", "error");
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      useToastNotify("Không thể tải danh sách đơn hàng.", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchOrders()
+  const handleTableChange = (newPagination) => {
+    const params = {};
+    params.order_status = 4;
+    fetchOrders({
+      page: newPagination.current,
+      limit: newPagination.pageSize,
+      params,
+    });
+  };
+  useEffect(() => {
+    fetchOrders({ params: { order_status: 4 } });
   }, [])
 
   const columns = [
@@ -147,7 +147,14 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
           <Table
             columns={columns}
             dataSource={ordersData}
-            // pagination={false}
+            pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: pagination.total,
+              showSizeChanger: true,
+              pageSizeOptions: ['5', '10', '20', '50'],
+            }}
+            onChange={handleTableChange}
             rowKey="key"
             size="small"
           />

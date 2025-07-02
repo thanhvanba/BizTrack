@@ -6,6 +6,7 @@ import useToastNotify from "../../utils/useToastNotify";
 import OrderReturnHistoryTab from "./OrderReturnHistoryTab";
 import PaymentHistory from "./PaymentHistory";
 import { useLocation } from "react-router-dom";
+import orderService from "../../service/orderService";
 
 const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
     console.log("🚀 ~ ExpandedOrderTabs ~ record:", record)
@@ -16,7 +17,8 @@ const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
     useEffect(() => {
         const fetchOrderDetails = async () => {
             try {
-                const response = await orderDetailService.getOrderDetailById(record?.order_id);
+                const response = location.pathname.includes('return-order') ? await orderService.getReturnById(record?.return_id) : await orderDetailService.getOrderDetailById(record?.order_id)
+
                 setOrderInfo(response);
             } catch (error) {
                 console.error("Lỗi khi tải chi tiết đơn hàng:", error);
@@ -32,7 +34,7 @@ const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
             {
                 key: "info",
                 label: "Thông tin",
-                children: <OrderInfoTab orderData={orderInfo} onUpdateOrderStatus={onUpdateOrderStatus} />,
+                children: <OrderInfoTab orderData={orderInfo} onUpdateOrderStatus={onUpdateOrderStatus} record={record} />,
             },
         ]
         : [

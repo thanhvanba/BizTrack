@@ -389,7 +389,7 @@ const OrderManagement = () => {
 
         // Filter options based on current status
         const availableOptions = statusOptions.filter(option => {
-          if (status === "Mới") return ["Xác nhận"].includes(option.value);
+          if (status === "Mới") return ["Xác nhận", "Huỷ đơn"].includes(option.value);
           if (status === "Xác nhận") return ["Đang đóng hàng", "Đang giao", "Hoàn tất", "Huỷ đơn", "Huỷ điều chỉnh"].includes(option.value);
           if (status === "Đang đóng hàng") return ["Đang giao", "Hoàn tất", "Huỷ đơn", "Huỷ điều chỉnh"].includes(option.value);
           if (status === "Đang giao") return ["Hoàn tất", "Huỷ đơn", "Huỷ điều chỉnh"].includes(option.value);

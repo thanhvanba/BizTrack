@@ -6,6 +6,7 @@ import ReturnInvoiceModal from '../../components/modals/ReturnInvoiceModal';
 import { useNavigate } from 'react-router-dom';
 import useToastNotify from '../../utils/useToastNotify';
 import orderService from '../../service/orderService';
+import formatPrice from '../../utils/formatPrice';
 
 const { Search } = Input;
 
@@ -25,19 +26,27 @@ const dataSource = [
 ];
 
 const columns = [
-    { title: 'Mã trả hàng', dataIndex: 'returnCode', key: 'returnCode' },
+    { title: 'Mã trả hàng', dataIndex: 'order_code', key: 'order_code' },
     { title: 'Người bán', dataIndex: 'seller', key: 'seller' },
-    { title: 'Thời gian', dataIndex: 'time', key: 'time' },
-    { title: 'Khách hàng', dataIndex: 'customer', key: 'customer' },
-    { title: 'Cần trả khách', dataIndex: 'amountToReturn', key: 'amountToReturn' },
-    { title: 'Đã trả khách', dataIndex: 'amountReturned', key: 'amountReturned' },
+    {
+        title: 'Thời gian', dataIndex: 'created_at', key: 'created_at',
+        render: (date) => new Date(date).toLocaleString("vi-VN"),
+    },
+    { title: 'Khách hàng', dataIndex: 'customer_name', key: 'customer_name' },
+    {
+        title: 'Tổng tiền',
+        dataIndex: 'total_refund',
+        key: 'total_refund',
+        align: 'right',
+        render: (value) => (formatPrice(value) ?? 0),
+    },
     {
         title: 'Trạng thái',
         dataIndex: 'status',
         key: 'status',
         render: (status) => {
-            const color = status === 'Success' ? 'green' : status === 'Pending' ? 'orange' : 'red';
-            return <Tag color={color}>{status === 'Success' ? 'Đã trả' : status === 'Pending' ? 'Đang xử lý' : 'Không thành công'}</Tag>;
+            const color = status === 'completed' ? 'green' : status === 'pending' ? 'orange' : 'red';
+            return <Tag color={color}>{status === 'completed' ? 'Đã trả' : status === 'pending' ? 'Đang xử lý' : 'Không thành công'}</Tag>;
         },
         // render: (text) => <span className="text-green-600">{text}</span>,
     },
@@ -80,7 +89,7 @@ const ReturnOrderPage = () => {
                 // }
             );
             setOrdersReturnData(
-                response?.data?.return?.map((order) => ({
+                response?.data?.map((order) => ({
                     ...order,
                     key: order.order_id,
                 }))
@@ -88,9 +97,9 @@ const ReturnOrderPage = () => {
 
             if (response?.data.pagination) {
                 setPagination({
-                    current: response?.data.pagination.page,
-                    pageSize: response?.data.pagination.limit,
-                    total: response?.data.pagination.total,
+                    current: response?.pagination.page,
+                    pageSize: response?.pagination.limit,
+                    total: response?.pagination.total,
                 });
             }
         } catch (error) {

@@ -27,9 +27,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 const { Text, Title } = Typography;
 const { TextArea } = Input;
 
-export default function OrderInfoTab({ orderData, onUpdateOrderStatus }) {
+export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record }) {
   const location = useLocation();
-  console.log("🚀 ~ OrderInfoTab ~ orderData:", orderData)
   const navigate = useNavigate()
   const {
     order_id,
@@ -46,8 +45,8 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus }) {
     shipping_address,
     customer,
     products,
+    data,
   } = orderData;
-
   const columns = [
     {
       title: "Mã hàng",
@@ -74,13 +73,21 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus }) {
       align: "right",
       render: (discount) => formatPrice(discount),
     },
-    {
-      title: "Giá bán",
-      dataIndex: "price",
-      key: "price_sale",
-      align: "right",
-      render: (price) => formatPrice(price),
-    },
+    location.pathname.includes('return-order') ?
+      {
+        title: "Giá trả",
+        dataIndex: "refund_amount",
+        key: "refund_amount",
+        align: "right",
+        render: (price) => formatPrice(price),
+      }
+      : {
+        title: "Giá bán",
+        dataIndex: "price",
+        key: "price_sale",
+        align: "right",
+        render: (price) => formatPrice(price),
+      }, ,
     // {
     //   title: "Thành tiền",
     //   key: "total",
@@ -88,7 +95,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus }) {
     // },
   ];
 
-  const totalQuantity = products?.reduce((sum, item) => sum + item.quantity, 0);
+  const totalQuantity = location.pathname.includes('return-order') ? data?.details?.reduce((sum, item) => sum + item.quantity, 0) : products?.reduce((sum, item) => sum + item.quantity, 0);
   const totalProductDiscount = products?.reduce(
     (sum, item) => sum + item.discount, 0
   );
@@ -99,20 +106,25 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus }) {
       <Row justify="space-between" align="middle">
         <Col>
           <Title level={4} className="mb-1">
-            {customer?.customer_name}
-            <Text className="mx-2 font-normal">{order_code}</Text>
-            <Tag color="green">{order_status}</Tag>
+            {customer?.customer_name || data?.customer_name}
+            <Text className="mx-2 font-normal">{order_code || data?.return_id}
+              {location.pathname.includes('return-order') && data?.order_code && (
+                <> (Mã HĐ: {data.order_code})</>
+              )}</Text>
+            <Tag color="green">{order_status || data?.status}</Tag>
           </Title>
         </Col>
         <Col>
-          <Text strong>Ngày giao: {new Date(order_date).toLocaleDateString()}</Text>
+          <Text strong>{`${order_date ? 'Ngày giao:' : 'Ngày trả:'}`} {new Date(order_date || data?.created_at).toLocaleDateString("vi-VN")}</Text>
         </Col>
       </Row>
 
       {/* Shipping Address */}
       <Row>
         <Col span={24}>
-          <Text type="secondary">Địa chỉ: {shipping_address}</Text>
+          <Text type="secondary">Địa chỉ: {shipping_address}</Text><br />
+          <Text type="secondary">Số điện thoại: {customer?.phone || data?.phone}</Text><br />
+          <Text type="secondary">Email: {customer?.email || data?.email}</Text>
         </Col>
       </Row>
       <Divider />
@@ -121,7 +133,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus }) {
       <Table
         className="mt-3"
         columns={columns}
-        dataSource={products}
+        dataSource={products || data?.details}
         rowKey="product_id"
         pagination={false}
         size="small"
@@ -132,7 +144,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus }) {
                 <Text strong>{`Tổng tiền hàng (${totalQuantity})`}</Text>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={6} align="right">
-                <Text strong>{formatPrice(total_amount)}</Text>
+                <Text strong>{formatPrice(total_amount || record?.total_refund)}</Text>
               </Table.Summary.Cell>
             </Table.Summary.Row>
             <Table.Summary.Row>
@@ -157,7 +169,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus }) {
         <TextArea
           placeholder="Ghi chú..."
           rows={3}
-          value={note || ""}
+          value={note || data?.note}
           className="w-full lg:w-1/2"
         />
 
@@ -167,17 +179,17 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus }) {
               <Text strong>Thành tiền</Text>
             </Col>
             <Col span={6} className="text-right">
-              <Text strong>{formatPrice(final_amount)}</Text>
+              <Text strong>{formatPrice(final_amount || record?.total_refund)}</Text>
             </Col>
           </Row>
           <Row className="mb-2">
-            <Col span={18}>Khách đã trả</Col>
+            <Col span={18}>{location.pathname.includes('return-order') ? 'Đã trả khách' : 'Khách đã trả'}</Col>
             <Col span={6} className="text-right">
-              {formatPrice(amount_paid)}
+              {formatPrice(amount_paid || record?.total_refund)}
             </Col>
           </Row>
           <Row className="text-red-500">
-            <Col span={18}>Khách cần trả</Col>
+            <Col span={18}>{location.pathname.includes('return-order') ? 'Cần trả khách' : 'Khách cần trả'}</Col>
             <Col span={6} className="text-right">
               {formatPrice(final_amount - amount_paid)}
             </Col>
@@ -186,9 +198,9 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus }) {
       </div>
 
       {/* Action Buttons */}
-      <Row justify="space-between" align="middle" className="mt-6">
+      {!location.pathname.includes('return-order') && <Row justify="space-between" align="middle" className="mt-6">
         <Col>
-          {order_status === "Mới" ?
+          {order_status === "Mới" &&
             <Button
               color="primary"
               variant="filled"
@@ -197,15 +209,16 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus }) {
             >
               Xác nhận
             </Button>
-            : <Button
-              icon={<DeleteOutlined />}
-              color="danger"
-              variant="filled"
-              style={{ marginRight: 8 }}
-              onClick={() => onUpdateOrderStatus(order_id, "Huỷ đơn")}
-            >
-              Hủy
-            </Button>}
+          }
+          <Button
+            icon={<DeleteOutlined />}
+            color="danger"
+            variant="filled"
+            style={{ marginRight: 8 }}
+            onClick={() => onUpdateOrderStatus(order_id, "Huỷ đơn")}
+          >
+            Hủy
+          </Button>
           <Button>Xuất file</Button>
         </Col>
         <Col>
@@ -229,6 +242,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus }) {
           <Button icon={<PrinterOutlined />}>In</Button>
         </Col>
       </Row>
+      }
     </div>
   );
 }
