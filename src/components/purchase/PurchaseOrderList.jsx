@@ -88,7 +88,10 @@ export default function PurchaseOrderList({ purchaseOrders, onEdit, onApprove, o
               <Button
                 type="link"
                 style={{ color: '#52c41a' }}
-                onClick={() => handleApprove(record)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleApprove(record);
+                }}
               >
                 Phê duyệt
               </Button>

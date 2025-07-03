@@ -93,7 +93,10 @@ export default function AdjustmentList({ adjustments, onEdit, onApprove, onCreat
               <Button
                 type="link"
                 style={{ color: '#52c41a' }}
-                onClick={() => handleApprove(record)}
+                onClick={() => {
+                  e.stopPropagation();
+                  handleApprove(record)
+                }}
               >
                 Phê duyệt
               </Button>

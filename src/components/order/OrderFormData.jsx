@@ -162,9 +162,9 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                 form.setFieldsValue({
                     customer_id: orderRes.customer.customer_id,
                     order_date: dayjs(orderRes.order_date),
-                    shipping_fee: orderRes.shipping_fee,
-                    order_amount: orderRes.order_amount,
-                    amount_paid: orderRes.amount_paid,
+                    shipping_fee: orderRes.shipping_fee ?? 0,
+                    order_amount: orderRes.order_amount ?? 0,
+                    amount_paid: orderRes.amount_paid ?? 0,
                     payment_method: orderRes.payment_method,
                     note: orderRes.note,
                     warehouse_id: orderRes.warehouse_id,
@@ -209,9 +209,9 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
             form.setFieldsValue({
                 customer_id: orderProp?.customer_id,
                 order_date: dayjs(orderProp?.order_date),
-                shipping_fee: orderProp?.shipping_fee,
-                order_amount: orderProp?.order_amount,
-                amount_paid: orderProp?.amount_paid,
+                shipping_fee: orderProp?.shipping_fee ?? 0,
+                order_amount: orderProp?.order_amount ?? 0,
+                amount_paid: orderProp?.amount_paid ?? 0,
                 payment_method: orderProp?.payment_method,
                 note: orderProp?.note,
                 warehouse_id: orderProp?.warehouse_id,
@@ -252,10 +252,10 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                 order: {
                     customer_id: values.customer_id,
                     order_date: formattedOrderDate,
-                    order_amount: values.order_amount,
+                    order_amount: values.order_amount ?? 0,
                     shipping_address: values.shipping_address,
-                    shipping_fee: values.shipping_fee,
-                    amount_paid: values.amount_paid,
+                    shipping_fee: values.shipping_fee ?? 0,
+                    amount_paid: values.amount_paid ?? 0,
                     payment_method: values.payment_method,
                     note: values.note,
                     warehouse_id: values.warehouse_id,
@@ -921,7 +921,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                                             `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                                         }
                                         parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                                        onChange={(value) => setOrderDiscount(value)}
+                                        onChange={(value) => setOrderDiscount(Number(value) || 0)}
                                     />
                                 </Form.Item>
                             </div>

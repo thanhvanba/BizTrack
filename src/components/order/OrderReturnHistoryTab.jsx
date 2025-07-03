@@ -1,13 +1,13 @@
 import { Table, Tag } from "antd";
 
 const columns = [
-  { title: "Mã trả hàng", dataIndex: "code", key: "code", render: (text) => <a>{text}</a> },
-  { title: "Thời gian", dataIndex: "date", key: "date" },
-  { title: "Người nhận trả", dataIndex: "receiver", key: "receiver" },
+  { title: "Mã trả hàng", dataIndex: "return_id", key: "return_id", render: (val) => { return "TH-" + val.slice(0, 8); } },
+  { title: "Thời gian", dataIndex: "created_at", key: "created_at", render: (date) => new Date(date).toLocaleString('vi-VI') },
+  { title: "Người nhận trả", dataIndex: "customer_name", key: "customer_name" },
   {
     title: "Tổng cộng",
-    dataIndex: "total",
-    key: "total",
+    dataIndex: "total_refund",
+    key: "total_refund",
     align: "right",
     render: (val) => val?.toLocaleString("vi-VN"),
   },
@@ -16,60 +16,29 @@ const columns = [
     dataIndex: "status",
     key: "status",
     render: (status) => {
-      let color = status === "Đã trả" ? "green" : "default";
-      return <Tag color={color}>{status}</Tag>;
+      const color =
+        status === 'completed'
+          ? 'blue'
+          : status === 'pending'
+            ? 'orange'
+            : 'red';
+      const text =
+        status === 'completed'
+          ? 'Đã trả'
+          : status === 'pending'
+            ? 'Đang xử lý'
+            : 'Không thành công';
+
+      return <Tag color={color}>{text}</Tag>;
     },
   },
 ];
 
-const data = [
-  {
-    key: "1",
-    code: "TH000005",
-    date: "18/06/2025 13:54",
-    receiver: "An Thành",
-    total: 698000,
-    status: "Đã trả",
-  },
-  {
-    key: "2",
-    code: "TH000004",
-    date: "18/06/2025 13:52",
-    receiver: "An Thành",
-    total: 1047000,
-    status: "Đã trả",
-  },
-  {
-    key: "3",
-    code: "TH000003",
-    date: "18/06/2025 13:51",
-    receiver: "An Thành",
-    total: 2443000,
-    status: "Đã trả",
-  },
-  {
-    key: "4",
-    code: "TH000002",
-    date: "17/06/2025 12:21",
-    receiver: "An Thành",
-    total: 0,
-    status: "Đã trả",
-  },
-  {
-    key: "5",
-    code: "TH000001",
-    date: "17/06/2025 12:01",
-    receiver: "An Thành",
-    total: 0,
-    status: "Đã trả",
-  },
-];
-
-const OrderReturnHistoryTab = () => {
+const OrderReturnHistoryTab = ({ returnOrderData }) => {
   return (
     <Table
       columns={columns}
-      dataSource={data}
+      dataSource={returnOrderData}
       pagination={false}
       size="middle"
       scroll={{ x: 800 }}

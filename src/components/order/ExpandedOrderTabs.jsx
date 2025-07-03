@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Tabs, Card } from "antd";
+import { Tabs, Card, Spin } from "antd";
 import OrderInfoTab from "./OrderInfoTab";
 import orderDetailService from "../../service/orderDetailService";
 import useToastNotify from "../../utils/useToastNotify";
@@ -12,6 +12,8 @@ const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
     console.log("🚀 ~ ExpandedOrderTabs ~ record:", record)
     const location = useLocation();
     const [orderInfo, setOrderInfo] = useState({});
+    const [returnOrder, setReturnOrder] = useState({});
+    const [loading, setLoading] = useState(true);
     console.log("🚀 ~ ExpandedOrderTabs ~ orderInfo:", orderInfo)
 
     useEffect(() => {
@@ -23,10 +25,23 @@ const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
             } catch (error) {
                 console.error("Lỗi khi tải chi tiết đơn hàng:", error);
                 useToastNotify("Không thể tải danh sách sản phẩm.", "error");
+            } finally {
+                setLoading(false);
             }
         };
+        const fetchReturnOrderByOrderId = async () => {
+            try {
+                const response = await orderService.getReturns({ order_id: record?.order_id })
 
+                setReturnOrder(response?.data);
+            } catch (error) {
+                console.error("Lỗi khi tải danh sách trả hàng:", error);
+                useToastNotify("Không thể tải danh sách sản phẩm.", "error");
+            }
+        }
         fetchOrderDetails()
+        !location.pathname.includes('return-order') &&
+            fetchReturnOrderByOrderId()
     }, [])
 
     const tabItems = location.pathname.includes('return-order')
@@ -51,13 +66,19 @@ const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
             {
                 key: "sale_return",
                 label: "Lịch sử trả hàng",
-                children: <OrderReturnHistoryTab />,
+                children: <OrderReturnHistoryTab returnOrderData={returnOrder} />,
             },
         ];
 
     return (
         <div className="bg-white p-6 py-4 rounded-md shadow-sm">
-            <Tabs items={tabItems} className="mb-6" />
+            {loading ? (
+                <div className="flex justify-center items-center min-h-[200px]">
+                    <Spin />
+                </div>
+            ) : (
+                <Tabs items={tabItems} className="mb-6" />
+            )}
         </div>
     );
 };

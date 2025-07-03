@@ -30,7 +30,10 @@ const ReturnOrderPage = () => {
 
     const columns = useMemo(() => {
         const baseCols = [
-            { title: 'Mã trả hàng', dataIndex: 'order_code', key: 'order_code' },
+            {
+                title: 'Mã trả hàng', dataIndex: 'return_id', key: 'return_id',
+                render: (val) => { return "TH-" + val.slice(0, 8); }
+            },
             { title: 'Người bán', dataIndex: 'seller', key: 'seller' },
             {
                 title: 'Thời gian',
@@ -78,7 +81,10 @@ const ReturnOrderPage = () => {
                         <Button
                             type="link"
                             style={{ color: '#52c41a' }}
-                            onClick={() => handleApprove(record)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleApprove(record);
+                            }}
                         >
                             Phê duyệt
                         </Button>
