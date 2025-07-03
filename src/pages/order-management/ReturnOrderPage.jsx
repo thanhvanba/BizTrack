@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Table, Button, Input, Tag } from 'antd';
 import './index.css'; // file này cần chứa tailwind directives
 import ExpandedOrderTabs from '../../components/order/ExpandedOrderTabs';
@@ -10,47 +10,6 @@ import formatPrice from '../../utils/formatPrice';
 
 const { Search } = Input;
 
-const dataSource = [
-    {
-        key: '1',
-        order_id: "27413d44-5245-427b-8841-4ffe3c1076b2",
-        returnCode: 'TH000006',
-        seller: 'Hoàng Nam Quang',
-        time: '21/06/2025 10:36',
-        customer: 'Phạm Văn Bạch',
-        amountToReturn: '3,141,000',
-        amountReturned: '1,596,000',
-        status: 'Success',
-    },
-    // thêm các dòng dữ liệu khác ở đây...
-];
-
-const columns = [
-    { title: 'Mã trả hàng', dataIndex: 'order_code', key: 'order_code' },
-    { title: 'Người bán', dataIndex: 'seller', key: 'seller' },
-    {
-        title: 'Thời gian', dataIndex: 'created_at', key: 'created_at',
-        render: (date) => new Date(date).toLocaleString("vi-VN"),
-    },
-    { title: 'Khách hàng', dataIndex: 'customer_name', key: 'customer_name' },
-    {
-        title: 'Tổng tiền',
-        dataIndex: 'total_refund',
-        key: 'total_refund',
-        align: 'right',
-        render: (value) => (formatPrice(value) ?? 0),
-    },
-    {
-        title: 'Trạng thái',
-        dataIndex: 'status',
-        key: 'status',
-        render: (status) => {
-            const color = status === 'completed' ? 'green' : status === 'pending' ? 'orange' : 'red';
-            return <Tag color={color}>{status === 'completed' ? 'Đã trả' : status === 'pending' ? 'Đang xử lý' : 'Không thành công'}</Tag>;
-        },
-        // render: (text) => <span className="text-green-600">{text}</span>,
-    },
-];
 
 const ReturnOrderPage = () => {
     const [expandedRowKeys, setExpandedRowKeys] = useState([])
@@ -58,6 +17,7 @@ const ReturnOrderPage = () => {
     const [loading, setLoading] = useState([])
     const [open, setOpen] = useState(false);
     const [ordersReturnData, setOrdersReturnData] = useState([]);
+    console.log("🚀 ~ ReturnOrderPage ~ ordersReturnData:", ordersReturnData)
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 5,
@@ -65,6 +25,70 @@ const ReturnOrderPage = () => {
     });
 
     const navigate = useNavigate()
+
+    const showActionColumn = ordersReturnData.some(order => order.status === 'pending');
+
+    const columns = useMemo(() => {
+        const baseCols = [
+            { title: 'Mã trả hàng', dataIndex: 'order_code', key: 'order_code' },
+            { title: 'Người bán', dataIndex: 'seller', key: 'seller' },
+            {
+                title: 'Thời gian',
+                dataIndex: 'created_at',
+                key: 'created_at',
+                render: (date) => new Date(date).toLocaleString("vi-VN"),
+            },
+            { title: 'Khách hàng', dataIndex: 'customer_name', key: 'customer_name' },
+            {
+                title: 'Tổng tiền',
+                dataIndex: 'total_refund',
+                key: 'total_refund',
+                align: 'right',
+                render: (value) => formatPrice(value ?? 0),
+            },
+            {
+                title: 'Trạng thái',
+                dataIndex: 'status',
+                key: 'status',
+                render: (status) => {
+                    const color =
+                        status === 'completed'
+                            ? 'green'
+                            : status === 'pending'
+                                ? 'orange'
+                                : 'red';
+                    const text =
+                        status === 'completed'
+                            ? 'Đã trả'
+                            : status === 'pending'
+                                ? 'Đang xử lý'
+                                : 'Không thành công';
+
+                    return <Tag color={color}>{text}</Tag>;
+                },
+            },
+        ];
+
+        if (showActionColumn) {
+            baseCols.push({
+                title: 'Thao tác',
+                key: 'action',
+                render: (_, record) =>
+                    record.status === 'pending' ? (
+                        <Button
+                            type="link"
+                            style={{ color: '#52c41a' }}
+                            onClick={() => handleApprove(record)}
+                        >
+                            Phê duyệt
+                        </Button>
+                    ) : null,
+            });
+        }
+
+        return baseCols;
+    }, [showActionColumn]);
+
     const toggleExpand = (key) => {
         if (expandedRowKeys.includes(key)) {
             setExpandedRowKeys([])
@@ -82,17 +106,14 @@ const ReturnOrderPage = () => {
         setLoading(true);
         try {
             const response = await orderService.getReturns(
-                // {
-                //     page,
-                //     limit,
-                //     ...params,
-                // }
+                {
+                    page,
+                    limit,
+                    ...params,
+                }
             );
             setOrdersReturnData(
-                response?.data?.map((order) => ({
-                    ...order,
-                    key: order.order_id,
-                }))
+                response?.data
             );
 
             if (response?.data.pagination) {
@@ -109,6 +130,21 @@ const ReturnOrderPage = () => {
         }
     };
 
+    const handleApproveReturnOrder = async (return_id) => {
+        try {
+            await orderService.approveReturn(return_id)
+            useToastNotify("Duyệt đơn trả hàng thành công", 'success')
+            fetchOrdersReturn()
+        } catch (error) {
+            useToastNotify("Lỗi khi duyệt đơn trả hàng", 'error')
+        }
+    }
+
+    const handleApprove = (orderReturn) => {
+        if (confirm(`Bạn có chắc chắn muốn phê duyệt đơn trả hàng ${orderReturn.return_id}?`)) {
+            handleApproveReturnOrder(orderReturn.return_id)
+        }
+    }
     //HÀM XỬ LÝ CHUYỂN TRANG
     const handleTableChange = (newPagination) => {
         const params = {};
@@ -137,9 +173,16 @@ const ReturnOrderPage = () => {
             </div>
             <ReturnInvoiceModal visible={open} onClose={() => setOpen(false)} onSelect={handleSelectInvoice} />
             <Table
+                rowKey="return_id"
                 dataSource={ordersReturnData}
                 columns={columns}
-                pagination={false}
+                pagination={{
+                    current: pagination.current,
+                    pageSize: pagination.pageSize,
+                    total: pagination.total,
+                    showSizeChanger: true,
+                    pageSizeOptions: ['5', '10', '20', '50'],
+                }}
                 expandable={{
                     expandedRowRender: (record) => (
                         <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
@@ -148,15 +191,15 @@ const ReturnOrderPage = () => {
                     ),
                     expandedRowKeys,
                     onExpand: (expanded, record) => {
-                        setExpandedRowKeys(expanded ? [record.key] : []);
+                        setExpandedRowKeys(expanded ? [record.return_id] : []);
                     },
                 }}
                 onRow={(record) => ({
-                    onClick: () => toggleExpand(record.key),
+                    onClick: () => toggleExpand(record.return_id),
                     className: "cursor-pointer",
                 })}
                 rowClassName={(record) =>
-                    expandedRowKeys.includes(record.key)
+                    expandedRowKeys.includes(record.return_id)
                         ? "border-x-2 border-t-2 border-blue-500 !border-collapse z-10 bg-blue-50 rounded-md shadow-sm"
                         : "hover:bg-gray-50 transition-colors"
                 }

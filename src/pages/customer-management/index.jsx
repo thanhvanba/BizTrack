@@ -28,7 +28,7 @@ const CustomerManagement = () => {
     setLoading(true);
     try {
       const res = await customerService.getAllCustomers({ page, limit })
-      setCustomers(res.data.map(c => ({ ...c, key: c.customer_id })))
+      setCustomers(res.data)
       if (res.pagination) {
         setPagination({
           current: res.pagination.currentPage,
@@ -170,7 +170,7 @@ const CustomerManagement = () => {
         new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value),
       align: "right",
       responsive: ["lg"]
-    },  
+    },
   ]
 
   return (
@@ -207,6 +207,7 @@ const CustomerManagement = () => {
           loading={loading}
           columns={columns}
           dataSource={customers}
+          rowKey='customer_id'
           pagination={{
             current: pagination.current,
             pageSize: pagination.pageSize,

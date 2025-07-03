@@ -111,7 +111,24 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
               {location.pathname.includes('return-order') && data?.order_code && (
                 <> (Mã HĐ: {data.order_code})</>
               )}</Text>
-            <Tag color="green">{order_status || data?.status}</Tag>
+            {order_status ? (
+              <Tag color="green">{order_status}</Tag>
+            ) : (
+              <Tag color={
+                data?.status === 'completed'
+                  ? 'green'
+                  : data?.status === 'pending'
+                    ? 'orange'
+                    : 'red'
+              }>
+                {data?.status === 'completed'
+                  ? 'Đã trả'
+                  : data?.status === 'pending'
+                    ? 'Đang xử lý'
+                    : 'Không thành công'}
+              </Tag>
+            )}
+
           </Title>
         </Col>
         <Col>

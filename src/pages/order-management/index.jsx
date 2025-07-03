@@ -151,12 +151,7 @@ const OrderManagement = () => {
         ...params,
       });
 
-      setOrdersData(
-        response.data.map((order) => ({
-          ...order,
-          key: order.order_id,
-        }))
-      );
+      setOrdersData(response.data);
 
       if (response.pagination) {
         setPagination({
@@ -473,6 +468,7 @@ const OrderManagement = () => {
         <Table
           loading={loading}
           columns={columns}
+          rowKey='order_id'
           dataSource={ordersData}
           pagination={{
             current: pagination.current,
@@ -489,15 +485,15 @@ const OrderManagement = () => {
             ),
             expandedRowKeys,
             onExpand: (expanded, record) => {
-              setExpandedRowKeys(expanded ? [record.key] : []);
+              setExpandedRowKeys(expanded ? [record.order_id] : []);
             },
           }}
           onRow={(record) => ({
-            onClick: () => toggleExpand(record.key),
+            onClick: () => toggleExpand(record.order_id),
             className: "cursor-pointer",
           })}
           rowClassName={(record) =>
-            expandedRowKeys.includes(record.key)
+            expandedRowKeys.includes(record.order_id)
               ? "border-x-2 border-t-2 border-blue-500 !border-collapse z-10 bg-blue-50 rounded-md shadow-sm"
               : "hover:bg-gray-50 transition-colors"
           }

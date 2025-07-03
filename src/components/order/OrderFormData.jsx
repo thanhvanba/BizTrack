@@ -44,7 +44,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
     const [products, setProducts] = useState([]);
     const [order, setOrder] = useState(null);
     const [orderEligibility, setOrderEligibility] = useState(null);
-    console.log("🚀 ~ OrderFormData ~ orderEligibility:", orderEligibility?.products)
+    console.log("🚀 ~ OrderFormData ~ orderEligibility:", orderEligibility)
     const [returnOrderData, setReturnOrderData] = useState({
         customer_id: "",
         order_id: "",
@@ -185,7 +185,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         const data = {
             ...returnOrderData,
             note: returnOrderData.note?.trim() || "Không có ghi chú",
-            return_details: selectedProducts
+            return_details: orderEligibility?.products
                 .filter(item => item.quantity_return > 0)
                 .map(item => ({
                     product_id: item.product_id,
@@ -299,7 +299,8 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
     );
 
     const calculateTotalAmount = () => {
-        return selectedProducts.reduce((sum, item) => {
+        const sourceData = mode === "return" ? orderEligibility?.products ?? [] : selectedProducts;
+        return sourceData.reduce((sum, item) => {
             const quantity = mode === "return" ? item.quantity_return ?? 0 : item.quantity ?? 0;
             return sum + (item.product_return_price !== undefined ? item.product_return_price : item.product_retail_price) * quantity;
         }, 0);
@@ -366,11 +367,13 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
     };
     const updateQuantityReturn = (productId, quantity_return) => {
         if (quantity_return >= 0) {
-                setOrderEligibility(
-                orderEligibility.map((item) =>
+            setOrderEligibility((prev) => ({
+                ...prev,
+                products: prev.products.map((item) =>
                     item.product_id === productId ? { ...item, quantity_return } : item
-                )
-            );
+                ),
+            }));
+
         }
     };
 

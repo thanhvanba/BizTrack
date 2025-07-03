@@ -108,10 +108,11 @@ const orderService = {
     }).then(res => res.data).catch(error => { throw error; });
   },
 
-  getReturns: async () => {
+  getReturns: async (params) => {
     return axios({
       url: `${CUSTOMER_RETURN_URL}`,
       method: "GET",
+      params,
     }).then(res => res.data).catch(error => { throw error; });
   },
 

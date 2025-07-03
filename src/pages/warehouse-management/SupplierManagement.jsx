@@ -28,7 +28,7 @@ const SupplierManagement = () => {
     setLoading(true);
     try {
       const res = await supplierService.getAllSuppliers({ page, limit })
-      setSuppliers(res.data.map(c => ({ ...c, key: c.supplier_id })))
+      setSuppliers(res.data)
       if (res.pagination) {
         setPagination({
           current: res.pagination.currentPage,
@@ -197,6 +197,7 @@ const SupplierManagement = () => {
           loading={loading}
           columns={columns}
           dataSource={suppliers}
+          rowKey='supplier_id'
           pagination={{
             current: pagination.current,
             pageSize: pagination.pageSize,
