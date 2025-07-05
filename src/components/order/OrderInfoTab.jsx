@@ -28,6 +28,7 @@ const { Text, Title } = Typography;
 const { TextArea } = Input;
 
 export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record }) {
+  console.log("🚀 ~ OrderInfoTab ~ orderData:", orderData)
   const location = useLocation();
   const navigate = useNavigate()
   const {
@@ -38,6 +39,8 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
     order_amount,
     total_amount,
     final_amount,
+    remaining_value,
+    total_refund,
     amount_paid,
     shipping_fee,
     payment_method,
@@ -170,13 +173,13 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
                   <Table.Summary.Cell index={0} colSpan={4} align="">
                     Giảm giá hóa đơn + Tổng giảm giá sản phẩm
                   </Table.Summary.Cell>
-                  <Table.Summary.Cell index={6} align="right">{`${formatPrice(order_amount)} + ${formatPrice(totalProductDiscount)}`}</Table.Summary.Cell>
+                  <Table.Summary.Cell index={6} className="text-green-600" align="right">{`${formatPrice(order_amount)} + ${formatPrice(totalProductDiscount)}`}</Table.Summary.Cell>
                 </Table.Summary.Row>
                 <Table.Summary.Row>
                   <Table.Summary.Cell index={0} colSpan={4} align="">
                     Phí vận chuyển
                   </Table.Summary.Cell>
-                  <Table.Summary.Cell index={6} align="right">{formatPrice(shipping_fee)}</Table.Summary.Cell>
+                  <Table.Summary.Cell index={6} className="text-red-600" align="right">{formatPrice(shipping_fee)}</Table.Summary.Cell>
                 </Table.Summary.Row>
               </>
             )}
@@ -204,13 +207,13 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
               <Row className="mb-2">
                 <Col span={18}>{location.pathname.includes('return-order') ? 'Đã trả khách' : 'Khách đã trả'}</Col>
                 <Col span={6} className="text-right">
-                  {formatPrice(amount_paid || record?.total_refund)}
+                  {formatPrice((amount_paid + total_refund) || record?.total_refund)}
                 </Col>
               </Row>
               <Row className="text-red-500">
                 <Col span={18}>{location.pathname.includes('return-order') ? 'Cần trả khách' : 'Khách cần trả'}</Col>
                 <Col span={6} className="text-right">
-                  {formatPrice(final_amount - amount_paid)}
+                  {formatPrice((final_amount) - (amount_paid + total_refund))}
                 </Col>
               </Row>
             </div>
@@ -249,7 +252,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
               >
                 Chỉnh sửa
               </Button>
-              <Button
+              {order_status === "Hoàn tất" && <Button
                 icon={<RollbackOutlined />}
                 color="danger"
                 variant="outlined"
@@ -258,6 +261,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
               >
                 Trả hàng
               </Button>
+              }
               <Button icon={<PrinterOutlined />}>In</Button>
             </Col>
           </Row>

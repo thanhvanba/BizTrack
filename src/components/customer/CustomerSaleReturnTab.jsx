@@ -26,6 +26,7 @@ const columns = [
           color = "blue";
           break;
         case "Đang đóng hàng":
+        case "Đang xử lý":
           color = "orange";
           break;
         case "Xác nhận":
@@ -35,6 +36,7 @@ const columns = [
           color = "gray";
           break;
         case "Huỷ đơn":
+        case "Không thành công":
         case "Huỷ điều chỉnh":
           color = "red";
           break;

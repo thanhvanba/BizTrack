@@ -155,17 +155,25 @@ const CustomerManagement = () => {
       key: "phone",
       responsive: ["md"]
     },
-    {
-      title: "Tổng đơn hàng",
-      dataIndex: "total_orders",
-      key: "total_orders",
-      align: "center",
-      responsive: ["lg"]
-    },
+    // {
+    //   title: "Tổng đơn hàng",
+    //   dataIndex: "total_orders",
+    //   key: "total_orders",
+    //   align: "center",
+    //   responsive: ["lg"]
+    // },
     {
       title: "Tổng chi tiêu",
       dataIndex: "total_expenditure",
       key: "total_expenditure",
+      render: (value) =>
+        new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value),
+      align: "right",
+      responsive: ["lg"]
+    }, {
+      title: "Tổng công nợ",
+      dataIndex: "debt",
+      key: "debt",
       render: (value) =>
         new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value),
       align: "right",

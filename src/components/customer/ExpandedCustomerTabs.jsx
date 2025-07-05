@@ -8,42 +8,52 @@ import customerService from "../../service/customerService";
 
 const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setSelectedCustomer, record }) => {
     const [loading, setLoading] = useState(true);
-    const [returnOrder, setReturnOrder] = useState({});
-    const [dataSource, setDataSource] = useState([]);      
+    const [dataSource, setDataSource] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
 
-                const [orderHistoryRes, returnOrderRes] = await Promise.all([
-                    customerService.getCustomerOrderHistory(record?.customer_id),
-                    orderService.getReturns({ customer_id: record?.customer_id }),
-                ]);
+                const orderHistoryRes = await customerService.getCustomerOrderHistory(record?.customer_id);
 
                 const orderData = orderHistoryRes.data?.map(order => ({
                     code: order.order_code,
                     date: new Date(order.created_at).toLocaleString("vi-VN"),
                     performer: order.customer_name || "Không rõ",
-                    total: parseFloat(order.final_amount),
-                    status: order.order_status,
-                    type: "order",
+                    total: order.type === 'return'
+                        ? -parseFloat(order.final_amount)
+                        : parseFloat(order.final_amount),
+                    status:
+                        order.type === 'return'
+                            ? order.order_status === 'completed'
+                                ? 'Đã trả'
+                                : order.order_status === 'pending'
+                                    ? 'Đang xử lý'
+                                    : 'Không thành công'
+                            : order.order_status,
+                    type: order.type,
                 }));
+                console.log("🚀 ~ fetchData ~ orderData:", orderData)
 
-                const returnData = returnOrderRes.data?.map(ret => ({
-                    code: "TH-" + ret.return_id.slice(0, 8),
-                    date: new Date(ret.created_at).toLocaleString("vi-VN"),
-                    performer: ret.customer_name || "Không rõ",
-                    total: -parseFloat(ret.total_refund),
-                    status: "Đã trả",
-                    type: "return",
-                }));
+                // const returnData = returnOrderRes.data?.map(ret => ({
+                //     code: "TH" + ret.return_id.slice(0, 8),
+                //     date: new Date(ret.created_at).toLocaleString("vi-VN"),
+                //     performer: ret.customer_name || "Không rõ",
+                //     total: -parseFloat(ret.total_refund),
+                //     status: ret.status === 'completed'
+                //         ? 'Đã trả'
+                //         : ret.status === 'pending'
+                //             ? 'Đang xử lý'
+                //             : 'Không thành công'
+                // }));
 
-                const mergedData = [...(orderData || []), ...(returnData || [])].sort(
-                    (a, b) => new Date(b.date) - new Date(a.date)
-                );
+                // const mergedData = [...(orderData || []), ...(returnData || [])].sort(
+                //     (a, b) => new Date(b.date) - new Date(a.date)
+                // );
 
-                setDataSource(mergedData);
+                // setDataSource(mergedData);
+                setDataSource(orderData);
             } catch (error) {
                 console.error("Lỗi khi tải dữ liệu:", error);
                 useToastNotify("Không thể tải dữ liệu khách hàng.", "error");

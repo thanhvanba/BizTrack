@@ -15,12 +15,14 @@ import {
     Tag,
     Spin,
     Alert,
+    Tooltip,
 } from "antd";
 import {
     PlusOutlined,
     DeleteOutlined,
     SearchOutlined,
     SaveOutlined,
+    InfoCircleOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import CustomerModal from "../../components/modals/CustomerModal";
@@ -45,10 +47,14 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
     const [order, setOrder] = useState(null);
     const [orderEligibility, setOrderEligibility] = useState(null);
     console.log("🚀 ~ OrderFormData ~ orderEligibility:", orderEligibility)
+
+    const [form] = Form.useForm();
     const [returnOrderData, setReturnOrderData] = useState({
         customer_id: "",
         order_id: "",
         type: "customer_return",
+        shipping_fee: "",
+        order_amount: "",
         note: "Không có ghi chú",
         return_details: []
     });
@@ -65,10 +71,11 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
     const [createModalVisible, setCreateModalVisible] = useState(false);
     const [discountTypes, setDiscountTypes] = useState({});
 
-    const [form] = Form.useForm();
     const [selectedProducts, setSelectedProducts] = useState(selectedProductsProps || []);
+    console.log("🚀 ~ OrderFormData ~ selectedProducts:", selectedProducts)
     const [shippingFee, setShippingFee] = useState(0);
     const [orderDiscount, setOrderDiscount] = useState(0);
+    console.log("🚀 ~ OrderFormData ~ orderDiscount:", orderDiscount)
     const [transferAmount, setTransferAmount] = useState(0);
 
     const formatCurrency = (value) =>
@@ -126,7 +133,6 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
     const fetchOrderDetails = async () => {
         try {
             setLoading(true);
-            // const orderRes = await orderService.getOrderById(orderId);
 
             const resOrderEligibility = await orderService.checkOrderEligibility(orderId)
 
@@ -147,10 +153,12 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                 }));
 
                 {
-                    mode === 'return' & setReturnOrderData({
+                    mode === 'return' && setReturnOrderData({
+                        ...returnOrderData,
                         customer_id: orderRes.customer.customer_id,
                         order_id: orderId,
                         type: "customer_return",
+                        order_amount: Number(form?.getFieldValue("order_amount")) || 0,
                     })
                 }
                 setSelectedProducts(formattedProducts);
@@ -190,6 +198,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                 .map(item => ({
                     product_id: item.product_id,
                     quantity: item.quantity_return,
+                    discount: item.discount,
                     refund_amount:
                         (item.product_return_price ?? item.product_retail_price)
                 }))
@@ -307,20 +316,21 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
     };
 
     const calculateDiscountAmount = () => {
-        const discountProduct = selectedProducts.reduce(
+        const sourceData = mode === "return" ? orderEligibility?.products ?? [] : selectedProducts;
+        const discountProduct = sourceData.reduce(
             (sum, item) => sum + (item?.discountAmount || item?.discount || 0),
             0
         );
-        return discountProduct + parseFloat(orderDiscount);
+        return discountProduct + parseFloat(mode === "return" ? returnOrderData.order_amount : orderDiscount);
     };
+
     const calculateFinalAmount = () => {
         return (
             Number(calculateTotalAmount()) -
             Number(calculateDiscountAmount()) +
-            Number(shippingFee)
+            Number(mode === "return" ? returnOrderData.shipping_fee : shippingFee)
         );
     };
-
     const addProduct = (inventory) => {
         const product = inventory?.product;
         const productId = product?.product_id;
@@ -402,27 +412,49 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
 
 
     const updateDiscount = (productId, discount, type) => {
-        setSelectedProducts((prev) =>
-            prev.map((item) => {
-                if (item.product_id !== productId) return item;
+        mode === 'return'
+            ? setOrderEligibility((prev) => ({
+                ...prev,
+                products: prev.products.map((item) => {
+                    if (item.product_id !== productId) return item;
 
-                const discountType = type || discountTypes[productId] || "đ";
-                const price = item.product_retail_price || 0;
-                const quantity = item.quantity || 1;
+                    const discountType = type || discountTypes[productId] || "đ";
+                    const price = item.product_retail_price || 0;
+                    const quantity = item.quantity || 1;
 
-                let discountAmount = 0;
-                if (discountType === "%") {
-                    discountAmount = Math.round((discount / 100) * (price * quantity));
-                } else {
-                    discountAmount = discount;
-                }
-                return {
-                    ...item,
-                    discount,
-                    discountAmount,
-                };
-            })
-        );
+                    let discountAmount = 0;
+                    if (discountType === "%") {
+                        discountAmount = Math.round((discount / 100) * (price * quantity));
+                    } else {
+                        discountAmount = discount;
+                    }
+                    return {
+                        ...item,
+                        discount,
+                        discountAmount,
+                    };
+                })
+            })) : setSelectedProducts((prev) =>
+                prev.map((item) => {
+                    if (item.product_id !== productId) return item;
+
+                    const discountType = type || discountTypes[productId] || "đ";
+                    const price = item.product_retail_price || 0;
+                    const quantity = item.quantity || 1;
+
+                    let discountAmount = 0;
+                    if (discountType === "%") {
+                        discountAmount = Math.round((discount / 100) * (price * quantity));
+                    } else {
+                        discountAmount = discount;
+                    }
+                    return {
+                        ...item,
+                        discount,
+                        discountAmount,
+                    };
+                })
+            );
 
         if (type) {
             setDiscountTypes((prev) => ({
@@ -500,34 +532,13 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
             dataIndex: "product_id",
             key: "product_id",
             width: 200,
+            render: (val) => val.slice(0, 8)
         },
         {
             title: "Sản phẩm",
             dataIndex: "product_name",
             key: "product_name",
             width: 140,
-        },
-        {
-            title: "Giá bán",
-            dataIndex: "product_retail_price",
-            key: "product_retail_price",
-            align: "right",
-            render: (_, record) => (
-                <InputNumber
-                    min={0}
-                    value={record.product_retail_price}
-                    addonAfter="₫"
-                    disabled={mode === 'return'}
-                    onChange={(value) => {
-                        updatePrice(record.product_id, value);
-                        discountTypes[record.product_id] === "%" &&
-                            updateDiscount(record.product_id, record.discount, discountTypes[record.product_id]);
-                    }}
-                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                    parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                    className="w-32"
-                />
-            ),
         },
 
         // 👇 Cột "Giá trả" sẽ chỉ được thêm nếu mode === "return"
@@ -539,16 +550,21 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                     key: "product_return_price",
                     align: "right",
                     render: (_, record) => (
-                        <InputNumber
-                            min={0}
-                            defaultValue={record.product_retail_price}
-                            value={record.product_return_price}
-                            addonAfter="₫"
-                            onChange={(value) => updatePriceReturn(record.product_id, value)}
-                            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                            parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                            className="w-32"
-                        />
+                        <div className="flex items-center gap-1">
+                            <InputNumber
+                                min={0}
+                                defaultValue={record.product_retail_price}
+                                value={record.product_return_price}
+                                addonAfter="₫"
+                                onChange={(value) => updatePriceReturn(record.product_id, value)}
+                                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                                className="w-32"
+                            />
+                            <Tooltip title={`Giá bán gốc: ${record.product_retail_price?.toLocaleString()} ₫`}>
+                                <InfoCircleOutlined style={{ color: "#1890ff" }} />
+                            </Tooltip>
+                        </div>
                     ),
                 },
 
@@ -576,6 +592,28 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
             ]
             : [
                 {
+                    title: "Giá bán",
+                    dataIndex: "product_retail_price",
+                    key: "product_retail_price",
+                    align: "right",
+                    render: (_, record) => (
+                        <InputNumber
+                            min={0}
+                            value={record.product_retail_price}
+                            addonAfter="₫"
+                            disabled={mode === 'return'}
+                            onChange={(value) => {
+                                updatePrice(record.product_id, value);
+                                discountTypes[record.product_id] === "%" &&
+                                    updateDiscount(record.product_id, record.discount, discountTypes[record.product_id]);
+                            }}
+                            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                            parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                            className="w-32"
+                        />
+                    ),
+                },
+                {
                     title: "Số lượng",
                     dataIndex: "quantity",
                     key: "quantity",
@@ -592,44 +630,44 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                         </div>
                     ),
                 },
-
-                {
-                    title: "Giảm giá",
-                    dataIndex: "discount",
-                    key: "discount",
-                    align: "right",
-                    render: (_, record) => {
-                        const discountType = discountTypes[record.product_id] || "đ";
-
-                        return (
-                            <div className="flex items-center gap-2">
-                                <InputNumber
-                                    min={0}
-                                    max={discountType === "%" ? 100 : record.product_retail_price}
-                                    value={record.discount}
-                                    onChange={(value) =>
-                                        updateDiscount(record.product_id, value, discountType)
-                                    }
-                                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                                    parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                                    className="w-24"
-                                />
-                                <Select
-                                    value={discountType}
-                                    onChange={(newType) =>
-                                        updateDiscount(record.product_id, record.discount, newType)
-                                    }
-                                    style={{ width: 60 }}
-                                    options={[
-                                        { label: "%", value: "%" },
-                                        { label: "đ", value: "đ" },
-                                    ]}
-                                />
-                            </div>
-                        );
-                    },
-                },
             ]),
+
+        {
+            title: "Giảm giá",
+            dataIndex: "discount",
+            key: "discount",
+            align: "right",
+            render: (_, record) => {
+                const discountType = discountTypes[record.product_id] || "đ";
+
+                return (
+                    <div className="flex items-center gap-2">
+                        <InputNumber
+                            min={0}
+                            max={discountType === "%" ? 100 : record.product_retail_price}
+                            value={record.discount}
+                            onChange={(value) =>
+                                updateDiscount(record.product_id, value, discountType)
+                            }
+                            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                            parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                            className="w-24"
+                        />
+                        <Select
+                            value={discountType}
+                            onChange={(newType) =>
+                                updateDiscount(record.product_id, record.discount, newType)
+                            }
+                            style={{ width: 60 }}
+                            options={[
+                                { label: "%", value: "%" },
+                                { label: "đ", value: "đ" },
+                            ]}
+                        />
+                    </div>
+                );
+            },
+        },
 
         {
             title: "Thành tiền",
@@ -640,11 +678,11 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                 const quantity = mode === "return" ? record.quantity_return ?? 0 : record.quantity ?? 0;
                 console.log("🚀 ~ OrderFormData ~ record:", record)
                 return formatCurrency(
-                    (record.product_return_price !== undefined ? record.product_return_price : record.product_retail_price) * (quantity || 0) - (record.discountAmount || 0)
+                    (record.product_return_price !== undefined ? record.product_return_price : record.product_retail_price) * (quantity || 0) - (record.discountAmount || record.discount)
                 );
             },
         },
-        {
+        mode !== "return" && {
             title: "",
             key: "action",
             align: "center",
@@ -657,7 +695,7 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                 />
             ),
         },
-    ];
+    ].filter(Boolean);;
 
     if (loading) {
         return <div className="flex justify-center mt-10"><Spin size="large" /></div>;
@@ -774,19 +812,72 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                         )}
 
                         {mode === 'return' &&
-                            <TextArea
-                                className="!mt-3"
-                                placeholder="Ghi chú"
-                                variant="outlined"
-                                rows={2}
-                                value={returnOrderData.note} // binding value để TextArea phản ánh đúng state
-                                onChange={(e) =>
-                                    setReturnOrderData((prev) => ({
-                                        ...prev,
-                                        note: e.target.value,
-                                    }))
-                                }
-                            />
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                                    {/* Phí vận chuyển */}
+                                    <div className="flex flex-col gap-1">
+                                        <label className="font-medium flex items-center gap-1">
+                                            Phí vận chuyển
+                                        </label>
+                                        <InputNumber
+                                            variant="outlined"
+                                            placeholder="Nhập phí vận chuyển"
+                                            addonAfter="₫"
+                                            className="w-full"
+                                            value={returnOrderData.shipping_fee}
+                                            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                            parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                                            onChange={(value) =>
+                                                setReturnOrderData((prev) => ({
+                                                    ...prev,
+                                                    shipping_fee: Number(value) || 0,
+                                                }))
+                                            }
+                                        />
+                                    </div>
+
+                                    {/* Giảm giá đơn hàng */}
+                                    <div className="flex flex-col gap-1">
+                                        <label className="font-medium flex items-center gap-1">
+                                            Giảm giá trả hàng
+                                            {form?.getFieldValue("order_amount") != null && (
+                                                <Tooltip title={`Giảm giá đơn hàng: ${form?.getFieldValue("shipping_fee").toLocaleString()} ₫`}>
+                                                    <InfoCircleOutlined style={{ color: "#1890ff" }} />
+                                                </Tooltip>
+                                            )}
+                                        </label>
+                                        <InputNumber
+                                            variant="outlined"
+                                            placeholder="Giảm giá trả hàng"
+                                            addonAfter="₫"
+                                            className="w-full"
+                                            value={returnOrderData.order_amount}
+                                            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                            parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                                            onChange={(value) =>
+                                                setReturnOrderData((prev) => ({
+                                                    ...prev,
+                                                    order_amount: Number(value) || 0,
+                                                }))
+                                            }
+                                        />
+                                    </div>
+                                </div>
+
+                                <TextArea
+                                    className="!mt-3"
+                                    placeholder="Ghi chú"
+                                    variant="outlined"
+                                    rows={2}
+                                    value={returnOrderData.note} // binding value để TextArea phản ánh đúng state
+                                    onChange={(e) =>
+                                        setReturnOrderData((prev) => ({
+                                            ...prev,
+                                            note: e.target.value,
+                                        }))
+                                    }
+                                />
+                            </>
                         }
                     </div>
 
@@ -1046,11 +1137,14 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                             Cần thanh toán: {formatCurrency(calculateFinalAmount())}
                         </Text>
                     </div>
-                    <div>
-                        <Text style={{ color: "red" }}>
-                            COD: {formatCurrency(calculateFinalAmount() - transferAmount)}
-                        </Text>
-                    </div>
+
+                    {mode !== "return" &&
+                        <div>
+                            <Text style={{ color: "red" }}>
+                                COD: {formatCurrency(calculateFinalAmount() - transferAmount)}
+                            </Text>
+                        </div>
+                    }
                 </div>
                 {mode !== "return" ?
                     <>

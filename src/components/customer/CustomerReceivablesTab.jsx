@@ -11,6 +11,8 @@ const statusMap = {
     payment: 'Thanh toán',
     completed: 'Hoàn tất',
     cancelled: 'Hủy bỏ',
+    return: 'Trả hàng',
+    receipt: 'Thanh toán đơn hàng'
 };
 
 const columns = [
@@ -28,7 +30,7 @@ const columns = [
     {
         title: "Giá trị", dataIndex: "gia_tri", key: "gia_tri", align: "right",
         render: (val, record) => {
-            const isNegative = ["payment", "partial_paid"].includes(record.loai);
+            const isNegative = ["payment", "partial_paid", "return", "receipt"].includes(record.loai);
             return `${isNegative ? "-" : ""}${formatPrice(val)}`;
         },
     },
@@ -36,11 +38,6 @@ const columns = [
         title: "Dư nợ", dataIndex: "du_no", key: "du_no", align: "right",
         render: (val) => `${formatPrice(val)}`
     },
-];
-
-const data = [
-    { key: "1", transaction_code: "GT001", transaction_date: "04/06/2025", transaction_type: "Thanh toán", amount: 500000, balance: 0 },
-    { key: "2", transaction_code: "GT002", transaction_date: "05/06/2025", transaction_type: "Hoàn tiền", amount: 750000, balance: 250000 },
 ];
 
 const CustomerReceivablesTab = ({ customerData }) => {
@@ -55,12 +52,16 @@ const CustomerReceivablesTab = ({ customerData }) => {
         fetchCustomerTransactions()
         setIsPaymentModalOpen(false);
     };
+
+    // Danh sách các đơn hàng chưa thanh toán
     const fetchCustomerReceivables = async () => {
         const res = await customerService.getCustomerReceivables(customerData?.customer_id)
         if (res && res.data) {
             setCustomerReceivables(res.data)
         }
     }
+
+    // Danh sách các giao dịch liên quan đến khách hàng
     const fetchCustomerTransactions = async () => {
         const res = await customerService.getCustomerTransactionLedger(customerData?.customer_id)
         if (res && res.data) {

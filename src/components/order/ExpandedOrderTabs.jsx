@@ -20,8 +20,12 @@ const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
         const fetchOrderDetails = async () => {
             try {
                 const response = location.pathname.includes('return-order') ? await orderService.getReturnById(record?.return_id) : await orderDetailService.getOrderDetailById(record?.order_id)
-
-                setOrderInfo(response);
+                const res = await orderDetailService.getOrderDetailSummaryById(record?.order_id)
+                setOrderInfo({
+                    ...response,
+                    remaining_value: res?.data?.remaining_value,
+                    total_refund: res?.data?.total_refund
+                });
             } catch (error) {
                 console.error("Lỗi khi tải chi tiết đơn hàng:", error);
                 useToastNotify("Không thể tải danh sách sản phẩm.", "error");
