@@ -19,12 +19,22 @@ const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
     useEffect(() => {
         const fetchOrderDetails = async () => {
             try {
-                const response = location.pathname.includes('return-order') ? await orderService.getReturnById(record?.return_id) : await orderDetailService.getOrderDetailById(record?.order_id)
-                const res = await orderDetailService.getOrderDetailSummaryById(record?.order_id)
+                let response;
+                let res;
+
+                if (location.pathname.includes('return-order')) {
+                    response = await orderService.getReturnById(record?.return_id);
+                } else {
+                    response = await orderDetailService.getOrderDetailById(record?.order_id);
+                    res = await orderDetailService.getOrderDetailSummaryById(record?.order_id);
+                }
+
                 setOrderInfo({
                     ...response,
-                    remaining_value: res?.data?.remaining_value,
-                    total_refund: res?.data?.total_refund
+                    ...(res?.data && {
+                        remaining_value: res.data.remaining_value,
+                        total_refund: res.data.total_refund
+                    })
                 });
             } catch (error) {
                 console.error("Lỗi khi tải chi tiết đơn hàng:", error);

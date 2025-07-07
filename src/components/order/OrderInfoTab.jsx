@@ -8,6 +8,7 @@ import {
   Tag,
   Input,
   Divider,
+  Tooltip,
 } from "antd";
 
 import {
@@ -116,24 +117,25 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
                   {location.pathname.includes('return-order') && data?.order_code && (
                     <> (Mã HĐ: {data.order_code})</>
                   )}</Text>
-                {order_status ? (
-                  <Tag color="green">{order_status}</Tag>
-                ) : (
-                  <Tag color={
-                    data?.status === 'completed'
-                      ? 'green'
-                      : data?.status === 'pending'
-                        ? 'orange'
-                        : 'red'
-                  }>
-                    {data?.status === 'completed'
-                      ? 'Đã trả'
-                      : data?.status === 'pending'
-                        ? 'Đang xử lý'
-                        : 'Không thành công'}
-                  </Tag>
-                )}
+                {order_status
+                  ? (<Tag color="green">{order_status}</Tag>)
+                  : (
+                    <Tag color={
+                      data?.status === 'completed'
+                        ? 'green'
+                        : data?.status === 'pending'
+                          ? 'orange'
+                          : 'red'
+                    }>
+                      {data?.status === 'completed'
+                        ? 'Đã trả'
+                        : data?.status === 'pending'
+                          ? 'Đang xử lý'
+                          : 'Không thành công'}
+                    </Tag>
+                  )}
 
+                {!location.pathname.includes('return-order') && <Text type="danger">(Công nợ đơn hàng: {formatPrice((final_amount) - (amount_paid + total_refund))})</Text>}
               </Title>
             </Col>
             <Col>
@@ -207,13 +209,13 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
               <Row className="mb-2">
                 <Col span={18}>{location.pathname.includes('return-order') ? 'Đã trả khách' : 'Khách đã trả'}</Col>
                 <Col span={6} className="text-right">
-                  {formatPrice((amount_paid + total_refund) || record?.total_refund)}
+                  {formatPrice((amount_paid) || record?.total_refund)}
                 </Col>
               </Row>
               <Row className="text-red-500">
                 <Col span={18}>{location.pathname.includes('return-order') ? 'Cần trả khách' : 'Khách cần trả'}</Col>
                 <Col span={6} className="text-right">
-                  {formatPrice((final_amount) - (amount_paid + total_refund))}
+                  {formatPrice((final_amount) - (amount_paid))}
                 </Col>
               </Row>
             </div>
@@ -252,16 +254,30 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
               >
                 Chỉnh sửa
               </Button>
-              {order_status === "Hoàn tất" && <Button
-                icon={<RollbackOutlined />}
-                color="danger"
-                variant="outlined"
-                style={{ marginRight: 8 }}
-                onClick={() => navigate(`/return-order/${order_id}`)}
-              >
-                Trả hàng
-              </Button>
-              }
+
+              {order_status === "Hoàn tất" && (
+                <Tooltip
+                  title={
+                    (final_amount - (amount_paid + total_refund)) <= 0
+                      ? "Không có mặt hàng để hoàn trả đối với hóa đơn này"
+                      : ""
+                  }
+                >
+                  <span>
+                    <Button
+                      icon={<RollbackOutlined />}
+                      danger
+                      type="default"
+                      style={{ marginRight: 8 }}
+                      disabled={(final_amount - (amount_paid + total_refund)) <= 0}
+                      onClick={() => navigate(`/return-order/${order_id}`)}
+                    >
+                      Trả hàng
+                    </Button>
+                  </span>
+                </Tooltip>
+              )}
+
               <Button icon={<PrinterOutlined />}>In</Button>
             </Col>
           </Row>

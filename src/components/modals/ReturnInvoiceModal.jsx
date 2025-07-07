@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import useToastNotify from "../../utils/useToastNotify";
 import orderService from "../../service/orderService";
 import formatPrice from "../../utils/formatPrice";
+import invoiceService from "../../service/invoiceService";
 
 const { RangePicker } = DatePicker;
 
@@ -20,29 +21,29 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
     total: 0,
   });
 
-  const fetchOrders = async ({ page = pagination.current, limit = pagination.pageSize, params = {} } = {}) => {
+  const fetchUnpaidInvoices = async ({ page = pagination.current, limit = pagination.pageSize, params = {} } = {}) => {
     setLoading(true);
     try {
-      const response = await orderService.getAllOrder({
-        page,
-        limit,
-        ...params,
+      const response = await invoiceService.getUnpaidInvoices({
+        // page,
+        // limit,
+        // ...params,
       });
 
       setOrdersData(
-        response.data.map((order) => ({
+        response.map((order) => ({
           ...order,
           key: order.order_id,
         }))
       );
 
-      if (response.pagination) {
-        setPagination({
-          current: response.pagination.page,
-          pageSize: response.pagination.limit,
-          total: response.pagination.total,
-        });
-      }
+      // if (response.pagination) {
+      //   setPagination({
+      //     current: response.pagination.page,
+      //     pageSize: response.pagination.limit,
+      //     total: response.pagination.total,
+      //   });
+      // }
     } catch (error) {
       useToastNotify("Không thể tải danh sách đơn hàng.", "error");
     } finally {
@@ -53,21 +54,21 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
   const handleTableChange = (newPagination) => {
     const params = {};
     params.order_status = 4;
-    fetchOrders({
+    fetchUnpaidInvoices({
       page: newPagination.current,
       limit: newPagination.pageSize,
       params,
     });
   };
   useEffect(() => {
-    fetchOrders({ params: { order_status: 4 } });
+    fetchUnpaidInvoices({ params: { order_status: 4 } });
   }, [])
 
   const columns = [
     {
       title: "Mã hóa đơn",
-      dataIndex: "order_code",
-      key: "order_code",
+      dataIndex: "invoice_code",
+      key: "invoice_code",
       render: (text) => (
         <span className="text-blue-600 cursor-pointer hover:underline">{text}</span>
       ),
