@@ -19,10 +19,11 @@ const invoiceService = {
     },
 
     // Lấy danh sách hóa đơn chưa thanh toán
-    getUnpaidInvoices: async () => {
+    getUnpaidInvoices: async (params) => {
         return axios({
             url: `${INVOICES_URL}/unpaid`,
             method: "GET",
+            params,
         }).then(res => res.data).catch(error => { throw error; });
     },
 

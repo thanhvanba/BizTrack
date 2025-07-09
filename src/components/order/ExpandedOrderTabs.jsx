@@ -13,6 +13,7 @@ const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
     const location = useLocation();
     const [orderInfo, setOrderInfo] = useState({});
     const [returnOrder, setReturnOrder] = useState({});
+    const [orderTransaction, setOrderTransaction] = useState({});
     const [loading, setLoading] = useState(true);
     console.log("🚀 ~ ExpandedOrderTabs ~ orderInfo:", orderInfo)
 
@@ -53,9 +54,21 @@ const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
                 useToastNotify("Không thể tải danh sách sản phẩm.", "error");
             }
         }
+        const fetchOrderTransactionLedger = async () => {
+            try {
+                const response = await orderService.getOrderTransactionLedger(record?.order_id)
+                console.log("🚀 ~ fetchOrderTransactionLedger ~ response:", response)
+                setOrderTransaction(response?.data);
+            } catch (error) {
+                console.error("Lỗi khi tải danh sách thanh toán:", error);
+                useToastNotify("Không thể tải danh sách thanh toán.", "error");
+            }
+        }
         fetchOrderDetails()
-        !location.pathname.includes('return-order') &&
-            fetchReturnOrderByOrderId()
+        if (!location.pathname.includes('return-order')) {
+            fetchReturnOrderByOrderId();
+            fetchOrderTransactionLedger();
+        }
     }, [])
 
     const tabItems = location.pathname.includes('return-order')
@@ -75,7 +88,7 @@ const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
             {
                 key: "payment_history",
                 label: "Lịch sử thanh toán",
-                children: <PaymentHistory />,
+                children: <PaymentHistory orderTransaction={orderTransaction} />,
             },
             {
                 key: "sale_return",

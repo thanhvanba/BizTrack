@@ -100,6 +100,14 @@ const orderService = {
       });
   },
 
+  getOrderTransactionLedger: async (orderId) => {
+    return axios({
+      url: `${ORDERS_URL}/${orderId}/transaction-ledger`,
+      method: "GET",
+    }).then(res => res.data).catch(error => { throw error; });
+  },
+
+  // 
   createReturn: async (data) => {
     return axios({
       url: `${CUSTOMER_RETURN_URL}`,

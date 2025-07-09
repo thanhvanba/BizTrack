@@ -1,38 +1,55 @@
 import { Table, Tag } from 'antd';
 import dayjs from 'dayjs';
+import formatPrice from '../../utils/formatPrice';
+
+const statusMap = {
+  pending: 'Tạo đơn hàng',
+  partial_paid: 'Thanh toán một phần',
+  payment: 'Thanh toán',
+  completed: 'Hoàn tất',
+  cancelled: 'Hủy bỏ',
+  return: 'Trả hàng',
+  receipt: 'Thanh toán đơn hàng'
+};
 
 const columns = [
   {
-    title: 'TMã phiếu', 
-    dataIndex: 'transactionId',
-    key: 'transactionId',
+    title: 'Mã phiếu',
+    dataIndex: 'transaction_code',
+    key: 'transaction_code',
   },
   {
     title: 'Thời gian   ',
-    dataIndex: 'paymentDate',
-    key: 'paymentDate',
+    dataIndex: 'transaction_date',
+    key: 'transaction_date',
     render: (value) => dayjs(value).format('DD/MM/YYYY HH:mm'),
+  },
+  {
+    title: "Loại thanh toán",
+    dataIndex: "type",
+    key: "type",
+    render: (value) => statusMap[value] || value,
   },
   {
     title: 'Giá trị phiếu',
     dataIndex: 'amount',
     key: 'amount',
     align: 'right',
-    render: (value) => `${value.toLocaleString()} ₫`,
+    render: (val) => formatPrice(val)
   },
-  {
-    title: 'Phương thức',
-    dataIndex: 'method',
-    key: 'method',
-    align: 'left'
-  },
+  // {
+  //   title: 'Phương thức',
+  //   dataIndex: 'payment_method',
+  //   key: 'payment_method',
+  //   align: 'left'
+  // },
   {
     title: 'Trạng thái',
     dataIndex: 'status',
     key: 'status',
     render: (status) => {
-      const color = status === 'Success' ? 'green' : status === 'Pending' ? 'orange' : 'red';
-      return <Tag color={color}>{status === 'Success' ? 'Đã thanh toán' : status === 'Pending' ? 'Đang xử lý' : 'Không thành công'}</Tag>;
+      const color = status === 'completed' ? 'green' : status === 'Pending' ? 'orange' : 'red';
+      return <Tag color={color}>{status === 'completed' ? 'Đã thanh toán' : status === 'Pending' ? 'Đang xử lý' : 'Không thành công'}</Tag>;
     },
   },
   {
@@ -63,8 +80,8 @@ const data = [
   },
 ];
 
-export default function PaymentHistory() {
+export default function PaymentHistory({ orderTransaction }) {
   return (
-      <Table columns={columns} dataSource={data} pagination={{ pageSize: 5 }} />
+    <Table columns={columns} dataSource={orderTransaction} pagination={{ pageSize: 5 }} />
   );
 }

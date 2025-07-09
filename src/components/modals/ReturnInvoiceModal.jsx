@@ -21,31 +21,30 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
     total: 0,
   });
 
-  const fetchUnpaidInvoices = async ({ page = pagination.current, limit = pagination.pageSize, params = {} } = {}) => {
+  const fetchUnpaidInvoices = async ({ page = pagination.current, limit = pagination.pageSize } = {}) => {
     setLoading(true);
     try {
       const response = await invoiceService.getUnpaidInvoices({
-        // page,
-        // limit,
-        // ...params,
+        page,
+        limit,
       });
 
       setOrdersData(
-        response.map((order) => ({
+        response?.data.map((order) => ({
           ...order,
           key: order.order_id,
         }))
       );
 
-      // if (response.pagination) {
-      //   setPagination({
-      //     current: response.pagination.page,
-      //     pageSize: response.pagination.limit,
-      //     total: response.pagination.total,
-      //   });
-      // }
+      if (response.pagination) {
+        setPagination({
+          current: response.pagination.page,
+          pageSize: response.pagination.limit,
+          total: response.pagination.total,
+        });
+      }
     } catch (error) {
-      useToastNotify("Không thể tải danh sách đơn hàng.", "error");
+      useToastNotify("Không thể tải danh sách đơn hàng chưa thanh toán.", "error");
     } finally {
       setLoading(false);
     }
@@ -53,7 +52,6 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
 
   const handleTableChange = (newPagination) => {
     const params = {};
-    params.order_status = 4;
     fetchUnpaidInvoices({
       page: newPagination.current,
       limit: newPagination.pageSize,
@@ -61,7 +59,7 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
     });
   };
   useEffect(() => {
-    fetchUnpaidInvoices({ params: { order_status: 4 } });
+    fetchUnpaidInvoices();
   }, [])
 
   const columns = [
