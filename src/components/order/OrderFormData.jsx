@@ -35,6 +35,7 @@ import useToastNotify from "../../utils/useToastNotify";
 import ShippingAddressForm from "../../components/ShippingAddressForm";
 import orderDetailService from "../../service/orderDetailService";
 import dayjs from "dayjs";
+import calculateRefund from "../../utils/calculateRefund";
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -72,10 +73,8 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
     const [discountTypes, setDiscountTypes] = useState({});
 
     const [selectedProducts, setSelectedProducts] = useState(selectedProductsProps || []);
-    console.log("🚀 ~ OrderFormData ~ selectedProducts:", selectedProducts)
     const [shippingFee, setShippingFee] = useState(0);
     const [orderDiscount, setOrderDiscount] = useState(0);
-    console.log("🚀 ~ OrderFormData ~ orderDiscount:", orderDiscount)
     const [transferAmount, setTransferAmount] = useState(0);
 
     const formatCurrency = (value) =>
@@ -182,6 +181,8 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                 // Fetch products for the warehouse
                 fetchInventoryByWarehouseId(orderRes.warehouse_id);
             }
+            const orderReturn = await orderService.getReturns({ order_id: orderId })
+            console.log("🚀 ~ fetchOrderDetails ~ orderReturn:", orderReturn)
         } catch (error) {
             useToastNotify("Không thể tải thông tin đơn hàng", "error");
         } finally {
@@ -376,6 +377,17 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
         }
     };
     const updateQuantityReturn = (productId, quantity_return) => {
+        let productPriceMap = {};
+        let productDiscountMap = {};
+        for (const p of order?.products) {
+            productPriceMap[p.product_id] = p.price;
+            productDiscountMap[p.product_id] = p.discount || 0;
+        }
+
+
+        console.log("🚀 ~ updateQuantityReturn ~ orderEligibility:", orderEligibility?.products)
+        const s = calculateRefund(order, orderEligibility?.products, productPriceMap, productDiscountMap)
+        console.log("🚀 ~ updateQuantityReturn ~ s:", s)
         if (quantity_return >= 0) {
             setOrderEligibility((prev) => ({
                 ...prev,
@@ -580,7 +592,11 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
                                 max={record.quantity - record.returned_quantity}
                                 defaultValue={0}
                                 value={record.quantity_return}
-                                onChange={(value) => updateQuantityReturn(record.product_id, value)}
+                                onChange={(value) => {
+                                    updateQuantityReturn(record.product_id, value)
+
+                                }
+                                }
                                 className="w-14"
                             />
                             <div className="w-6 text-lg text-neutral-400">
@@ -676,7 +692,6 @@ const OrderFormData = ({ mode = 'create', order: orderProp, selectedProducts: se
             width: 140,
             render: (_, record) => {
                 const quantity = mode === "return" ? record.quantity_return ?? 0 : record.quantity ?? 0;
-                console.log("🚀 ~ OrderFormData ~ record:", record)
                 return formatCurrency(
                     (record.product_return_price !== undefined ? record.product_return_price : record.product_retail_price) * (quantity || 0) - (record.discountAmount || record.discount)
                 );

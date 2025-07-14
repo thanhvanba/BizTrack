@@ -54,6 +54,7 @@ const menuItems = [
       { key: 'inventory', label: 'Tồn kho' },
       { key: 'suppliers', label: 'Nhà cung cấp' },
       { key: 'purchase', label: 'Nhập hàng' },
+      { key: 'purchase-return', label: 'Trả hàng nhập' },
       // { key: 'transfer', label: 'Điều chỉnh kho' },
     ],
   },
@@ -85,7 +86,6 @@ const menuItems = [
 ];
 const { Sider } = Layout
 const Sidebar = ({ collapsed, setCollapsed, setActiveTab, activeTab }) => {
-  ;
   const [openKeys, setOpenKeys] = useState([]);
 
   const toggleCollapsed = () => {

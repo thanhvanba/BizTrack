@@ -54,9 +54,10 @@ const columns = [
 //   return <Table columns={columns} dataSource={data} pagination={false} size="middle" scroll={{ x: 800 }} />;
 // };
 
-const CustomerSaleReturnTab = ({ dataSource }) => {
+const CustomerSaleReturnTab = ({ dataSource, loading }) => {
   return (
     <Table
+      loading={loading}
       columns={columns}
       dataSource={dataSource}
       pagination={false} // Tùy chọn: bạn có thể bật phân trang nếu muốn

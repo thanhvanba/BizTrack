@@ -3,10 +3,9 @@ import { Tabs, Card } from "antd";
 import CustomerInfoTab from "./CustomerInfoTab";
 import CustomerSaleReturnTab from "./CustomerSaleReturnTab";
 import CustomerReceivablesTab from "./CustomerReceivablesTab";
-import orderService from "../../service/orderService";
 import customerService from "../../service/customerService";
 
-const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setSelectedCustomer, record }) => {
+const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setSelectedCustomer, record, fetchCustomers }) => {
     const [loading, setLoading] = useState(true);
     const [dataSource, setDataSource] = useState([]);
 
@@ -35,24 +34,6 @@ const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setS
                     type: order.type,
                 }));
                 console.log("🚀 ~ fetchData ~ orderData:", orderData)
-
-                // const returnData = returnOrderRes.data?.map(ret => ({
-                //     code: "TH" + ret.return_id.slice(0, 8),
-                //     date: new Date(ret.created_at).toLocaleString("vi-VN"),
-                //     performer: ret.customer_name || "Không rõ",
-                //     total: -parseFloat(ret.total_refund),
-                //     status: ret.status === 'completed'
-                //         ? 'Đã trả'
-                //         : ret.status === 'pending'
-                //             ? 'Đang xử lý'
-                //             : 'Không thành công'
-                // }));
-
-                // const mergedData = [...(orderData || []), ...(returnData || [])].sort(
-                //     (a, b) => new Date(b.date) - new Date(a.date)
-                // );
-
-                // setDataSource(mergedData);
                 setDataSource(orderData);
             } catch (error) {
                 console.error("Lỗi khi tải dữ liệu:", error);
@@ -74,12 +55,12 @@ const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setS
         {
             key: "sale_return",
             label: "Lịch sử bán/trả hàng",
-            children: <CustomerSaleReturnTab dataSource={dataSource} />,
+            children: <CustomerSaleReturnTab dataSource={dataSource} loading={loading} />,
         },
         {
             key: "debt",
             label: "Nợ cần thu từ khách",
-            children: <CustomerReceivablesTab customerData={record} />,
+            children: <CustomerReceivablesTab customerData={record} fetchCustomers={fetchCustomers} />,
         },
     ];
 

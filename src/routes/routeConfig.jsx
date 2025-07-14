@@ -29,6 +29,7 @@ export const privateRoutes = [
   { path: 'warehouses', element: <WarehouseManagement /> },
   { path: 'inventory', element: <InventoryManagement /> },
   { path: 'purchase', element: <PurchaseManagement /> },
+  { path: 'purchase-return', element: <PurchaseManagement /> },
   { path: 'transfer', element: <TransferManagement /> },
   { path: 'suppliers', element: <SupplierManagement /> },
 ];

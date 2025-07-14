@@ -30,6 +30,7 @@ const { Option } = Select;
 const InventoryManagement = () => {
   const [searchText, setSearchText] = useState("");
   const [inventories, setInventories] = useState([]);
+  const [loading, setLoading] = useState([]);
   console.log("🚀 ~ InventoryManagement ~ inventories:", inventories)
 
   const navigate = useNavigate()
@@ -39,6 +40,7 @@ const InventoryManagement = () => {
   console.log("🚀 ~ InventoryManagement ~ warehouses:", warehouses)
 
   const fetchInventories = async (warehouseId) => {
+    setLoading(true)
     try {
       const response = warehouseId
         ? await inventoryService.getInventoryByWarehouseId(warehouseId)
@@ -68,7 +70,10 @@ const InventoryManagement = () => {
       setInventories(enrichedData);
     } catch (error) {
       console.error("Lỗi khi tải danh sách tồn kho:", error);
+    } finally {
+      setLoading(false)
     }
+
   };
 
   const handleWarehouseChange = (warehouseId) => {
@@ -354,6 +359,7 @@ const InventoryManagement = () => {
           </div>
         )}
         <Table
+          loading={loading}
           columns={columns}
           dataSource={filteredData}
           pagination={{

@@ -40,8 +40,9 @@ const columns = [
     },
 ];
 
-const CustomerReceivablesTab = ({ customerData }) => {
+const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [customerReceivables, setCustomerReceivables] = useState()
     const [customerTransactions, setCustomerTransactions] = useState()
@@ -50,6 +51,7 @@ const CustomerReceivablesTab = ({ customerData }) => {
         await customerService.recordBulkPayment(invoiceData);
         fetchCustomerReceivables()
         fetchCustomerTransactions()
+        fetchCustomers()
         setIsPaymentModalOpen(false);
     };
 
@@ -63,10 +65,13 @@ const CustomerReceivablesTab = ({ customerData }) => {
 
     // Danh sách các giao dịch liên quan đến khách hàng
     const fetchCustomerTransactions = async () => {
+        setLoading(true)
         const res = await customerService.getCustomerTransactionLedger(customerData?.customer_id)
         if (res && res.data) {
             setCustomerTransactions(res.data)
         }
+
+        setLoading(false)
     }
     useEffect(() => {
         fetchCustomerReceivables()
@@ -74,7 +79,13 @@ const CustomerReceivablesTab = ({ customerData }) => {
     }, [])
     return (
         <div>
-            <Table columns={columns} dataSource={customerTransactions} pagination={false} size="small" />
+            <Table
+                loading={loading}
+                columns={columns}
+                dataSource={customerTransactions}
+                pagination={false}
+                size="small"
+            />
             <div className="flex justify-between mt-4">
                 <div className="flex gap-2">
                     <Button type="primary" icon={<span>📥</span>}>

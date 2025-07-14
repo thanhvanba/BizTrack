@@ -16,13 +16,18 @@ const ProductCategory = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [loading, setLoading] = useState(false)
+
 
   const fetchCategories = async () => {
+    setLoading(true)
     try {
       const data = await categoryService.getAllCategories()
       setCategories(data.data)
     } catch (error) {
       useToastNotify("Lỗi khi tải danh mục", "error")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -132,6 +137,7 @@ const ProductCategory = () => {
       </div>
 
       <Table
+        loading={loading}
         dataSource={categories}
         columns={columns}
         pagination={{ pageSize: 10 }}

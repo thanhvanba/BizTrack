@@ -4,17 +4,20 @@ import PurchaseOrderForm from "../../components/purchase/PurchaseOrderForm"
 import { useDispatch, useSelector } from "react-redux"
 import { fetchWarehouses } from "../../redux/warehouses/warehouses.slice"
 import purchaseOrderService from "../../service/purchaseService"
-import { useSearchParams } from "react-router-dom"
+import { useLocation, useSearchParams } from "react-router-dom"
 import useToastNotify from "../../utils/useToastNotify"
-import { Tabs } from "antd"
+import { Tabs, Typography } from "antd"
 const { TabPane } = Tabs;
+const { Title } = Typography
 export default function PurchaseManagement() {
+    const location = useLocation()
     const [searchParams, setSearchParams] = useSearchParams();
     const initialTab = searchParams.get("tab") || "list";
 
     const [activeTab, setActiveTab] = useState(initialTab)
     const [purchaseOrders, setPurchaseOrders] = useState([])
     const [selectedOrder, setSelectedOrder] = useState(null)
+    const [loading, setLoading] = useState(false)
 
     const dispatch = useDispatch()
     const mockWarehouses = useSelector(state => state.warehouse.warehouses.data)
@@ -84,6 +87,7 @@ export default function PurchaseManagement() {
     }
 
     const fetchPurchaseOrder = async () => {
+        setLoading(true)
         try {
             const res = await purchaseOrderService.getAllPurchaseOrders()
             if (res && res.data) {
@@ -93,6 +97,8 @@ export default function PurchaseManagement() {
             }
         } catch (error) {
             useToastNotify("Lỗi khi tải danh sách đơn nhập hàng", 'error')
+        } finally {
+            setLoading(false)
         }
     }
     useEffect(() => {
@@ -101,13 +107,19 @@ export default function PurchaseManagement() {
     }, [])
     return (
         <div className="max-w-7xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6">Quản lý kho</h1>
+            <Title
+                level={2}
+                className="text-xl md:text-2xl font-bold m-0 text-gray-800"
+            >
+                {location.pathname.includes('purchase-return') ? 'Quản lý trả hàng nhập' : 'Quản lý nhập hàng'}
+            </Title>
 
             <div className="bg-white p-4 rounded-lg shadow">
                 <Tabs activeKey={activeTab} onChange={handleTabChange}>
-                    <TabPane tab="Danh sách đơn nhập hàng" key="list">
+                    <TabPane tab={`${location.pathname.includes('purchase-return') ? 'Danh sách đơn trả hàng nhập' : 'Danh sách đơn nhập hàng'}`} key="list">
                         {activeTab === "list" && (
                             <PurchaseOrderList
+                                loading={loading}
                                 purchaseOrders={purchaseOrders}
                                 onEdit={handleEditPurchaseOrder}
                                 onApprove={handleApprovePurchaseOrder}
@@ -118,7 +130,7 @@ export default function PurchaseManagement() {
                             />
                         )}
                     </TabPane>
-                    <TabPane tab="Tạo đơn nhập hàng" key="form">
+                    <TabPane tab={`${location.pathname.includes('purchase-return') ? "Tạo đơn trả hàng nhập" : "Tạo đơn nhập hàng"}`} key="form">
                         {activeTab === "form" && (
                             <PurchaseOrderForm
                                 onSubmit={handleCreatePurchaseOrder}

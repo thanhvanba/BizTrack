@@ -34,7 +34,8 @@ const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
                     ...response,
                     ...(res?.data && {
                         remaining_value: res.data.remaining_value,
-                        total_refund: res.data.total_refund
+                        total_refund: res.data.total_refund,
+                        amoutPayment: res.data.amoutPayment
                     })
                 });
             } catch (error) {

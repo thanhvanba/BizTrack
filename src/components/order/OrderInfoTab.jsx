@@ -42,6 +42,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
     final_amount,
     remaining_value,
     total_refund,
+    amoutPayment,
     amount_paid,
     shipping_fee,
     payment_method,
@@ -135,11 +136,17 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
                     </Tag>
                   )}
 
-                {!location.pathname.includes('return-order') && <Text type="danger">(Công nợ đơn hàng: {formatPrice((final_amount) - (amount_paid + total_refund))})</Text>}
+                {!location.pathname.includes('return-order') &&
+                  <Text type="danger">
+                    (Công nợ đơn hàng: {formatPrice(remaining_value)})
+                  </Text>}
               </Title>
             </Col>
             <Col>
-              <Text strong>{`${order_date ? 'Ngày giao:' : 'Ngày trả:'}`} {new Date(order_date || data?.created_at).toLocaleDateString("vi-VN")}</Text>
+              <Text strong>
+                {`${order_date ? 'Ngày giao:' : 'Ngày trả:'}`}
+                {new Date(order_date || data?.created_at).toLocaleDateString("vi-VN")}
+              </Text>
             </Col>
           </Row>
 

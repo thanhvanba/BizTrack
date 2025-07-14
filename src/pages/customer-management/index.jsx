@@ -172,8 +172,8 @@ const CustomerManagement = () => {
       responsive: ["lg"]
     }, {
       title: "Tổng công nợ",
-      dataIndex: "debt",
-      key: "debt",
+      dataIndex: "total_remaining_value",
+      key: "total_remaining_value",
       render: (value) =>
         new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value),
       align: "right",
@@ -226,7 +226,7 @@ const CustomerManagement = () => {
           expandable={{
             expandedRowRender: (record) => (
               <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
-                <ExpandedCustomerTabs setEditModalVisible={setEditModalVisible} setDeleteModalVisible={setDeleteModalVisible} setSelectedCustomer={setSelectedCustomer} record={record} />
+                <ExpandedCustomerTabs setEditModalVisible={setEditModalVisible} setDeleteModalVisible={setDeleteModalVisible} setSelectedCustomer={setSelectedCustomer} record={record} fetchCustomers={fetchCustomers} />
               </div>
             ),
             expandedRowKeys,

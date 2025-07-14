@@ -31,11 +31,14 @@ const WarehouseManagement = () => {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
 
   const fetchWarehouses = async () => {
+    setLoading(true)
     try {
       const response = await warehouseService.getAllWarehouses()
       setWarehouses(response.data.map(w => ({ ...w, key: w.warehouse_id })))
     } catch (err) {
       useToastNotify("Không thể tải danh sách kho.", "error")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -165,6 +168,7 @@ const WarehouseManagement = () => {
         </div>
 
         <Table
+          loading={loading}
           columns={columns}
           dataSource={filteredData}
           pagination={{ pageSize: 5 }}

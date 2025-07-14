@@ -4,8 +4,10 @@ import { SearchOutlined, PlusOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import PurchaseOrderDetail from "./PurchaseOrderDetail";
 import purchaseOrderService from "../../service/purchaseService";
+import { useLocation } from "react-router-dom";
 
-export default function PurchaseOrderList({ purchaseOrders, onEdit, onApprove, onCreateNew }) {
+export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onApprove, onCreateNew }) {
+  const location = useLocation()
   const mockWarehouses = useSelector(state => state.warehouse.warehouses.data);
   const warehouseMap = new Map(
     mockWarehouses?.map(wh => [wh.warehouse_id, wh.warehouse_name])
@@ -117,11 +119,12 @@ export default function PurchaseOrderList({ purchaseOrders, onEdit, onApprove, o
           icon={<PlusOutlined />}
           onClick={onCreateNew}
         >
-          Tạo đơn nhập hàng
+          {location.pathname.includes('purchase-return') ? 'Tạo đơn trả hàng nhập' : 'Tạo đơn nhập hàng'}
         </Button>
       </div>
 
       <Table
+        loading={loading}
         columns={columns}
         dataSource={filteredOrders}
         rowKey="po_id"
