@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Modal, Form, Input, Button, DatePicker } from "antd";
 import dayjs from "dayjs";
+import customerService from "../../service/customerService";
 
 const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt }) => {
   const [form] = Form.useForm();
@@ -16,7 +17,14 @@ const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt }) => {
     try {
       const values = await form.validateFields();
       setLoading(true);
-
+      const res = await customerService.debtAdjustment({
+        "customer_id": "cus-12345",
+        "adjustment_amount": -2000000,
+        "adjustment_date": "2025-07-16",
+        "description": "Giảm công nợ theo biên bản",
+      }
+      )
+      console.log("🚀 ~ handleSubmit ~ res:", res)
       setTimeout(() => {
         setLoading(false);
         onSubmit(values);

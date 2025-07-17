@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button, Table, Modal } from "antd";
-import DebtAdjustmentModal from "./DebtAdjustment";
 import PaymentModal from "../modals/PaymentModal";
+import DebtAdjustmentModal from "../modals/DebtAdjustment";
 
 const columns = [
     { title: "Mã giao dịch", dataIndex: "transaction_code", key: "transaction_code" },

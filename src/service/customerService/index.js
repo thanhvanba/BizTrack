@@ -1,5 +1,5 @@
 import axios from "axios";
-import { CUSTOMERS_URL, CUSTOMER_REPORT_URL, INVOICES_URL } from "../apiUrl";
+import { CUSTOMERS_URL, CUSTOMER_REPORT_URL, DEBT_ADJUSTMENT_URL, INVOICES_URL } from "../apiUrl";
 import axiosService from "../axiosService";
 
 const customerService = {
@@ -155,6 +155,16 @@ const customerService = {
     return axios({
       url: `${CUSTOMER_REPORT_URL}/${customerId}/transaction-ledger`,
       method: 'GET',
+    })
+      .then(res => res.data)
+      .catch(error => { throw error; });
+  },
+
+  debtAdjustment: async (data) => {
+    return axios({
+      url: DEBT_ADJUSTMENT_URL,
+      method: 'POST',
+      data: data,
     })
       .then(res => res.data)
       .catch(error => { throw error; });

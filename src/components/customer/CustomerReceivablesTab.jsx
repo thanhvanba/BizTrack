@@ -1,9 +1,9 @@
 import { Button, Table } from "antd";
-import DebtAdjustmentModal from "../supplier/DebtAdjustment";
 import PaymentModal from "../modals/PaymentModal";
 import { useEffect, useState } from "react";
 import customerService from "../../service/customerService";
 import formatPrice from "../../utils/formatPrice";
+import DebtAdjustmentModal from "../modals/DebtAdjustment";
 
 const statusMap = {
     pending: 'Tạo đơn hàng',
@@ -93,15 +93,15 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
                     </Button>
                 </div>
                 <div className="flex gap-2">
-                    <Button type="primary" icon={<span>✏️</span>} onClick={() => setIsModalOpen(true)}>
+                    {/* <Button type="primary" icon={<span>✏️</span>} onClick={() => setIsModalOpen(true)}>
                         Điều chỉnh
-                    </Button>
+                    </Button> */}
                     <Button icon={<span>💳</span>} onClick={() => setIsPaymentModalOpen(true)}>
                         Thanh toán
                     </Button>
                 </div>
             </div>
-            {/* <DebtAdjustmentModal
+            <DebtAdjustmentModal
                 open={isModalOpen}
                 onCancel={() => setIsModalOpen(false)}
                 initialDebt={20000000}
@@ -109,7 +109,7 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
                     console.log("Dữ liệu điều chỉnh:", values);
                     setIsModalOpen(false);
                 }}
-            /> */}
+            />
             <PaymentModal
                 open={isPaymentModalOpen}
                 onCancel={() => setIsPaymentModalOpen(false)}

@@ -59,3 +59,6 @@ export const INVOICES_URL = `${API_URL}/invoices`;
 
 // CUSTOMER_RETURN_URL
 export const CUSTOMER_RETURN_URL = `${API_URL}/customer-returns`;
+
+// DEBT_ADJUSTMENT_URL
+export const DEBT_ADJUSTMENT_URL = `${API_URL}/debt-adjustment`;
