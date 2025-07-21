@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button, Checkbox, Form, Image, Input, message } from "antd"
 import logo from '../../assets/logo-biztrack-2.png';
 
@@ -13,13 +13,23 @@ import useToastNotify from "../../utils/useToastNotify";
 import { jwtDecode } from "jwt-decode";
 import { useDispatch } from "react-redux";
 import { fetchProfile } from "../../redux/user/user.slice";
+import SessionExpiredModal from "../modals/SessionExpiredModal";
+import sessionExpiredService from "../../utils/sessionExpiredService";
 // import Link from "next/link"  
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
+  const [sessionExpiredVisible, setSessionExpiredVisible] = useState(false)
   const navigate = useNavigate()
 
   const dispatch = useDispatch()
+
+  // Subscribe to session expired events
+  useEffect(() => {
+    const unsubscribe = sessionExpiredService.subscribe(setSessionExpiredVisible);
+    return unsubscribe;
+  }, []);
+
   const onFinish = async (values) => {
     try {
       setLoading(true)
@@ -37,7 +47,7 @@ export default function LoginPage() {
         // Optional: Lưu vào localStorage hoặc Context
         // localStorage.setItem('user_info', JSON.stringify(userInfo));
 
-        navigate('/')
+        navigate('/dashboard')
       }
     } catch (error) {
       useToastNotify('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập.', 'error');
@@ -45,6 +55,11 @@ export default function LoginPage() {
       setLoading(false)
     }
   }
+
+  const handleSessionExpiredOk = () => {
+    setSessionExpiredVisible(false);
+    // Không cần xóa token vì đã ở trang login
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center pt-3 sm:px-6 lg:px-8">
@@ -156,6 +171,12 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* Session Expired Modal */}
+      <SessionExpiredModal 
+        visible={sessionExpiredVisible} 
+        onOk={handleSessionExpiredOk} 
+      />
     </div>
   )
 }

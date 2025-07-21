@@ -3,6 +3,8 @@ import Sidebar from "../components/sidebar";
 import Header from "../components/header";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import SessionExpiredModal from "../components/modals/SessionExpiredModal";
+import sessionExpiredService from "../utils/sessionExpiredService";
 
 const { Content } = Layout;
 
@@ -13,6 +15,7 @@ const MainLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
     const [mobileView, setMobileView] = useState(false);
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+    const [sessionExpiredVisible, setSessionExpiredVisible] = useState(false);
 
     const currentTab = location.pathname.replace("/", "") || "dashboard";
 
@@ -30,6 +33,12 @@ const MainLayout = () => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
+    // Subscribe to session expired events
+    useEffect(() => {
+        const unsubscribe = sessionExpiredService.subscribe(setSessionExpiredVisible);
+        return unsubscribe;
+    }, []);
+
     const handleMenuClick = (key) => {
         navigate(`/${key}`);
         if (mobileView) {
@@ -39,6 +48,14 @@ const MainLayout = () => {
 
     const toggleMobileDrawer = () => {
         setMobileDrawerOpen(!mobileDrawerOpen);
+    };
+
+    const handleSessionExpiredOk = () => {
+        setSessionExpiredVisible(false);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('username');
+        navigate('/login');
     };
 
     return (
@@ -88,6 +105,12 @@ const MainLayout = () => {
                         </div>
                     </Content>
                 </Layout>
+
+                {/* Session Expired Modal */}
+                <SessionExpiredModal 
+                    visible={sessionExpiredVisible} 
+                    onOk={handleSessionExpiredOk} 
+                />
             </Layout>
         </ConfigProvider>
     );

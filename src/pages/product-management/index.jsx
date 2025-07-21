@@ -147,6 +147,11 @@ const ProductManagement = () => {
     fetchProducts(current, pageSize)
   }
 
+  // Handle category created from ProductModal
+  const handleCategoryCreated = (newCategory) => {
+    setCategories(prev => [...prev, newCategory]);
+  };
+
   const columns = [
     {
       title: "SKU",
@@ -348,6 +353,7 @@ const ProductManagement = () => {
         onCancel={() => setCreateModalVisible(false)}
         onSubmit={handleCreateProduct}
         categories={categories.filter(category => category.status === "active")}
+        onCategoryCreated={handleCategoryCreated}
       />
 
       {/* Edit Product Modal */}
@@ -358,6 +364,7 @@ const ProductManagement = () => {
         onSubmit={handleEditProduct}
         product={selectedProduct}
         categories={categories.filter(category => category.status === "active")}
+        onCategoryCreated={handleCategoryCreated}
       />
       {/* Delete Confirm Modal */}
       <DeleteConfirmModal

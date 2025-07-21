@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Modal, Form, Input, Button, Select, Table, InputNumber, message } from "antd";
 import formatPrice from "../../utils/formatPrice";
+import useToastNotify from "../../utils/useToastNotify";
 
 const PaymentModal = ({ open, onCancel, onSubmit, unpaidInvoice, initialDebt, customerName }) => {
   console.log("🚀 ~ PaymentModal ~ unpaidInvoice:", unpaidInvoice)
@@ -75,7 +76,7 @@ const PaymentModal = ({ open, onCancel, onSubmit, unpaidInvoice, initialDebt, cu
       setTimeout(() => {
         setLoading(false);
         onSubmit(payload);
-        message.success("Tạo phiếu thu thành công!");
+        useToastNotify("Tạo phiếu thu thành công!", "success");
 
         form.resetFields();
         const resetData = dataSource.map(item => ({

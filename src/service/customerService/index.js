@@ -1,4 +1,3 @@
-import axios from "axios";
 import { CUSTOMERS_URL, CUSTOMER_REPORT_URL, DEBT_ADJUSTMENT_URL, INVOICES_URL } from "../apiUrl";
 import axiosService from "../axiosService";
 
@@ -75,7 +74,7 @@ const customerService = {
 
   // Tổng quan khách hàng
   getCustomerOverview: async (customerId) => {
-    return axios({
+    return axiosService()({
       url: `${CUSTOMER_REPORT_URL}/${customerId}/overview`,
       method: 'GET',
     })
@@ -85,7 +84,7 @@ const customerService = {
 
   // Lịch sử trả hàng
   getCustomerSalesReturnHistory: async (customerId) => {
-    return axios({
+    return axiosService()({
       url: `${CUSTOMER_REPORT_URL}/${customerId}/sales-return-history`,
       method: 'GET',
     })
@@ -95,7 +94,7 @@ const customerService = {
 
   // Lịch sử đơn hàng
   getCustomerOrderHistory: async (customerId) => {
-    return axios({
+    return axiosService()({
       url: `${CUSTOMER_REPORT_URL}/${customerId}/order-history`,
       method: 'GET',
     })
@@ -105,7 +104,7 @@ const customerService = {
 
   // Công nợ
   getCustomerReceivables: async (customerId) => {
-    return axios({
+    return axiosService()({
       url: `${CUSTOMER_REPORT_URL}/${customerId}/receivables`,
       method: 'GET',
     })
@@ -114,7 +113,7 @@ const customerService = {
   },
 
   getCustomerFinancialLedger: async (customerId) => {
-    return axios({
+    return axiosService()({
       url: `${CUSTOMER_REPORT_URL}/${customerId}/financial`,
       method: 'GET',
     })
@@ -123,7 +122,7 @@ const customerService = {
   },
 
   recordInvoicePayment: async (invoiceId, paymentData) => {
-    return axios({
+    return axiosService()({
       url: `${INVOICES_URL}/${invoiceId}/payments`,
       method: 'POST',
       data: paymentData,
@@ -133,7 +132,7 @@ const customerService = {
   },
 
   recordBulkPayment: async (paymentData) => {
-    return axios({
+    return axiosService()({
       url: `${INVOICES_URL}/bulk-payment`,
       method: 'POST',
       data: paymentData,
@@ -143,7 +142,7 @@ const customerService = {
   },
 
   getCustomerTransactions: async (customerId) => {
-    return axios({
+    return axiosService()({
       url: `${CUSTOMER_REPORT_URL}/${customerId}/transactions`,
       method: 'GET',
     })
@@ -152,7 +151,7 @@ const customerService = {
   },
 
   getCustomerTransactionLedger: async (customerId) => {
-    return axios({
+    return axiosService()({
       url: `${CUSTOMER_REPORT_URL}/${customerId}/transaction-ledger`,
       method: 'GET',
     })
@@ -161,7 +160,7 @@ const customerService = {
   },
 
   debtAdjustment: async (data) => {
-    return axios({
+    return axiosService()({
       url: DEBT_ADJUSTMENT_URL,
       method: 'POST',
       data: data,

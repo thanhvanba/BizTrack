@@ -15,6 +15,7 @@ const ReturnOrderPage = () => {
     const [expandedRowKeys, setExpandedRowKeys] = useState([])
     const [selectedRowKeys, setSelectedRowKeys] = useState([])
     const [loading, setLoading] = useState(false)
+    const [loadingApprove, setLoadingApprove] = useState(false)
     const [open, setOpen] = useState(false);
     const [ordersReturnData, setOrdersReturnData] = useState([]);
     console.log("🚀 ~ ReturnOrderPage ~ ordersReturnData:", ordersReturnData)
@@ -137,7 +138,7 @@ const ReturnOrderPage = () => {
     };
 
     const handleApproveReturnOrder = async (return_id) => {
-        setLoading(true);
+        setLoadingApprove(true);
         try {
             await orderService.approveReturn(return_id)
             useToastNotify("Duyệt đơn trả hàng thành công", 'success')
@@ -145,7 +146,7 @@ const ReturnOrderPage = () => {
         } catch (error) {
             useToastNotify("Lỗi khi duyệt đơn trả hàng", 'error')
         } finally {
-            setLoading(false);
+            setLoadingApprove(false);
         }
     }
 
@@ -184,7 +185,7 @@ const ReturnOrderPage = () => {
             <Table
                 rowKey="return_id"
                 dataSource={ordersReturnData}
-                loading={loading}
+                loading={loading || loadingApprove}
                 columns={columns}
                 pagination={{
                     current: pagination.current,

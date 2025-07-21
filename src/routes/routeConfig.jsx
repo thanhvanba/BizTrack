@@ -12,9 +12,11 @@ import OrderFormPage from '../pages/order-management/OrderFormPage';
 import TransferManagement from '../pages/warehouse-management/TransferManagement';
 import SupplierManagement from '../pages/warehouse-management/SupplierManagement';
 import ReturnOrderPage from '../pages/order-management/ReturnOrderPage';
+import HomePage from '../pages/home-page';
+
+export const homeRoute = { path: '', element: <HomePage /> };
 
 export const privateRoutes = [
-  { path: '', element: <Dashboard /> }, // index route
   { path: 'dashboard', element: <Dashboard /> },
   { path: 'orders', element: <OrderManagement /> },
   { path: 'create-order', element: <OrderFormPage /> },

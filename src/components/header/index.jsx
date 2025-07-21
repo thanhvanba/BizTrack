@@ -10,8 +10,24 @@ import ListNotification from '../ListNotification';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/user/user.slice';
+import authService from '../../service/authService';
+import useToastNotify from '../../utils/useToastNotify';
 
 export default function Header({ onToggleMobileDrawer, isMobile }) {
+  const dispatch = useDispatch()
+
+  const handleLogout = async () => {
+    try {
+      const refreshToken = localStorage.getItem('refresh_token');
+      await authService.logOut({ refreshToken });
+      useToastNotify("Đăng xuất thành công", "success");
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      navigate('/login');
+    } catch (error) {
+      useToastNotify("Đăng xuất thất bại", "error");
+    }
+  }
   const menu = (
     <Menu
       className="rounded-lg shadow-lg"
@@ -44,7 +60,7 @@ export default function Header({ onToggleMobileDrawer, isMobile }) {
           key: '3',
           label: (
             <div
-              // onClick={handleLogoutApi}
+              onClick={handleLogout}
               className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-md"
             >
               <LogoutOutlined />
@@ -74,9 +90,6 @@ export default function Header({ onToggleMobileDrawer, isMobile }) {
       ]}
     />
   );
-
-  const dispatch = useDispatch()
-
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     if (token) {

@@ -1,4 +1,3 @@
-import axios from "axios";
 import { SUPPLIERS_URL, PURCHASE_ORDERS_URL } from "../apiUrl";
 import axiosService from "../axiosService";
 
@@ -63,23 +62,23 @@ const supplierService = {
 
   // Lấy lịch sử nhập hàng từ nhà cung cấp
   getSupplierHistory: async (supplierId) => {
-    try {
-      const response = await axios.get(`${PURCHASE_ORDERS_URL}/supplier/${supplierId}/history`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    return axiosService()({
+      url: `${PURCHASE_ORDERS_URL}/supplier/${supplierId}/history`,
+      method: "GET",
+    })
+      .then((res) => res.data)
+      .catch((error) => { throw error; });
   },
 
   // Lấy công nợ nhà cung cấp
   getSupplierReceivables: async (supplierId) => {
-    try {
-      const response = await axios.get(`${PURCHASE_ORDERS_URL}/supplier/${supplierId}/receivables`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  }
+    return axiosService()({
+      url: `${PURCHASE_ORDERS_URL}/supplier/${supplierId}/receivables`,
+      method: "GET",
+    })
+      .then((res) => res.data)
+      .catch((error) => { throw error; });
+  },
 };
 
 export default supplierService;

@@ -1,10 +1,9 @@
-import axios from 'axios';
 import { PURCHASE_ORDERS_URL } from '../apiUrl';
 import axiosService from '../axiosService';
 
 const purchaseOrderService = {
     getAllPurchaseOrders: async () => {
-        return axios({
+        return axiosService()({
             url: PURCHASE_ORDERS_URL,
             method: 'GET',
         })
@@ -13,7 +12,7 @@ const purchaseOrderService = {
     },
 
     getPurchaseOrderById: async (id) => {
-        return axios({
+        return axiosService()({
             url: `${PURCHASE_ORDERS_URL}/${id}`,
             method: 'GET',
         })
@@ -21,7 +20,7 @@ const purchaseOrderService = {
             .catch(error => { throw error; });
     },
     getPurchaseOrderDetail: async (id) => {
-        return axios({
+        return axiosService()({
             url: `${PURCHASE_ORDERS_URL}/${id}/details`,
             method: 'GET',
         })
@@ -38,7 +37,7 @@ const purchaseOrderService = {
     },
 
     createPurchaseOrder: async (data) => {
-        return axios({
+        return axiosService()({
             url: PURCHASE_ORDERS_URL,
             method: 'POST',
             data,
@@ -48,7 +47,7 @@ const purchaseOrderService = {
     },
 
     updatePurchaseOrder: async (id, data) => {
-        return axios({
+        return axiosService()({
             url: `${PURCHASE_ORDERS_URL}/${id}/podetails`,
             method: 'PUT',
             data,
@@ -58,7 +57,7 @@ const purchaseOrderService = {
     },
 
     deletePurchaseOrder: async (id) => {
-        return axios({
+        return axiosService()({
             url: `${PURCHASE_ORDERS_URL}/${id}`,
             method: 'DELETE',
         })

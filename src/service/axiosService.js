@@ -4,6 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 import { checkTokenExp } from '../utils/token';
 import { useNavigate } from 'react-router-dom';
 import authService from './authService';
+import sessionExpiredService from '../utils/sessionExpiredService';
 
 let refreshTokenRequest = null;
 
@@ -41,11 +42,11 @@ const axiosService = () => {
                 try {
                     const response = await refreshTokenRequest;
                     if (response) {
-                        localStorage.setItem('token', response.data.result.accessToken);
-                        localStorage.setItem('refreshToken', response.data.result.refreshToken);
+                        localStorage.setItem('access_token', response?.accessToken);
+                        // localStorage.setItem('refresh_token', response.data.result.refreshToken);
                         config.headers = {
                             'Content-Type': 'application/json',
-                            Authorization: `Bearer ${response?.data?.result?.accessToken}`,
+                            Authorization: `Bearer ${response?.accessToken}`,
                         };
                         // reset token request for the next expiration
                         refreshTokenRequest = null;
@@ -63,10 +64,7 @@ const axiosService = () => {
             }
             return config;
         },
-
-        (error) => {
-            Promise.reject(error);
-        }
+        (error) => Promise.reject(error)
     );
 
     axiosInstance.interceptors.response.use(
@@ -77,13 +75,8 @@ const axiosService = () => {
             }
 
             if (errors?.response?.status === 401) {
-                toastNotify('Phiên đăng nhập đã hết hạn', 'error');
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('refresh_token');
-                localStorage.removeItem('username');
-                setTimeout(() => {
-                    window.location.hash = '#/login';
-                }, 2000);
+                // Hiển thị modal thay vì tự động chuyển hướng
+                sessionExpiredService.showModal();
             }
             throw errors;
         }

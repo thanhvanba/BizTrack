@@ -146,12 +146,12 @@ const Sidebar = ({ collapsed, setCollapsed, setActiveTab, activeTab }) => {
           items={menuItems}
         />
 
-        <div className="p-4 border-t-2 border-[#0505050f]">
+        {/* <div className="p-4 border-t-2 border-[#0505050f]">
           <Button onClick={handleLogout} variant="outline" className="w-full justify-start">
             <LogoutOutlined className="mr-2 h-4 w-4" />
             {collapsed ? '' : 'Đăng xuất'}
           </Button>
-        </div>
+        </div> */}
       </div>
     </Sider >
   );

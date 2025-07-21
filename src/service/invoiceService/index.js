@@ -1,10 +1,10 @@
-import axios from "axios";
 import { INVOICES_URL } from "../apiUrl";
+import axiosService from "../axiosService";
 
 const invoiceService = {
     // Lấy tất cả hóa đơn
     getAllInvoices: async () => {
-        return axios({
+        return axiosService()({
             url: `${INVOICES_URL}/`,
             method: "GET",
         }).then(res => res.data).catch(error => { throw error; });
@@ -12,7 +12,7 @@ const invoiceService = {
 
     // Lấy danh sách hóa đơn đã thanh toán
     getPaidInvoices: async () => {
-        return axios({
+        return axiosService()({
             url: `${INVOICES_URL}/paid`,
             method: "GET",
         }).then(res => res.data).catch(error => { throw error; });
@@ -20,7 +20,7 @@ const invoiceService = {
 
     // Lấy danh sách hóa đơn chưa thanh toán
     getUnpaidInvoices: async (params) => {
-        return axios({
+        return axiosService()({
             url: `${INVOICES_URL}/unpaid`,
             method: "GET",
             params,
@@ -29,7 +29,7 @@ const invoiceService = {
 
     // Lấy hóa đơn theo invoice_code
     getInvoiceByCode: async (invoiceCode) => {
-        return axios({
+        return axiosService()({
             url: `${INVOICES_URL}/${invoiceCode}`,
             method: "GET",
         }).then(res => res.data).catch(error => { throw error; });
@@ -37,7 +37,7 @@ const invoiceService = {
 
     // Tạo hóa đơn mới
     createInvoice: async (invoiceData) => {
-        return axios({
+        return axiosService()({
             url: `${INVOICES_URL}/`,
             method: "POST",
             data: invoiceData,
@@ -46,7 +46,7 @@ const invoiceService = {
 
     // Cập nhật hóa đơn
     updateInvoice: async (invoiceId, data) => {
-        return axios({
+        return axiosService()({
             url: `${INVOICES_URL}/${invoiceId}`,
             method: "PUT",
             data,
@@ -55,7 +55,7 @@ const invoiceService = {
 
     // Xoá hóa đơn
     deleteInvoice: async (invoiceId) => {
-        return axios({
+        return axiosService()({
             url: `${INVOICES_URL}/${invoiceId}`,
             method: "DELETE",
         }).then(res => res.data).catch(error => { throw error; });
@@ -63,7 +63,7 @@ const invoiceService = {
 
     // Lấy danh sách tất cả các khoản thanh toán
     getAllPayments: async () => {
-        return axios({
+        return axiosService()({
             url: `${INVOICES_URL}/payments/all`,
             method: "GET",
         }).then(res => res.data).catch(error => { throw error; });

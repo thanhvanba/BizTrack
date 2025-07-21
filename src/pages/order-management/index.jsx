@@ -203,10 +203,10 @@ const OrderManagement = () => {
 
     try {
       await orderService.updateOrder(orderId, data);
-      message.success("Cập nhật trạng thái đơn hàng thành công!");
+      useToastNotify("Cập nhật trạng thái đơn hàng thành công!", "success");
       fetchOrders(); // reload lại danh sách
     } catch (error) {
-      message.error("Không thể cập nhật trạng thái đơn hàng.");
+      useToastNotify("Không thể cập nhật trạng thái đơn hàng.", "error");
     }
   };
 

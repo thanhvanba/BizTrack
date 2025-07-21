@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { PRODUCTS_URL, PRODUCT_REPORT_URL } from '../apiUrl';
 import axiosService from '../axiosService';
 

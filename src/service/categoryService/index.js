@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { CATEGORIES_URL } from '../apiUrl';
 import axiosService from '../axiosService';
 

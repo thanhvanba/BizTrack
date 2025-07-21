@@ -32,14 +32,14 @@ const authService = {
             data: payload,
         });
     },
-    refreshToken: async (refresh_token) => {
+    refreshToken: async (refreshToken) => {
         return axios({
             method: 'POST',
             url: REFRESH_TOKEN_URL,
             headers: {
-                'Content-Type': 'text/plain',
+                'Content-Type': 'application/json'
             },
-            data: refresh_token,
+            data: { refreshToken },
         })
             .then((res) => res.data)
             .catch((error) => {
