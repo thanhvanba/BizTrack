@@ -95,6 +95,23 @@ const OrderFormData = ({
   const navigate = useNavigate();
   const [selectedCustomerId, setSelectedCustomerId] = useState();
 
+  // Thêm state cho loại giảm giá đơn hàng
+  const [orderDiscountType, setOrderDiscountType] = useState('₫');
+
+  // Hàm cập nhật giảm giá đơn hàng
+  const updateOrderDiscount = (value, type) => {
+    setOrderDiscount(Number(value) || 0);
+    setOrderDiscountType(type);
+  };
+
+  // Hàm tính số tiền giảm giá đơn hàng thực tế
+  const getOrderDiscountAmount = () => {
+    if (orderDiscountType === '%') {
+      return (orderDiscount / 100) * calculateTotalAmount();
+    }
+    return orderDiscount;
+  };
+
   // Chỉ gọi fetchWarehouses nếu chưa có trong store
   useEffect(() => {
     fetchCustomers();
@@ -327,7 +344,7 @@ const OrderFormData = ({
         order: {
           customer_id: values.customer_id,
           order_date: formattedOrderDate,
-          order_amount: values.order_amount ?? 0,
+          order_amount: getOrderDiscountAmount() ?? 0,
           shipping_address: values.shipping_address,
           shipping_fee: values.shipping_fee ?? 0,
           amount_paid: values.amount_paid ?? 0,
@@ -373,7 +390,7 @@ const OrderFormData = ({
       .toLowerCase()
       .includes(searchText.toLowerCase())
   );
-
+  // Tổng tiền đơn hàng
   const calculateTotalAmount = () => {
     const sourceData =
       mode === "return" ? orderEligibility?.products ?? [] : selectedProducts;
@@ -389,7 +406,7 @@ const OrderFormData = ({
       );
     }, 0);
   };
-
+  // Tổng giảm giá sản phẩm + đơn hàng
   const calculateDiscountAmount = () => {
     const sourceData =
       mode === "return" ? orderEligibility?.products ?? [] : selectedProducts;
@@ -400,7 +417,7 @@ const OrderFormData = ({
     return (
       discountProduct +
       parseFloat(
-        mode === "return" ? returnOrderData.order_amount : orderDiscount
+        mode === "return" ? returnOrderData.order_amount : getOrderDiscountAmount()
       )
     );
   };
@@ -637,6 +654,7 @@ const OrderFormData = ({
             <div className="flex items-center gap-1">
               <InputNumber
                 min={0}
+                step={1000}
                 defaultValue={record.product_retail_price}
                 value={record.product_return_price}
                 addonAfter="₫"
@@ -691,6 +709,7 @@ const OrderFormData = ({
           render: (_, record) => (
             <InputNumber
               min={0}
+              step={1000}
               value={record.product_retail_price}
               addonAfter="₫"
               disabled={mode === "return"}
@@ -737,11 +756,11 @@ const OrderFormData = ({
       align: "right",
       render: (_, record) => {
         const discountType = discountTypes[record.product_id] || "đ";
-
         return (
           <div className="flex items-center gap-2">
             <InputNumber
               min={0}
+              step={1000}
               max={discountType === "%" ? 100 : record.product_retail_price}
               value={record.discount}
               disabled={mode === "return"}
@@ -873,6 +892,7 @@ const OrderFormData = ({
                     ]}
                   >
                     <Select
+                      className="highlight-select"
                       placeholder="Chọn kho hàng"
                       onChange={handleWarehouseChange}
                       disabled={
@@ -953,6 +973,8 @@ const OrderFormData = ({
                     Phí vận chuyển
                   </label>
                   <InputNumber
+                    min={0}
+                    step={1000}
                     variant="outlined"
                     placeholder="Nhập phí vận chuyển"
                     addonAfter="₫"
@@ -1120,6 +1142,8 @@ const OrderFormData = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Form.Item name="shipping_fee" label="Phí vận chuyển">
                   <InputNumber
+                    min={0}
+                    step={1000}
                     variant="filled"
                     placeholder="Nhập phí vận chuyển"
                     addonAfter="₫"
@@ -1134,23 +1158,38 @@ const OrderFormData = ({
                 </Form.Item>
 
                 <Form.Item name="order_amount" label="Giảm giá đơn hàng">
-                  <InputNumber
-                    variant="filled"
-                    addonAfter="₫"
-                    placeholder="Nhập phí giảm giá"
-                    className="w-full"
-                    disabled={mode === "return"}
-                    formatter={(value) =>
-                      `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                    }
-                    parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                    onChange={(value) => setOrderDiscount(Number(value) || 0)}
-                  />
+                  <div className="flex items-center gap-2">
+                    <InputNumber
+                      min={0}
+                      step={1000}
+                      max={orderDiscountType === '%' ? 100 : calculateTotalAmount()}
+                      variant="filled"
+                      placeholder="Nhập phí giảm giá"
+                      className="!w-32"
+                      disabled={mode === "return"}
+                      value={orderDiscount}
+                      formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                      parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
+                      onChange={(value) => updateOrderDiscount(value, orderDiscountType)}
+                    />
+                    <Select
+                      value={orderDiscountType}
+                      onChange={(type) => updateOrderDiscount(orderDiscount, type)}
+                      style={{ width: 60 }}
+                      disabled={mode === "return"}
+                      options={[
+                        { label: "%", value: "%" },
+                        { label: "₫", value: "₫" },
+                      ]}
+                    />
+                  </div>
                 </Form.Item>
               </div>
 
               <Form.Item name="amount_paid" label="Tiền trả trước">
                 <InputNumber
+                  min={0}
+                  step={1000}
                   variant="filled"
                   addonAfter="₫"
                   placeholder="Nhập số tiền trả trước"
@@ -1181,13 +1220,13 @@ const OrderFormData = ({
 
                 <Descriptions.Item label="Giảm giá theo đơn hàng" span={2}>
                   <div style={{ textAlign: "right" }}>
-                    {formatCurrency(orderDiscount)}
+                    {formatCurrency(getOrderDiscountAmount())}
                   </div>
                 </Descriptions.Item>
 
                 <Descriptions.Item label="Giảm giá theo từng sản phẩm" span={2}>
                   <div style={{ textAlign: "right" }}>
-                    {formatCurrency(calculateDiscountAmount() - orderDiscount)}
+                    {formatCurrency(calculateDiscountAmount() - getOrderDiscountAmount())}
                   </div>
                 </Descriptions.Item>
 
@@ -1249,8 +1288,8 @@ const OrderFormData = ({
         style={{
           position: "fixed",
           bottom: 0,
-          left: mobileView ? 0 : collapsed ? 80 : 240,
-          width: mobileView ? "100%" : `calc(100% - ${collapsed ? 80 : 240}px)`,
+          left: 0,
+          width: "100%",
           background: "#fff",
           borderTop: "1px solid #f0f0f0",
           padding: "8px 24px",

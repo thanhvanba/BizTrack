@@ -180,6 +180,7 @@ export default function AdjustmentForm({ onSubmit, initialValues, onCancel }) {
       render: (value, _, index) => (
         <InputNumber
           min={0}
+          step={1000}
           value={value}
           style={{ width: "100%" }}
           formatter={(value) =>

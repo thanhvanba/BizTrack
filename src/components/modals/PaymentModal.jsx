@@ -118,6 +118,7 @@ const PaymentModal = ({ open, onCancel, onSubmit, unpaidInvoice, initialDebt, cu
         <InputNumber
           min={0}
           style={{ width: "100%" }}
+          step={1000}
           max={record.remaining_receivable}
           value={val}
           formatter={value => `${formatPrice(value)}`}
@@ -184,7 +185,8 @@ const PaymentModal = ({ open, onCancel, onSubmit, unpaidInvoice, initialDebt, cu
 
           <Form.Item label="Tổng tiền thanh toán" name="paymentAmount">
             <InputNumber
-              style={{ width: "100%" }}
+              style={{ width: "100%" }}  
+              step={1000}
               min={0}
               max={initialDebt}
               formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " ₫"}

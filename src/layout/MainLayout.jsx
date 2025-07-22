@@ -12,26 +12,28 @@ const MainLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const [collapsed, setCollapsed] = useState(false);
     const [mobileView, setMobileView] = useState(false);
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
     const [sessionExpiredVisible, setSessionExpiredVisible] = useState(false);
 
     const currentTab = location.pathname.replace("/", "") || "dashboard";
+    const [activeTab, setActiveTab] = useState(currentTab);
 
     // Handle responsive view
     useEffect(() => {
         const handleResize = () => {
             const isMobile = window.innerWidth < 768;
             setMobileView(isMobile);
-            if (isMobile) {
-                setCollapsed(true);
-            }
         };
         handleResize();
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
     }, []);
+
+    // Sync activeTab with route
+    useEffect(() => {
+        setActiveTab(currentTab);
+    }, [currentTab]);
 
     // Subscribe to session expired events
     useEffect(() => {
@@ -41,6 +43,7 @@ const MainLayout = () => {
 
     const handleMenuClick = (key) => {
         navigate(`/${key}`);
+        setActiveTab(key);
         if (mobileView) {
             setMobileDrawerOpen(false);
         }
@@ -69,15 +72,8 @@ const MainLayout = () => {
             }}
         >
             <Layout className="min-h-screen bg-gray-50">
-                {/* Sidebar */}
-                {!mobileView ? (
-                    <Sidebar
-                        collapsed={collapsed}
-                        setCollapsed={setCollapsed}
-                        activeTab={currentTab}
-                        setActiveTab={handleMenuClick}
-                    />
-                ) : (
+                {/* Sidebar chỉ cho mobile */}
+                {mobileView && (
                     <Drawer
                         placement="left"
                         onClose={toggleMobileDrawer}
@@ -88,24 +84,25 @@ const MainLayout = () => {
                         className="sidebar-drawer z-50"
                     >
                         <Sidebar
-                            // collapsed={false}
-                            activeTab={currentTab}
+                            activeTab={activeTab}
                             setActiveTab={handleMenuClick}
                         />
                     </Drawer>
                 )}
-
-                <Layout>
-                    <div className="bg-white sticky top-0 z-10 h-auto">
-                        <Header onToggleMobileDrawer={toggleMobileDrawer} isMobile={mobileView} />
+                {/* Header luôn hiển thị */}
+                <div className="bg-white sticky top-0 z-10 h-auto">
+                    <Header 
+                        onToggleMobileDrawer={toggleMobileDrawer} 
+                        isMobile={mobileView} 
+                        activeTab={activeTab}
+                        setActiveTab={handleMenuClick}
+                    />
+                </div>
+                <Content>
+                    <div className="p-3 md:p-6 transition-all duration-300 animate-fadeIn h-[89vh] overflow-y-auto">
+                        <Outlet context={{ mobileView }} />
                     </div>
-                    <Content>
-                        <div className="p-3 md:p-6 transition-all duration-300 animate-fadeIn">
-                            <Outlet context={{ mobileView, collapsed }} />
-                        </div>
-                    </Content>
-                </Layout>
-
+                </Content>
                 {/* Session Expired Modal */}
                 <SessionExpiredModal 
                     visible={sessionExpiredVisible} 

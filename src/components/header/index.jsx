@@ -1,10 +1,16 @@
-import React, { useEffect } from 'react';
-import { Dropdown, Menu, Avatar, Button } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Dropdown, Menu, Avatar, Button, Image } from 'antd';
 import {
   UserOutlined,
   BoxPlotOutlined,
   LogoutOutlined,
   MenuOutlined,
+  AppstoreOutlined,
+  ContainerOutlined,
+  DollarOutlined,
+  PieChartOutlined,
+  ShoppingCartOutlined,
+  ShoppingOutlined,
 } from '@ant-design/icons';
 import ListNotification from '../ListNotification';
 import { useNavigate } from 'react-router-dom';
@@ -12,9 +18,78 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/user/user.slice';
 import authService from '../../service/authService';
 import useToastNotify from '../../utils/useToastNotify';
+import logo from '../../assets/logo-biztrack.png';
 
-export default function Header({ onToggleMobileDrawer, isMobile }) {
+// --- Thêm menuItems từ sidebar ---
+const menuItems = [
+  { key: 'dashboard', icon: <AppstoreOutlined />, label: 'Tổng quan' },
+  {
+    key: 'orders',
+    icon: <ShoppingCartOutlined />,
+    label: 'Đơn hàng',
+    children: [
+      { label: 'Danh sách đơn hàng', key: 'orders' },
+      { label: 'Tạo đơn hàng', key: 'create-order' },
+      { label: 'Trả hàng', key: 'return-order' },
+    ],
+  },
+  {
+    key: 'customers',
+    label: 'Khách hàng',
+    icon: <UserOutlined />,
+  },
+  {
+    key: 'inventory',
+    icon: <ContainerOutlined />,
+    label: 'Quản lý kho',
+    children: [
+      {
+        type: 'group',
+        label: 'Kho hàng',
+        children: [
+          { key: 'warehouses', label: 'Danh sách kho' },
+          { key: 'inventory', label: 'Kiểm kho' },
+        ],
+      },
+      {
+        type: 'group',
+        label: 'Nhập hàng',
+        children: [
+          { key: 'suppliers', label: 'Nhà cung cấp' },
+          { key: 'purchase', label: 'Nhập hàng' },
+          { key: 'purchase-return', label: 'Trả hàng nhập' },
+        ],
+      },
+    ],
+  },
+  {
+    key: 'products',
+    icon: <ShoppingOutlined />,
+    label: 'Sản phẩm',
+    children: [
+      { label: 'Danh sách sản phẩm', key: 'products' },
+      { label: 'Danh mục', key: 'product-category' },
+    ],
+  },
+  {
+    key: 'revenue',
+    label: 'Doanh Thu',
+    icon: <DollarOutlined />,
+  },
+];
+
+export default function Header({ onToggleMobileDrawer, isMobile, setActiveTab, activeTab }) {
   const dispatch = useDispatch()
+  // --- State cho openKeys nếu có submenu ---
+  const [openKeys, setOpenKeys] = useState([]);
+
+  const handleMenuClick = ({ key }) => {
+    setActiveTab && setActiveTab(key);
+  };
+
+  const handleOpenChange = (keys) => {
+    setOpenKeys(keys);
+  };
 
   const handleLogout = async () => {
     try {
@@ -28,6 +103,8 @@ export default function Header({ onToggleMobileDrawer, isMobile }) {
       useToastNotify("Đăng xuất thất bại", "error");
     }
   }
+
+  const profileInfo = useSelector(state => state.user.userInfo)
   const menu = (
     <Menu
       className="rounded-lg shadow-lg"
@@ -35,22 +112,22 @@ export default function Header({ onToggleMobileDrawer, isMobile }) {
         {
           key: '1',
           label: (
-            <div
-              // onClick={}
-              className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-md"
-            >
-              <UserOutlined />
-              <span>Tài khoản của bạn</span>
+            <div className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-md">
+              <UserOutlined className='text-3xl' />
+              <div>
+                <div className="text-base">Tên: <span className='text-cyan-600 font-bold'>{profileInfo?.data?.username}</span></div>
+                <div className="text-cyan-600 font-bold">{profileInfo?.data?.email}</div>
+              </div>
             </div>
+
           ),
         },
+
+        { type: 'divider' },
         {
           key: '2',
           label: (
-            <div
-              // onClick={}
-              className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-md"
-            >
+            <div className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-md">
               <BoxPlotOutlined />
               <span>Thông tin gói dịch vụ</span>
             </div>
@@ -59,34 +136,29 @@ export default function Header({ onToggleMobileDrawer, isMobile }) {
         {
           key: '3',
           label: (
-            <div
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-md"
-            >
+            <div onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-md">
               <LogoutOutlined />
               <span>Đăng xuất</span>
             </div>
           ),
         },
-        {
-          type: 'divider',
-        },
-        {
-          key: '4',
-          label: (
-            <div className="px-4 py-2 hover:bg-slate-100 rounded-md cursor-default">
-              Điều khoản dịch vụ
-            </div>
-          ),
-        },
-        {
-          key: '5',
-          label: (
-            <div className="px-4 py-2 hover:bg-slate-100 rounded-md cursor-default">
-              Chính sách bảo mật
-            </div>
-          ),
-        },
+        // { type: 'divider' },
+        // {
+        //   key: '4',
+        //   label: (
+        //     <div className="px-4 py-2 hover:bg-slate-100 rounded-md cursor-default">
+        //       Điều khoản dịch vụ
+        //     </div>
+        //   ),
+        // },
+        // {
+        //   key: '5',
+        //   label: (
+        //     <div className="px-4 py-2 hover:bg-slate-100 rounded-md cursor-default">
+        //       Chính sách bảo mật
+        //     </div>
+        //   ),
+        // },
       ]}
     />
   );
@@ -97,60 +169,64 @@ export default function Header({ onToggleMobileDrawer, isMobile }) {
     }
   }, [dispatch]);
 
-  const profileInfo = useSelector(state => state.user.userInfo)
 
   const navigate = useNavigate()
   return (
-    <div className={`flex ${isMobile ? 'justify-between' : 'justify-end'} items-center shadow-lg h-20 px-4`}>
-      {isMobile && (
-        <Button
-          icon={<MenuOutlined />}
-          type="text"
-          onClick={onToggleMobileDrawer}
-        />
-      )}
-
-      <div className="flex px-3 items-center">
-        {Object.keys(profileInfo).length ?
-          <>
-            <div>
-              {
-                !isMobile && <ListNotification />
-              }
-            </div>
-            <div className="relative ml-4">
+    <div className="w-full shadow-lg bg-white">
+      <div className="flex items-center w-full px-4 h-20">
+        {/* Logo */}
+        <div className="flex items-center mr-6">
+          <Image width={140} preview={false} src={logo} alt="Logo" />
+        </div>
+        {/* Tab menu (desktop) */}
+        {!isMobile && (
+          <Menu
+            mode="horizontal"
+            selectedKeys={[activeTab]}
+            openKeys={openKeys}
+            onOpenChange={handleOpenChange}
+            onClick={handleMenuClick}
+            items={menuItems}
+            className="flex-1 border-none min-w-0"
+          />
+        )}
+        {/* Notification & Account */}
+        <div className="flex items-center ml-auto gap-4">
+          {isMobile && (
+            <Button
+              icon={<MenuOutlined />}
+              type="text"
+              onClick={onToggleMobileDrawer}
+            />
+          )}
+          {!isMobile && <ListNotification />}
+          {Object.keys(profileInfo).length ? (
+            <div className="flex items-center gap-2">
+              {/* <span className="text-sm text-gray-600">Xin chào</span>
+              <span className="text-xl text-cyan-600 font-bold">{profileInfo?.data?.email}</span> */}
               <Dropdown overlay={menu} trigger={['hover']} placement="bottomRight">
-                <div className="flex items-center cursor-pointer transition-transform duration-150 hover:scale-[1.01]">
-                  <div className="ml-3 flex flex-col text-right">
-                    <span className="text-sm text-gray-600">Xin chào</span>
-                    <span className="text-xl text-cyan-600 font-bold">{profileInfo?.data?.email}</span>
-                  </div>
-                  <div className="ml-2">
-                    <Avatar icon={<UserOutlined />} size={32} />
-                  </div>
-                </div>
+                <Avatar icon={<UserOutlined />} size={42} className="cursor-pointer" />
               </Dropdown>
             </div>
-          </>
-
-          :
-          <div className="flex gap-4">
-            <Button
-              type="primary"
-              className="bg-blue-500 hover:bg-blue-600"
-              onClick={() => navigate("/login")}
-            >
-              Đăng nhập
-            </Button>
-            <Button
-              type="default"
-              className="border-blue-500 text-blue-500 hover:bg-blue-50"
-              onClick={() => navigate("/register")}
-            >
-              Đăng ký
-            </Button>
-          </div>
-        }
+          ) : (
+            <div className="flex gap-2">
+              <Button
+                type="primary"
+                className="bg-blue-500 hover:bg-blue-600"
+                onClick={() => navigate("/login")}
+              >
+                Đăng nhập
+              </Button>
+              <Button
+                type="default"
+                className="border-blue-500 text-blue-500 hover:bg-blue-50"
+                onClick={() => navigate("/register")}
+              >
+                Đăng ký
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

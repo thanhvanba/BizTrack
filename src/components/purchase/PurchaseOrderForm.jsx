@@ -392,6 +392,7 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
               <Col flex="1 1 120px">
                 <InputNumber
                   min={0}
+                  step={1000}
                   value={detail.price}
                   style={{ width: '100%' }}
                   formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}

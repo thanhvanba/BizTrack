@@ -253,15 +253,16 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
               <Button>Xuất file</Button>
             </Col>
             <Col>
-              <Button
-                icon={<EditOutlined />}
-                type="primary"
-                style={{ marginRight: 8 }}
-                onClick={() => navigate(`/edit-order/${order_id}`)}
-              >
-                Chỉnh sửa
-              </Button>
-
+              {order_status === "Mới" &&
+                <Button
+                  icon={<EditOutlined />}
+                  type="primary"
+                  style={{ marginRight: 8 }}
+                  onClick={() => navigate(`/edit-order/${order_id}`)}
+                >
+                  Chỉnh sửa
+                </Button>
+              }
               {order_status === "Hoàn tất" && (
                 <Tooltip
                   title={
