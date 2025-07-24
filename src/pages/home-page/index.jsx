@@ -3,11 +3,15 @@ import { Button, Card, Typography, Space, Row, Col } from 'antd';
 import { ShoppingCartOutlined, UserOutlined, ShoppingOutlined, ContainerOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import logoBizTrack from '../../assets/logo-biztrack-2.png';
+import { useSelector } from "react-redux";
 
 const { Title, Paragraph, Text } = Typography;
 
 export default function HomePage() {
     const navigate = useNavigate();
+    const userInfo = useSelector(state => state.user.userInfo);
+    const isLoggedIn = !!userInfo?.data?.email || !!localStorage.getItem('access_token');
+    console.log("🚀 ~ isLoggedIn:", isLoggedIn)
 
     const handleLogin = () => {
         navigate('/login');
@@ -67,25 +71,38 @@ export default function HomePage() {
                     </Paragraph>
                 </div>
                 <div className="max-w-md mx-auto mb-8">
-                    <Button
-                        type="primary"
-                        size="large"
-                        className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700"
-                        onClick={handleLogin}
-                    >
-                        Đăng nhập để sử dụng
-                    </Button>
-                    <div className="text-center pt-4">
-                        <Text className="text-sm text-gray-600">
-                            Chưa có tài khoản?{" "}
-                            <Text
-                                className="text-blue-600 hover:underline font-medium cursor-pointer"
-                                onClick={handleRegister}
+                    {isLoggedIn ? (
+                        <Button
+                            type="primary"
+                            size="large"
+                            className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700"
+                            onClick={() => navigate("/dashboard")}
+                        >
+                            Vào trang quản lý
+                        </Button>
+                    ) : (
+                        <>
+                            <Button
+                                type="primary"
+                                size="large"
+                                className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700"
+                                onClick={handleLogin}
                             >
-                                Đăng ký ngay
-                            </Text>
-                        </Text>
-                    </div>
+                                Đăng nhập để sử dụng
+                            </Button>
+                            <div className="text-center pt-4">
+                                <Text className="text-sm text-gray-600">
+                                    Chưa có tài khoản?{" "}
+                                    <Text
+                                        className="text-blue-600 hover:underline font-medium cursor-pointer"
+                                        onClick={handleRegister}
+                                    >
+                                        Đăng ký ngay
+                                    </Text>
+                                </Text>
+                            </div>
+                        </>
+                    )}
                 </div>
                 {/* <Button
                                 size="large"

@@ -22,11 +22,14 @@ export default function PurchaseManagement() {
     const dispatch = useDispatch()
     const mockWarehouses = useSelector(state => state.warehouse.warehouses.data)
 
+    const isReturnPage = location.pathname.includes('purchase-return');
+
     const handleTabChange = (tab) => {
         setActiveTab(tab);
         setSearchParams({ tab });
     };
 
+    // Đơn nhập hàng
     const handleCreatePurchaseOrder = async (order) => {
         try {
             if (selectedOrder) {
@@ -101,39 +104,102 @@ export default function PurchaseManagement() {
             setLoading(false)
         }
     }
+
+    // Đơn trả hàng nhập
+    const handleCreatePurchaseReturn = async (data) => {
+        try {
+            await purchaseOrderService.createReturn(data);
+            useToastNotify("Tạo đơn trả hàng nhập thành công", "success");
+            fetchPurchaseReturn();
+            setActiveTab("list");
+        } catch (error) {
+            useToastNotify("Có lỗi khi tạo đơn trả hàng nhập", "error");
+        }
+    };
+    const handleEditPurchaseReturn = async (returnId, data) => {
+        try {
+            await purchaseOrderService.updateReturn(returnId, data);
+            useToastNotify("Cập nhật đơn trả hàng nhập thành công", "success");
+            fetchPurchaseReturn();
+            setActiveTab("list");
+        } catch (error) {
+            useToastNotify("Có lỗi khi cập nhật đơn trả hàng nhập", "error");
+        }
+    };
+    const handleDeletePurchaseReturn = async (returnId) => {
+        try {
+            await purchaseOrderService.deleteReturn(returnId);
+            useToastNotify("Xóa đơn trả hàng nhập thành công", "success");
+            fetchPurchaseReturn();
+        } catch (error) {
+            useToastNotify("Có lỗi khi xóa đơn trả hàng nhập", "error");
+        }
+    };
+    // Duyệt đơn trả hàng nhập
+    const handleApprovePurchaseReturn = async (returnId) => {
+        try {
+            await purchaseOrderService.approveReturn(returnId);
+            useToastNotify("Duyệt đơn trả hàng nhập thành công", "success");
+            fetchPurchaseReturn();
+        } catch (error) {
+            useToastNotify("Lỗi khi duyệt đơn trả hàng nhập", "error");
+        }
+    };
+    // Lấy danh sách đơn trả hàng nhập
+    const fetchPurchaseReturn = async () => {
+        setLoading(true);
+        try {
+            const res = await purchaseOrderService.getReturns();
+            if (res && res.data) {
+                setPurchaseOrders(res.data);
+            } else {
+                useToastNotify("Không thể tải danh sách đơn trả hàng nhập", 'error');
+            }
+        } catch (error) {
+            useToastNotify("Lỗi khi tải danh sách đơn trả hàng nhập", 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        fetchPurchaseOrder()
+        if (isReturnPage) {
+            fetchPurchaseReturn();
+        } else {
+            fetchPurchaseOrder();
+        }
         dispatch(fetchWarehouses());
-    }, [])
+    }, [isReturnPage]);
     return (
         <div className="max-w-7xl mx-auto">
             <Title
                 level={2}
                 className="text-xl md:text-2xl font-bold m-0 text-gray-800"
             >
-                {location.pathname.includes('purchase-return') ? 'Quản lý trả hàng nhập' : 'Quản lý nhập hàng'}
+                {isReturnPage ? 'Quản lý trả hàng nhập' : 'Quản lý nhập hàng'}
             </Title>
 
             <div className="bg-white p-4 rounded-lg shadow">
                 <Tabs activeKey={activeTab} onChange={handleTabChange}>
-                    <TabPane tab={`${location.pathname.includes('purchase-return') ? 'Danh sách đơn trả hàng nhập' : 'Danh sách đơn nhập hàng'}`} key="list">
+                    <TabPane tab={`${isReturnPage ? 'Danh sách đơn trả hàng nhập' : 'Danh sách đơn nhập hàng'}`} key="list">
                         {activeTab === "list" && (
                             <PurchaseOrderList
                                 loading={loading}
                                 purchaseOrders={purchaseOrders}
-                                onEdit={handleEditPurchaseOrder}
-                                onApprove={handleApprovePurchaseOrder}
+                                onEdit={isReturnPage ? handleEditPurchaseReturn : handleEditPurchaseOrder}
+                                onApprove={isReturnPage ? handleApprovePurchaseReturn : handleApprovePurchaseOrder}
                                 onCreateNew={() => {
                                     setSelectedOrder(null)
                                     handleTabChange("form")
                                 }}
+                                onDelete={isReturnPage ? handleDeletePurchaseReturn : undefined}
                             />
                         )}
                     </TabPane>
-                    <TabPane tab={`${location.pathname.includes('purchase-return') ? "Tạo đơn trả hàng nhập" : "Tạo đơn nhập hàng"}`} key="form">
+                    <TabPane tab={`${isReturnPage ? "Tạo đơn trả hàng nhập" : "Tạo đơn nhập hàng"}`} key="form">
                         {activeTab === "form" && (
                             <PurchaseOrderForm
-                                onSubmit={handleCreatePurchaseOrder}
+                                onSubmit={isReturnPage ? handleCreatePurchaseReturn : handleCreatePurchaseOrder}
                                 initialValues={selectedOrder}
                                 onCancel={handleCancelEdit}
                             />

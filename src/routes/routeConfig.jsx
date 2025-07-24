@@ -13,6 +13,7 @@ import TransferManagement from '../pages/warehouse-management/TransferManagement
 import SupplierManagement from '../pages/warehouse-management/SupplierManagement';
 import ReturnOrderPage from '../pages/order-management/ReturnOrderPage';
 import HomePage from '../pages/home-page';
+import CashBookPage from '../pages/cash-book';
 
 export const homeRoute = { path: '', element: <HomePage /> };
 
@@ -34,4 +35,5 @@ export const privateRoutes = [
   { path: 'purchase-return', element: <PurchaseManagement /> },
   { path: 'transfer', element: <TransferManagement /> },
   { path: 'suppliers', element: <SupplierManagement /> },
+  { path: 'cash-book', element: <CashBookPage />, },
 ];

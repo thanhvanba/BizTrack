@@ -1,52 +1,39 @@
 import { useState } from "react";
-import { Table, Tag, Input, Button, Modal } from "antd";
+import { Table, Tag, Input, Button } from "antd";
 import { SearchOutlined, PlusOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
-import PurchaseOrderDetail from "./PurchaseOrderDetail";
+import ExpandedPurchaseOrderTabs from "./ExpandedPurchaseOrderTabs";
 import purchaseOrderService from "../../service/purchaseService";
 import { useLocation } from "react-router-dom";
 
-export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onApprove, onCreateNew }) {
-  const location = useLocation()
+export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onApprove, onCreateNew, onDelete }) {
+  const location = useLocation();
+  const isReturnPage = location.pathname.includes('purchase-return');
   const mockWarehouses = useSelector(state => state.warehouse.warehouses.data);
   const warehouseMap = new Map(
     mockWarehouses?.map(wh => [wh.warehouse_id, wh.warehouse_name])
   );
 
   const [searchText, setSearchText] = useState("");
-  const [detailVisible, setDetailVisible] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-
-  const handleViewDetail = async (id) => {
-    const res = await purchaseOrderService.getPurchaseOrderDetail(id);
-
-    if (res && res.data) {
-      const warehouse = mockWarehouses.find(w => w.warehouse_id === res.data.warehouse_id);
-      const dataWithWarehouseName = {
-        ...res.data,
-        warehouse_name: warehouse ? warehouse.warehouse_name : 'Không rõ'
-      };
-      setSelectedOrder(dataWithWarehouseName);
-      setDetailVisible(true);
-    }
-  };
+  const [expandedRowKeys, setExpandedRowKeys] = useState([]);
 
   const handleApprove = (order) => {
-    if (confirm(`Bạn có chắc chắn muốn phê duyệt đơn nhập hàng ${order.po_id}?`)) {
-      onApprove(order.po_id)
+    if (confirm(`Bạn có chắc chắn muốn phê duyệt đơn nhập hàng ${isReturnPage ? order.return_id : order.po_id}?`)) {
+      onApprove(isReturnPage ? order.return_id : order.po_id)
     }
   }
 
   const filteredOrders = purchaseOrders.map(po => ({
     ...po,
-    warehouse_name: warehouseMap.get(po.warehouse_id) || 'Unknown',
+    warehouse_name: warehouseMap.get(po.warehouse_id || po.details[0]?.warehouse_id) || 'Unknown',
   }));
 
   const columns = [
     {
-      title: 'Mã đơn',
-      dataIndex: 'po_id',
-      key: 'po_id',
+      title: isReturnPage ? 'Mã trả hàng' : 'Mã đơn',
+      dataIndex: isReturnPage ? 'return_id' : 'po_id',
+      key: isReturnPage ? 'return_id' : 'po_id',
+      render: (id, record) => isReturnPage ? record.return_id : record.po_id,
     },
     {
       title: 'Nhà cung cấp',
@@ -62,16 +49,21 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
-      render: (status) => (
-        <Tag color={status === "draft" ? "orange" : "green"}>
-          {status === "draft" ? "Chờ duyệt" : "Đã nhập"}
-        </Tag>
-      ),
+      render: (status, record) =>
+        isReturnPage ? (
+          <Tag color={status === "pending" ? "orange" : "green"}>
+            {status === "pending" ? "Chờ duyệt" : "Đã trả"}
+          </Tag>
+        ) : (
+          <Tag color={status === "draft" ? "orange" : "green"}>
+            {status === "draft" ? "Chờ duyệt" : "Đã nhập"}
+          </Tag>
+        ),
     },
     {
-      title: 'Ngày phê duyệt',
-      dataIndex: 'posted_at',
-      key: 'posted_at',
+      title: isReturnPage ? 'Ngày tạo' : 'Ngày phê duyệt',
+      dataIndex: isReturnPage ? 'created_at' : 'posted_at',
+      key: isReturnPage ? 'created_at' : 'posted_at',
       render: (date) => date ? new Date(date).toLocaleDateString() : "-",
     },
     {
@@ -79,10 +71,10 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
       key: 'action',
       render: (_, record) => (
         <div className="flex space-x-2">
-          <Button type="link" onClick={() => handleViewDetail(record.po_id)}>
+          {/* <Button type="link" onClick={() => handleViewDetail(record.po_id)}>
             Chi tiết
-          </Button>
-          {record.status === "draft" && (
+          </Button> */}
+          {record.status === "draft" || record.status === "pending" && (
             <>
               <Button type="link" onClick={() => onEdit(record)}>
                 Sửa
@@ -119,7 +111,7 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
           icon={<PlusOutlined />}
           onClick={onCreateNew}
         >
-          {location.pathname.includes('purchase-return') ? 'Tạo đơn trả hàng nhập' : 'Tạo đơn nhập hàng'}
+          {isReturnPage ? 'Tạo đơn trả hàng nhập' : 'Tạo đơn nhập hàng'}
         </Button>
       </div>
 
@@ -127,21 +119,26 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
         loading={loading}
         columns={columns}
         dataSource={filteredOrders}
-        rowKey="po_id"
+        rowKey={isReturnPage ? 'return_id' : 'po_id'}
         locale={{
-          emptyText: 'Không có đơn nhập hàng nào'
+          emptyText: isReturnPage ? 'Không có đơn trả hàng nhập nào' : 'Không có đơn nhập hàng nào'
         }}
+        expandable={{
+          expandedRowRender: (record) => <ExpandedPurchaseOrderTabs record={record} />,
+          expandedRowKeys,
+          onExpand: (expanded, record) => {
+            const key = isReturnPage ? record.return_id : record.po_id;
+            setExpandedRowKeys(expanded ? [key] : []);
+          },
+        }}
+        onRow={(record) => ({
+          onClick: () => {
+            const key = isReturnPage ? record.return_id : record.po_id;
+            setExpandedRowKeys(expandedRowKeys.includes(key) ? [] : [key]);
+          },
+          className: "cursor-pointer",
+        })}
       />
-
-      <Modal
-        title={`Chi tiết đơn nhập hàng: ${selectedOrder?.po_id}`}
-        open={detailVisible}
-        onCancel={() => setDetailVisible(false)}
-        footer={null}
-        width="80%"
-      >
-        {selectedOrder && <PurchaseOrderDetail order={selectedOrder} />}
-      </Modal>
     </div>
   );
 }

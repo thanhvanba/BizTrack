@@ -140,6 +140,7 @@ const ProductCategory = () => {
         loading={loading}
         dataSource={categories}
         columns={columns}
+        size="middle"
         pagination={{ pageSize: 10 }}
         rowClassName="hover:bg-gray-50 transition-colors"
       />

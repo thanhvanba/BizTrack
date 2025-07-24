@@ -135,11 +135,6 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
                           : 'Không thành công'}
                     </Tag>
                   )}
-
-                {!location.pathname.includes('return-order') &&
-                  <Text type="danger">
-                    (Công nợ đơn hàng: {formatPrice(remaining_value)})
-                  </Text>}
               </Title>
             </Col>
             <Col>
@@ -216,13 +211,13 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
               <Row className="mb-2">
                 <Col span={18}>{location.pathname.includes('return-order') ? 'Đã trả khách' : 'Khách đã trả'}</Col>
                 <Col span={6} className="text-right">
-                  {formatPrice((amount_paid) || record?.total_refund)}
+                  {formatPrice((amount_paid))}
                 </Col>
               </Row>
               <Row className="text-red-500">
                 <Col span={18}>{location.pathname.includes('return-order') ? 'Cần trả khách' : 'Khách cần trả'}</Col>
                 <Col span={6} className="text-right">
-                  {formatPrice((final_amount) - (amount_paid))}
+                  {formatPrice((final_amount - amount_paid) || record?.total_refund)}
                 </Col>
               </Row>
             </div>

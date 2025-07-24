@@ -71,7 +71,7 @@ const MainLayout = () => {
                 },
             }}
         >
-            <Layout className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-gray-50">
                 {/* Sidebar chỉ cho mobile */}
                 {mobileView && (
                     <Drawer
@@ -91,24 +91,24 @@ const MainLayout = () => {
                 )}
                 {/* Header luôn hiển thị */}
                 <div className="bg-white sticky top-0 z-10 h-auto">
-                    <Header 
-                        onToggleMobileDrawer={toggleMobileDrawer} 
-                        isMobile={mobileView} 
+                    <Header
+                        onToggleMobileDrawer={toggleMobileDrawer}
+                        isMobile={mobileView}
                         activeTab={activeTab}
                         setActiveTab={handleMenuClick}
                     />
                 </div>
                 <Content>
                     <div className="p-3 md:p-6 transition-all duration-300 animate-fadeIn h-[89vh] overflow-y-auto">
-                        <Outlet context={{ mobileView }} />
+                        <Outlet context={{}} />
                     </div>
                 </Content>
                 {/* Session Expired Modal */}
-                <SessionExpiredModal 
-                    visible={sessionExpiredVisible} 
-                    onOk={handleSessionExpiredOk} 
+                <SessionExpiredModal
+                    visible={sessionExpiredVisible}
+                    onOk={handleSessionExpiredOk}
                 />
-            </Layout>
+            </div>
         </ConfigProvider>
     );
 };

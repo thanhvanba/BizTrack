@@ -172,6 +172,7 @@ const WarehouseManagement = () => {
           columns={columns}
           dataSource={filteredData}
           pagination={{ pageSize: 5 }}
+          size="middle"
           rowClassName="hover:bg-gray-50"
           locale={{ emptyText: "Không có kho nào" }}
         />
