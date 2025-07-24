@@ -3,10 +3,11 @@ import axiosService from '../axiosService';
 
 
 const purchaseOrderService = {
-    getAllPurchaseOrders: async () => {
+    getAllPurchaseOrders: async (params) => {
         return axiosService()({
             url: PURCHASE_ORDERS_URL,
             method: 'GET',
+            params,
         })
             .then(res => res.data)
             .catch(error => { throw error; });

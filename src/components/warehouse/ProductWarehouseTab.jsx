@@ -2,6 +2,7 @@ import { Table } from "antd";
 import { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import productReportService from "../../service/productService";
+import LoadingLogo from "../LoadingLogo";
 
 const columns = [
     {
@@ -79,7 +80,7 @@ const ProductWarehouseTab = ({ productId, warehouseId }) => {
                 dataSource={data}
                 rowKey="chung_tu"
                 size="small"
-                loading={loading}
+                loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
                 pagination={false}
             />
         </div>

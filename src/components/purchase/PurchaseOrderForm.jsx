@@ -332,7 +332,7 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
                 filterOption={false}
                 notFoundContent={
                   fetching
-                    ? <Spin size="small" />
+                    ? <LoadingLogo size={40} className="mx-auto my-8" />
                     : <span style={{ color: '#888' }}>Không tìm thấy sản phẩm</span>
                 }
                 style={{ width: '100%' }}

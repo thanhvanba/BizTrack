@@ -33,6 +33,7 @@ import dayjs from "dayjs";
 import OrderStatusTabs from "../../components/order/OrderStatusTabs";
 import orderDetailService from "../../service/orderDetailService";
 import ExpandedOrderTabs from "../../components/order/ExpandedOrderTabs";
+import LoadingLogo from "../../components/LoadingLogo";
 
 const { Title } = Typography;
 
@@ -410,7 +411,7 @@ const OrderManagement = () => {
         </div>
         <OrderStatusTabs onChange={handleChangeTabs} />
         <Table
-          loading={loading}
+          loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
           columns={columns}
           rowKey='order_id'
           dataSource={ordersData}

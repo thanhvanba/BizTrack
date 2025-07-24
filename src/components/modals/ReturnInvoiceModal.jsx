@@ -6,6 +6,7 @@ import useToastNotify from "../../utils/useToastNotify";
 import orderService from "../../service/orderService";
 import formatPrice from "../../utils/formatPrice";
 import invoiceService from "../../service/invoiceService";
+import LoadingLogo from "../LoadingLogo";
 
 const { RangePicker } = DatePicker;
 
@@ -145,6 +146,7 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
         <div className="w-3/4">
           <Table
             columns={columns}
+            loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
             dataSource={ordersData}
             pagination={{
               current: pagination.current,

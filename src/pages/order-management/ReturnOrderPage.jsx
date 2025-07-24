@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import useToastNotify from '../../utils/useToastNotify';
 import orderService from '../../service/orderService';
 import formatPrice from '../../utils/formatPrice';
+import LoadingLogo from '../../components/LoadingLogo';
 
 const { Search } = Input;
 
@@ -185,7 +186,7 @@ const ReturnOrderPage = () => {
             <Table
                 rowKey="return_id"
                 dataSource={ordersReturnData}
-                loading={loading || loadingApprove}
+                loading={(loading || loadingApprove) ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
                 columns={columns}
                 pagination={{
                     current: pagination.current,

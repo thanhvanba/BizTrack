@@ -2,10 +2,11 @@ import { WAREHOUSES_URL } from "../apiUrl";
 import axiosService from "../axiosService";
 
 const warehouseService = {
-  getAllWarehouses: async () => {
+  getAllWarehouses: async (params) => {
     return axiosService()({
       url: WAREHOUSES_URL,
       method: 'GET',
+      params,
     })
       .then(res => res.data)
       .catch(error => { throw error; });

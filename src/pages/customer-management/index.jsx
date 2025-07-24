@@ -8,6 +8,7 @@ import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal"
 import { debounce } from "lodash"
 import searchService from "../../service/searchService"
 import ExpandedCustomerTabs from "../../components/customer/ExpandedCustomerTabs"
+import LoadingLogo from "../../components/LoadingLogo"
 
 const { Title } = Typography
 
@@ -212,7 +213,7 @@ const CustomerManagement = () => {
         </div>
 
         <Table
-          loading={loading}
+          loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
           columns={columns}
           dataSource={customers}
           rowKey='customer_id'

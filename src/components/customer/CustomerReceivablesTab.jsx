@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import customerService from "../../service/customerService";
 import formatPrice from "../../utils/formatPrice";
 import DebtAdjustmentModal from "../modals/DebtAdjustment";
+import LoadingLogo from '../LoadingLogo';
 
 const statusMap = {
     pending: 'Tạo đơn hàng',
@@ -80,7 +81,7 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
     return (
         <div>
             <Table
-                loading={loading}
+                loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
                 columns={columns}
                 dataSource={customerTransactions}
                 pagination={false}

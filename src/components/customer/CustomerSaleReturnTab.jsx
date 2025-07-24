@@ -1,4 +1,5 @@
 import { Table, Tag } from "antd";
+import LoadingLogo from "../LoadingLogo";
 const columns = [
   { title: "Mã hóa đơn", dataIndex: "code", key: "code" },
   { title: "Thời gian", dataIndex: "date", key: "date" },
@@ -57,7 +58,7 @@ const columns = [
 const CustomerSaleReturnTab = ({ dataSource, loading }) => {
   return (
     <Table
-      loading={loading}
+      loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
       columns={columns}
       dataSource={dataSource}
       pagination={false} // Tùy chọn: bạn có thể bật phân trang nếu muốn

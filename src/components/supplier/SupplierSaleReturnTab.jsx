@@ -1,6 +1,7 @@
 import { Table, Tag } from "antd";
 import supplierService from "../../service/supplierService";
 import { useEffect, useState } from "react";
+import LoadingLogo from "../LoadingLogo";
 
 const columns = [
   { title: "Mã hóa đơn", dataIndex: "code", key: "code" },
@@ -39,7 +40,7 @@ const data = [
   { key: "5", code: "HD000042", date: "01/06/2025 15:42", seller: "Hương - Kế Toán", total: 30095000, status: "Hoàn thành" },
 ];
 
-const SupplierReceivablesTab = ({supplierId}) => {
+const SupplierReceivablesTab = ({ supplierId }) => {
   console.log("🚀 ~ CustomerSaleReturnTab ~ customerData:", supplierId);
 
   const [loading, setLoading] = useState(true);
@@ -71,7 +72,7 @@ const SupplierReceivablesTab = ({supplierId}) => {
 
     fetchSupplierHistory();
   }, [supplierId]);
-  return <Table columns={columns} dataSource={data} pagination={false} size="middle" scroll={{ x: 800 }} />;
+  return <Table columns={columns} loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false} dataSource={data} pagination={false} size="middle" scroll={{ x: 800 }} />;
 };
 
 export default SupplierReceivablesTab;

@@ -16,8 +16,19 @@ export default function PurchaseManagement() {
 
     const [activeTab, setActiveTab] = useState(initialTab)
     const [purchaseOrders, setPurchaseOrders] = useState([])
+    console.log("🚀 ~ PurchaseManagement ~ purchaseOrders:", purchaseOrders)
     const [selectedOrder, setSelectedOrder] = useState(null)
     const [loading, setLoading] = useState(false)
+    const [paginationPurchase, setPaginationPurchase] = useState({
+        current: 1,
+        pageSize: 5,
+        total: 0,
+    });
+    const [paginationReturn, setPaginationReturn] = useState({
+        current: 1,
+        pageSize: 3,
+        total: 0,
+    });
 
     const dispatch = useDispatch()
     const mockWarehouses = useSelector(state => state.warehouse.warehouses.data)
@@ -89,12 +100,19 @@ export default function PurchaseManagement() {
         setActiveTab("list")
     }
 
-    const fetchPurchaseOrder = async () => {
+    const fetchPurchaseOrder = async (page = paginationPurchase.current, limit = paginationPurchase.pageSize) => {
         setLoading(true)
         try {
-            const res = await purchaseOrderService.getAllPurchaseOrders()
+            const res = await purchaseOrderService.getAllPurchaseOrders({ page, limit });
             if (res && res.data) {
                 setPurchaseOrders(res.data)
+                if (res.pagination) {
+                    setPaginationPurchase({
+                        current: res.pagination.currentPage || res.pagination.page,
+                        pageSize: res.pagination.pageSize,
+                        total: res.pagination.total,
+                    });
+                }
             } else {
                 useToastNotify("Không thể tải danh sách đơn nhập hàng", 'error')
             }
@@ -146,12 +164,19 @@ export default function PurchaseManagement() {
         }
     };
     // Lấy danh sách đơn trả hàng nhập
-    const fetchPurchaseReturn = async () => {
+    const fetchPurchaseReturn = async (page = paginationReturn.current, limit = paginationReturn.pageSize) => {
         setLoading(true);
         try {
-            const res = await purchaseOrderService.getReturns();
+            const res = await purchaseOrderService.getReturns({ page, limit });
             if (res && res.data) {
                 setPurchaseOrders(res.data);
+                if (res.pagination) {
+                    setPaginationReturn({
+                        current: res.pagination.currentPage || res.pagination.page,
+                        pageSize: res.pagination.pageSize,
+                        total: res.pagination.total,
+                    });
+                }
             } else {
                 useToastNotify("Không thể tải danh sách đơn trả hàng nhập", 'error');
             }
@@ -159,6 +184,17 @@ export default function PurchaseManagement() {
             useToastNotify("Lỗi khi tải danh sách đơn trả hàng nhập", 'error');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleTableChange = (paginationInfo) => {
+        const { current, pageSize } = paginationInfo;
+        if (isReturnPage) {
+            setPaginationReturn((prev) => ({ ...prev, current, pageSize }));
+            fetchPurchaseReturn(current, pageSize);
+        } else {
+            setPaginationPurchase((prev) => ({ ...prev, current, pageSize }));
+            fetchPurchaseOrder(current, pageSize);
         }
     };
 
@@ -193,6 +229,8 @@ export default function PurchaseManagement() {
                                     handleTabChange("form")
                                 }}
                                 onDelete={isReturnPage ? handleDeletePurchaseReturn : undefined}
+                                pagination={isReturnPage ? paginationReturn : paginationPurchase}
+                                onChange={handleTableChange}
                             />
                         )}
                     </TabPane>

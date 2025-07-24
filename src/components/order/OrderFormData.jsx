@@ -35,6 +35,7 @@ import orderDetailService from "../../service/orderDetailService";
 import dayjs from "dayjs";
 import calculateRefund from "../../utils/calculateRefund";
 import useToastNotify from "../../utils/useToastNotify";
+import LoadingLogo from "../LoadingLogo";
 
 const { Option } = Select;
 const { Text } = Typography;
@@ -833,7 +834,7 @@ const OrderFormData = ({
   if (loading) {
     return (
       <div className="flex justify-center mt-10">
-        <Spin size="large" />
+        <LoadingLogo size={40} className="mx-auto my-8" />
       </div>
     );
   }

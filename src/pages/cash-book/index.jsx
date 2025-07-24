@@ -1,5 +1,7 @@
 import { Table, Input, Button, Typography, Space } from 'antd';
 import { PlusOutlined, FileExcelOutlined, SettingOutlined, StarOutlined } from '@ant-design/icons';
+import CashBookExpandedTabs from './CashBookExpandedTabs';
+import { useState } from 'react';
 
 const { Search } = Input;
 
@@ -56,18 +58,6 @@ const dataSource = [
 
 const columns = [
   {
-    title: '',
-    dataIndex: 'select',
-    render: () => <input type="checkbox" />,
-    width: 40,
-  },
-  {
-    title: '',
-    dataIndex: 'star',
-    render: () => <StarOutlined style={{ color: '#d1d5db' }} />,
-    width: 40,
-  },
-  {
     title: 'Mã phiếu',
     dataIndex: 'code',
   },
@@ -96,6 +86,7 @@ const columns = [
 ];
 
 export default function CashBookPage() {
+  const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   return (
     <div className="p-4 bg-white rounded-lg shadow">
       {/* Thanh công cụ */}
@@ -116,7 +107,7 @@ export default function CashBookPage() {
         </div>
         <div>
           <div className="text-xs text-gray-500">Tổng thu</div>
-          <div className="font-bold text-lg text-blue-500">264,461,000</div>
+          <div className="font-bold text-lg text-green-500">264,461,000</div>
         </div>
         <div>
           <div className="text-xs text-gray-500">Tổng chi</div>
@@ -124,7 +115,7 @@ export default function CashBookPage() {
         </div>
         <div>
           <div className="text-xs text-gray-500">Tồn quỹ</div>
-          <div className="font-bold text-lg text-green-600">-27,090,000</div>
+          <div className="font-bold text-lg text-blue-600">-27,090,000</div>
         </div>
       </div>
       {/* Bảng dữ liệu */}
@@ -134,6 +125,19 @@ export default function CashBookPage() {
         pagination={false}
         rowKey="code"
         size="middle"
+        expandable={{
+          expandedRowRender: (record) => <CashBookExpandedTabs record={record} />,
+          expandedRowKeys,
+          onExpand: (expanded, record) => {
+            setExpandedRowKeys(expanded ? [record.code] : []);
+          },
+        }}
+        onRow={(record) => ({
+          onClick: () => {
+            setExpandedRowKeys(expandedRowKeys.includes(record.code) ? [] : [record.code]);
+          },
+          className: "cursor-pointer",
+        })}
       />
     </div>
   );

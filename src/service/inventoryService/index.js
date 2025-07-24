@@ -3,10 +3,11 @@ import { INVENTORY_URL } from '../apiUrl'
 
 const inventoryService = {
 
-    getAllInventories: async () => {
+    getAllInventories: async (params) => {
         return axiosService()({
             url: INVENTORY_URL,
             method: 'GET',
+            params,
         })
             .then(res => res.data)
             .catch(error => { throw error; });
@@ -21,10 +22,11 @@ const inventoryService = {
             .catch(error => { throw error; });
     },
 
-    getInventoryByWarehouseId: async (id) => {
+    getInventoryByWarehouseId: async (id, params) => {
         return axiosService()({
             url: `${INVENTORY_URL}/${id}/warehouses`,
             method: 'GET',
+            params,
         })
             .then(res => res.data)
             .catch(error => { throw error; });

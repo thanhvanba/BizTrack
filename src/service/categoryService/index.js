@@ -3,10 +3,11 @@ import axiosService from '../axiosService';
 
 const categoryService = {
 
-    getAllCategories: async () => {
+    getAllCategories: async (params) => {
         return axiosService()({
             url: CATEGORIES_URL,
             method: 'GET',
+            params,
         })
             .then(res => res.data)
             .catch(error => { throw error; });

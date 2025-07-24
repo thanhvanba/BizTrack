@@ -26,6 +26,7 @@ import orderService from "../../service/orderService"
 import formatPrice from '../../utils/formatPrice'
 import { useNavigate } from "react-router-dom"
 import dayjs from "dayjs"
+import RecentActivities from "./RecentActivities"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
@@ -312,132 +313,138 @@ const Dashboard = () => {
         revenueMoM,
     } = analysisData;
     return (
-        <div>
-            {/* <h1 className="text-2xl font-bold mb-6 text-gray-800 absolute z-20 top-6 left-4">Tổng quan</h1> */}
-            <Row gutter={[16, 16]}>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card
-                        className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-                        bodyStyle={{ padding: "24px" }}
-                    >
-                        <div className="flex items-start">
-                            <div className="mr-4 p-3 rounded-lg bg-gradient-to-br from-green-400 to-green-600 text-white shadow-md">
-                                <DollarOutlined className="text-xl" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 mb-1">Doanh thu</p>
-                                <p className="text-2xl font-bold text-gray-800">{formatPrice(revenue?.total_money?.total_outstanding) || 0}</p>
-                                <div className={`flex items-center text-xs ${revenueMoM > 0 ? 'text-green-600' : 'text-red-600'} mt-2`}>
-                                    {revenueMoM > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
-                                    <span className="ml-1">{Math.round(revenueMoM * 10) / 10}% so với tháng trước</span>
+        <div className="grid grid-cols-5 gap-4">
+            <div className="col-span-12 lg:col-span-4">
+                {/* <h1 className="text-2xl font-bold mb-6 text-gray-800 absolute z-20 top-6 left-4">Tổng quan</h1> */}
+                <Row gutter={[16, 16]}>
+                    <Col xs={24} sm={12} lg={6}>
+                        <Card
+                            className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
+                            bodyStyle={{ padding: "24px" }}
+                        >
+                            <div className="flex items-start">
+                                <div className="mr-4 p-3 rounded-lg bg-gradient-to-br from-green-400 to-green-600 text-white shadow-md">
+                                    <DollarOutlined className="text-xl" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Doanh thu</p>
+                                    <p className="text-2xl font-bold text-gray-800">{formatPrice(revenue?.total_money?.total_outstanding) || 0}</p>
+                                    <div className={`flex items-center text-xs ${revenueMoM > 0 ? 'text-green-600' : 'text-red-600'} mt-2`}>
+                                        {revenueMoM > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                                        <span className="ml-1">{Math.round(revenueMoM * 10) / 10}% so với tháng trước</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card
-                        className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-                        bodyStyle={{ padding: "24px" }}
-                    >
-                        <div className="flex items-start">
-                            <div className="mr-4 p-3 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-md">
-                                <UserOutlined className="text-xl" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 mb-1">Khách hàng</p>
-                                <p className="text-2xl font-bold text-gray-800">{totalCustomer}</p>
-                                <div className="flex items-center text-xs text-blue-600 mt-2">
-                                    <span>+{totalCustomersThisMonth} khách hàng mới trong tháng</span>
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                        <Card
+                            className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
+                            bodyStyle={{ padding: "24px" }}
+                        >
+                            <div className="flex items-start">
+                                <div className="mr-4 p-3 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-md">
+                                    <UserOutlined className="text-xl" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Khách hàng</p>
+                                    <p className="text-2xl font-bold text-gray-800">{totalCustomer}</p>
+                                    <div className="flex items-center text-xs text-blue-600 mt-2">
+                                        <span>+{totalCustomersThisMonth} khách hàng mới trong tháng</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card
-                        className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-                        bodyStyle={{ padding: "24px" }}
-                    >
-                        <div className="flex items-start">
-                            <div className="mr-4 p-3 rounded-lg bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow-md">
-                                <ShoppingOutlined className="text-xl" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 mb-1">Sản phẩm</p>
-                                <p className="text-2xl font-bold text-gray-800">{totalProduct}</p>
-                                <div className="flex items-center text-xs text-purple-600 mt-2">
-                                    <span>+{totalProductsThisMonth} sản phẩm mới trong tháng</span>
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                        <Card
+                            className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
+                            bodyStyle={{ padding: "24px" }}
+                        >
+                            <div className="flex items-start">
+                                <div className="mr-4 p-3 rounded-lg bg-gradient-to-br from-purple-400 to-purple-600 text-white shadow-md">
+                                    <ShoppingOutlined className="text-xl" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Sản phẩm</p>
+                                    <p className="text-2xl font-bold text-gray-800">{totalProduct}</p>
+                                    <div className="flex items-center text-xs text-purple-600 mt-2">
+                                        <span>+{totalProductsThisMonth} sản phẩm mới trong tháng</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                    <Card
-                        className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-                        bodyStyle={{ padding: "24px" }}
-                    >
-                        <div className="flex items-start">
-                            <div className="mr-4 p-3 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-md">
-                                <ShoppingCartOutlined className="text-xl" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500 mb-1">Đơn hàng</p>
-                                <p className="text-2xl font-bold text-gray-800">{orderData?.pagination?.total || 0}</p>
-                                <div className="flex items-center text-xs text-orange-600 mt-2">
-                                    <span>+{totalOrdersThisMonth} đơn hàng mới trong tháng</span>
+                        </Card>
+                    </Col>
+                    <Col xs={24} sm={12} lg={6}>
+                        <Card
+                            className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
+                            bodyStyle={{ padding: "24px" }}
+                        >
+                            <div className="flex items-start">
+                                <div className="mr-4 p-3 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-md">
+                                    <ShoppingCartOutlined className="text-xl" />
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-500 mb-1">Đơn hàng</p>
+                                    <p className="text-2xl font-bold text-gray-800">{orderData?.pagination?.total || 0}</p>
+                                    <div className="flex items-center text-xs text-orange-600 mt-2">
+                                        <span>+{totalOrdersThisMonth} đơn hàng mới trong tháng</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Card>
-                </Col>
-            </Row>
+                        </Card>
+                    </Col>
+                </Row>
 
-            <Row gutter={[16, 16]} className="mt-6">
-                <Col xs={24} lg={12}>
-                    <Card
-                        title={<span className="text-gray-800 font-bold">Doanh thu theo tháng</span>}
-                        className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-                        headStyle={{
-                            borderBottom: "1px solid #f0f0f0",
-                            padding: "16px 24px",
-                        }}
-                        bodyStyle={{ padding: "24px" }}
-                    >
-                        <div style={{ height: "280px" }}>
-                            <Line data={revenueData} options={chartOptions} />
-                        </div>
-                    </Card>
-                </Col>
-                <Col xs={24} lg={12}>
-                    <Card
-                        title={<span className="text-gray-800 font-bold">Đơn hàng gần đây</span>}
-                        extra={
-                            <div
-                                onClick={() => navigate('/orders')}
-                                className="text-blue-500 hover:text-blue-600 font-medium cursor-pointer"
-                            >
-                                Xem tất cả
+                <Row gutter={[16, 16]} className="mt-6">
+                    <Col xs={24} lg={12}>
+                        <Card
+                            title={<span className="text-gray-800 font-bold">Doanh thu theo tháng</span>}
+                            className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
+                            headStyle={{
+                                borderBottom: "1px solid #f0f0f0",
+                                padding: "16px 24px",
+                            }}
+                            bodyStyle={{ padding: "24px" }}
+                        >
+                            <div style={{ height: "280px" }}>
+                                <Line data={revenueData} options={chartOptions} />
                             </div>
-                        }
-                        className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-                        headStyle={{
-                            borderBottom: "1px solid #f0f0f0",
-                            padding: "16px 24px",
-                        }}
-                        bodyStyle={{ padding: "0" }}
-                    >
-                        <Table
-                            columns={recentOrdersColumns}
-                            dataSource={orderData?.data}
-                            pagination={false}
-                            size="middle"
-                            className="custom-table"
-                        />
-                    </Card>
-                </Col>
-            </Row>
+                        </Card>
+                    </Col>
+                    <Col xs={24} lg={12}>
+                        <Card
+                            title={<span className="text-gray-800 font-bold">Đơn hàng gần đây</span>}
+                            extra={
+                                <div
+                                    onClick={() => navigate('/orders')}
+                                    className="text-blue-500 hover:text-blue-600 font-medium cursor-pointer"
+                                >
+                                    Xem tất cả
+                                </div>
+                            }
+                            className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
+                            headStyle={{
+                                borderBottom: "1px solid #f0f0f0",
+                                padding: "16px 24px",
+                            }}
+                            bodyStyle={{ padding: "0" }}
+                        >
+                            <Table
+                                columns={recentOrdersColumns}
+                                dataSource={orderData?.data}
+                                pagination={false}
+                                size="middle"
+                                className="custom-table"
+                            />
+                        </Card>
+                    </Col>
+                </Row>
+            </div>
+
+            <div className="col-span-12 lg:col-span-1 hidden lg:block">
+                <RecentActivities warning="Có 1 hoạt động đăng nhập khác thường cần kiểm tra." />
+            </div>
         </div>
     )
 }

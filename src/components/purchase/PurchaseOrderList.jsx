@@ -5,8 +5,9 @@ import { useSelector } from "react-redux";
 import ExpandedPurchaseOrderTabs from "./ExpandedPurchaseOrderTabs";
 import purchaseOrderService from "../../service/purchaseService";
 import { useLocation } from "react-router-dom";
+import LoadingLogo from "../LoadingLogo";
 
-export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onApprove, onCreateNew, onDelete }) {
+export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onApprove, onCreateNew, onDelete, pagination, onChange }) {
   const location = useLocation();
   const isReturnPage = location.pathname.includes('purchase-return');
   const mockWarehouses = useSelector(state => state.warehouse.warehouses.data);
@@ -23,10 +24,13 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
     }
   }
 
-  const filteredOrders = purchaseOrders.map(po => ({
-    ...po,
-    warehouse_name: warehouseMap.get(po.warehouse_id || po.details[0]?.warehouse_id) || 'Unknown',
-  }));
+  const filteredOrders = purchaseOrders
+    .filter(po => (isReturnPage ? po.return_id : po.po_id))
+    .map(po => ({
+      ...po,
+      warehouse_name: warehouseMap.get(po.warehouse_id || po.details?.[0]?.warehouse_id) || 'Unknown',
+    }));
+  console.log("🚀 ~ PurchaseOrderList ~ filteredOrders:", filteredOrders)
 
   const columns = [
     {
@@ -116,7 +120,7 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
       </div>
 
       <Table
-        loading={loading}
+        loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
         columns={columns}
         dataSource={filteredOrders}
         rowKey={isReturnPage ? 'return_id' : 'po_id'}
@@ -138,6 +142,8 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
           },
           className: "cursor-pointer",
         })}
+        pagination={pagination}
+        onChange={onChange}
       />
     </div>
   );

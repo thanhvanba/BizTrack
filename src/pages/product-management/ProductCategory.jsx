@@ -6,6 +6,7 @@ import CategoryModal from "../../components/modals/CategoryModal"
 import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal"
 import categoryService from "../../service/categoryService"
 import useToastNotify from "../../utils/useToastNotify"
+import LoadingLogo from "../../components/LoadingLogo"
 
 const { Title } = Typography
 
@@ -17,13 +18,24 @@ const ProductCategory = () => {
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 5,
+    total: 0,
+  });
 
-
-  const fetchCategories = async () => {
+  const fetchCategories = async (page = pagination.current, limit = pagination.pageSize) => {
     setLoading(true)
     try {
-      const data = await categoryService.getAllCategories()
+      const data = await categoryService.getAllCategories({ page, limit })
       setCategories(data.data)
+      if (data.pagination) {
+        setPagination({
+          current: data.pagination.currentPage || data.pagination.page,
+          pageSize: data.pagination.pageSize,
+          total: data.pagination.total,
+        });
+      }
     } catch (error) {
       useToastNotify("Lỗi khi tải danh mục", "error")
     } finally {
@@ -34,6 +46,12 @@ const ProductCategory = () => {
   useEffect(() => {
     fetchCategories()
   }, [])
+
+  const handleTableChange = (paginationInfo) => {
+    const { current, pageSize } = paginationInfo;
+    setPagination((prev) => ({ ...prev, current, pageSize }));
+    fetchCategories(current, pageSize);
+  };
 
   const handleAddCategory = async (data) => {
     try {
@@ -137,11 +155,18 @@ const ProductCategory = () => {
       </div>
 
       <Table
-        loading={loading}
+        loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
         dataSource={categories}
         columns={columns}
         size="middle"
-        pagination={{ pageSize: 10 }}
+        pagination={{
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: pagination.total,
+          showSizeChanger: true,
+          pageSizeOptions: ['5', '10', '20', '50'],
+        }}
+        onChange={handleTableChange}
         rowClassName="hover:bg-gray-50 transition-colors"
       />
 

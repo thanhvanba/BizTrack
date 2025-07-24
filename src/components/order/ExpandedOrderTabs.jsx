@@ -7,6 +7,7 @@ import OrderReturnHistoryTab from "./OrderReturnHistoryTab";
 import PaymentHistory from "./PaymentHistory";
 import { useLocation } from "react-router-dom";
 import orderService from "../../service/orderService";
+import LoadingLogo from "../LoadingLogo";
 
 const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
     console.log("🚀 ~ ExpandedOrderTabs ~ record:", record)
@@ -102,7 +103,7 @@ const ExpandedOrderTabs = ({ record, onUpdateOrderStatus }) => {
         <div className="bg-white p-6 py-4 rounded-md shadow-sm">
             {loading ? (
                 <div className="flex justify-center items-center min-h-[200px]">
-                    <Spin />
+                    <LoadingLogo size={40} className="mx-auto my-8" />
                 </div>
             ) : (
                 <Tabs items={tabItems} className="mb-6" />

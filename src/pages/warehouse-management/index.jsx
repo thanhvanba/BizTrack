@@ -18,6 +18,7 @@ import warehouseService from "../../service/warehouseService"
 import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal"
 import useToastNotify from "../../utils/useToastNotify"
 import WarehouseModal from "../../components/modals/WarehouseModal"
+import LoadingLogo from "../../components/LoadingLogo"
 
 const { Title } = Typography
 
@@ -25,16 +26,28 @@ const WarehouseManagement = () => {
   const [searchText, setSearchText] = useState("")
   const [warehouses, setWarehouses] = useState([])
   const [loading, setLoading] = useState(false)
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 5,
+    total: 0,
+  });
   const [selectedWarehouse, setSelectedWarehouse] = useState(null)
   const [createModalVisible, setCreateModalVisible] = useState(false)
   const [editModalVisible, setEditModalVisible] = useState(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
 
-  const fetchWarehouses = async () => {
+  const fetchWarehouses = async (page = pagination.current, limit = pagination.pageSize) => {
     setLoading(true)
     try {
-      const response = await warehouseService.getAllWarehouses()
-      setWarehouses(response.data.map(w => ({ ...w, key: w.warehouse_id })))
+      const response = await warehouseService.getAllWarehouses({ page, limit })
+      setWarehouses(response.data)
+      if (response.pagination) {
+        setPagination({
+          current: response.pagination.currentPage || response.pagination.page,
+          pageSize: response.pagination.pageSize,
+          total: response.pagination.total,
+        })
+      }
     } catch (err) {
       useToastNotify("Không thể tải danh sách kho.", "error")
     } finally {
@@ -45,6 +58,12 @@ const WarehouseManagement = () => {
   useEffect(() => {
     fetchWarehouses()
   }, [])
+
+  const handleTableChange = (paginationInfo) => {
+    const { current, pageSize } = paginationInfo;
+    setPagination((prev) => ({ ...prev, current, pageSize }));
+    fetchWarehouses(current, pageSize);
+  };
 
   const handleCreateWarehouse = async (data) => {
     try {
@@ -168,10 +187,17 @@ const WarehouseManagement = () => {
         </div>
 
         <Table
-          loading={loading}
+          loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
           columns={columns}
           dataSource={filteredData}
-          pagination={{ pageSize: 5 }}
+          pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
+            showSizeChanger: true,
+            pageSizeOptions: ['5', '10', '20', '50'],
+          }}
+          onChange={handleTableChange}
           size="middle"
           rowClassName="hover:bg-gray-50"
           locale={{ emptyText: "Không có kho nào" }}

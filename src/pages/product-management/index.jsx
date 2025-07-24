@@ -10,6 +10,7 @@ import useToastNotify from "../../utils/useToastNotify"
 import searchService from "../../service/searchService"
 import { debounce } from "lodash"
 import formatPrice from '../../utils/formatPrice'
+import LoadingLogo from "../../components/LoadingLogo"
 
 const { Title } = Typography
 const { Option } = Select
@@ -326,7 +327,7 @@ const ProductManagement = () => {
         </div>
 
         <Table
-          loading={loading}
+          loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
           columns={columns}
           dataSource={productsData}
           pagination={{

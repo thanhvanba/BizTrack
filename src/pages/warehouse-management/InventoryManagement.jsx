@@ -23,6 +23,7 @@ import { fetchWarehouses } from "../../redux/warehouses/warehouses.slice";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import ExpandedRowContent from "../../components/warehouse/ExpandedRowContent";
+import LoadingLogo from "../../components/LoadingLogo";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -31,6 +32,12 @@ const InventoryManagement = () => {
   const [searchText, setSearchText] = useState("");
   const [inventories, setInventories] = useState([]);
   const [loading, setLoading] = useState([]);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 5,
+    total: 0,
+  });
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState("");
   console.log("🚀 ~ InventoryManagement ~ inventories:", inventories)
 
   const navigate = useNavigate()
@@ -39,12 +46,12 @@ const InventoryManagement = () => {
   const warehouses = useSelector((state) => state.warehouse.warehouses);
   console.log("🚀 ~ InventoryManagement ~ warehouses:", warehouses)
 
-  const fetchInventories = async (warehouseId) => {
+  const fetchInventories = async (warehouseId, page = pagination.current, pageSize = pagination.pageSize) => {
     setLoading(true)
     try {
       const response = warehouseId
-        ? await inventoryService.getInventoryByWarehouseId(warehouseId)
-        : await inventoryService.getAllInventories();
+        ? await inventoryService.getInventoryByWarehouseId(warehouseId, { page, limit: pageSize })
+        : await inventoryService.getAllInventories({ page, limit: pageSize });
 
       const enrichedData = response.data.map((item) => {
         const available_stock = item.product?.available_stock;
@@ -68,6 +75,14 @@ const InventoryManagement = () => {
 
       console.log("🚀 ~ enrichedData:", enrichedData);
       setInventories(enrichedData);
+      // Cập nhật pagination nếu có
+      if (response.pagination) {
+        setPagination({
+          current: response.pagination.currentPage || response.pagination.page,
+          pageSize: response.pagination.pageSize, // Đúng key pageSize
+          total: response.pagination.total,
+        });
+      }
     } catch (error) {
       console.error("Lỗi khi tải danh sách tồn kho:", error);
     } finally {
@@ -77,9 +92,17 @@ const InventoryManagement = () => {
   };
 
   const handleWarehouseChange = (warehouseId) => {
-    console.log('change')
-    fetchInventories(warehouseId);
+    setSelectedWarehouseId(warehouseId);
+    fetchInventories(warehouseId, 1, pagination.pageSize);
+    setPagination((prev) => ({ ...prev, current: 1 })); // reset về trang 1 khi đổi kho
   };
+
+  const handleTableChange = (paginationInfo) => {
+    const { current, pageSize } = paginationInfo;
+    setPagination((prev) => ({ ...prev, current, pageSize }));
+    fetchInventories(selectedWarehouseId, current, pageSize);
+  };
+
   useEffect(() => {
     dispatch(fetchWarehouses());
   }, []);
@@ -359,14 +382,17 @@ const InventoryManagement = () => {
           </div>
         )}
         <Table
-          loading={loading}
+          loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
           columns={columns}
           dataSource={filteredData}
           pagination={{
-            pageSize: 10,
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
             showSizeChanger: true,
-            size: "small",
+            pageSizeOptions: ['5', '10', '20', '50'],
           }}
+          onChange={handleTableChange}
           // size="small"
           expandable={{
             expandedRowRender: (record) => (

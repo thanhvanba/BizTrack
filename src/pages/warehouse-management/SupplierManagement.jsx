@@ -8,6 +8,7 @@ import { debounce } from "lodash"
 import searchService from "../../service/searchService"
 import SupplierModal from "../../components/modals/SupplierModal"
 import ExpandedSupplierTabs from "../../components/supplier/ExpandedSupplierTabs"
+import LoadingLogo from "../../components/LoadingLogo"
 
 const { Title } = Typography
 
@@ -194,7 +195,7 @@ const SupplierManagement = () => {
         </div>
 
         <Table
-          loading={loading}
+          loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
           columns={columns}
           dataSource={suppliers}
           rowKey='supplier_id'
