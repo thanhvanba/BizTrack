@@ -13,6 +13,7 @@ import debounce from "lodash/debounce";
 import useToastNotify from "../../utils/useToastNotify"
 import ProductModal from "../modals/ProductModal";
 import categoryService from "../../service/categoryService"
+import LoadingLogo from "../LoadingLogo"
 
 const { TextArea } = Input
 const { Option } = Select

@@ -78,7 +78,7 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
           {/* <Button type="link" onClick={() => handleViewDetail(record.po_id)}>
             Chi tiết
           </Button> */}
-          {record.status === "draft" || record.status === "pending" && (
+          {(record.status === "draft" || record.status === "pending") && (
             <>
               <Button type="link" onClick={() => onEdit(record)}>
                 Sửa

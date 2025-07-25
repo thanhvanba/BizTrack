@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Table, Input, Button, Typography, Space } from 'antd';
 import { PlusOutlined, FileExcelOutlined, SettingOutlined, StarOutlined } from '@ant-design/icons';
 import CashBookExpandedTabs from './CashBookExpandedTabs';
-import { useState } from 'react';
+import cashbookService from '../../service/cashbookService';
+import LoadingLogo from '../../components/LoadingLogo';
 
 const { Search } = Input;
 
@@ -58,35 +60,88 @@ const dataSource = [
 
 const columns = [
   {
-    title: 'Mã phiếu',
-    dataIndex: 'code',
+    title: 'Mã giao dịch',
+    dataIndex: 'transaction_code',
+    key: 'transaction_code',
+    width: 160,
   },
   {
     title: 'Thời gian',
-    dataIndex: 'time',
+    dataIndex: 'created_at',
+    key: 'created_at',
+    width: 150,
+    render: (value) => value ? new Date(value).toLocaleString('vi-VN') : '',
   },
   {
-    title: 'Loại thu chi',
+    title: 'Loại giao dịch',
     dataIndex: 'type',
+    key: 'type',
+    width: 120,
+    render: (type) => {
+      if (type === 'payment') return <span className="text-red-500 font-medium">Chi</span>;
+      if (type === 'receipt') return <span className="text-green-600 font-medium">Thu</span>;
+      return type;
+    },
   },
   {
-    title: 'Người nộp/nhận',
-    dataIndex: 'partner',
+    title: 'Nội dung',
+    dataIndex: 'description',
+    key: 'description',
+    width: 260,
+    render: (text) => <span className="line-clamp-1" title={text}>{text}</span>,
   },
   {
-    title: 'Giá trị',
-    dataIndex: 'value',
+    title: 'Phương thức',
+    dataIndex: 'payment_method',
+    key: 'payment_method',
+    width: 120,
+  },
+  {
+    title: 'Danh mục',
+    dataIndex: 'category',
+    key: 'category',
+    width: 140,
+  },
+  {
+    title: 'Số tiền',
+    dataIndex: 'amount',
+    key: 'amount',
     align: 'right',
-    render: (value) => (
-      <span style={{ color: value < 0 ? 'red' : 'green', fontWeight: 500 }}>
-        {value.toLocaleString()}
-      </span>
-    ),
+    width: 120,
+    render: (value, record) => {
+      const num = Number(value);
+      return (
+        <span style={{ color: record.type === 'payment' ? 'red' : 'green', fontWeight: 500 }}>
+          {num.toLocaleString('vi-VN')}
+        </span>
+      );
+    },
   },
 ];
 
 export default function CashBookPage() {
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [rows, setRows] = useState([]);
+  const [summary, setSummary] = useState({ total_receipt: 0, total_payment: 0, balance: 0 });
+
+  useEffect(() => {
+    setLoading(true);
+    cashbookService.getLedger()
+      .then((res) => {
+        // Có thể phải bóc tách nhiều lớp tuỳ response thực tế
+        const resultRows = res?.data?.data?.resultRows || [];
+        const summaryData = res?.data?.data?.summary || { total_receipt: 0, total_payment: 0, balance: 0 };
+        setRows(resultRows);
+        setSummary(summaryData);
+      })
+      .catch(() => {
+        setRows([]);
+        setSummary({ total_receipt: 0, total_payment: 0, balance: 0 });
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
   return (
     <div className="p-4 bg-white rounded-lg shadow">
       {/* Thanh công cụ */}
@@ -102,39 +157,36 @@ export default function CashBookPage() {
       {/* Thống kê */}
       <div className="flex justify-end gap-8 mb-2">
         <div>
-          <div className="text-xs text-gray-500">Quỹ đầu kỳ</div>
-          <div className="font-bold text-lg text-gray-700">0</div>
-        </div>
-        <div>
           <div className="text-xs text-gray-500">Tổng thu</div>
-          <div className="font-bold text-lg text-green-500">264,461,000</div>
+          <div className="font-bold text-lg text-green-500">{summary.total_receipt?.toLocaleString()}</div>
         </div>
         <div>
           <div className="text-xs text-gray-500">Tổng chi</div>
-          <div className="font-bold text-lg text-red-500">-291,551,000</div>
+          <div className="font-bold text-lg text-red-500">-{summary.total_payment?.toLocaleString()}</div>
         </div>
         <div>
           <div className="text-xs text-gray-500">Tồn quỹ</div>
-          <div className="font-bold text-lg text-blue-600">-27,090,000</div>
+          <div className="font-bold text-lg text-blue-600">{summary.balance?.toLocaleString()}</div>
         </div>
       </div>
       {/* Bảng dữ liệu */}
       <Table
-        dataSource={dataSource}
+        dataSource={rows}
         columns={columns}
+        loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
         pagination={false}
-        rowKey="code"
+        rowKey="transaction_code"
         size="middle"
         expandable={{
           expandedRowRender: (record) => <CashBookExpandedTabs record={record} />,
           expandedRowKeys,
           onExpand: (expanded, record) => {
-            setExpandedRowKeys(expanded ? [record.code] : []);
+            setExpandedRowKeys(expanded ? [record.transaction_code] : []);
           },
         }}
         onRow={(record) => ({
           onClick: () => {
-            setExpandedRowKeys(expandedRowKeys.includes(record.code) ? [] : [record.code]);
+            setExpandedRowKeys(expandedRowKeys.includes(record.transaction_code) ? [] : [record.transaction_code]);
           },
           className: "cursor-pointer",
         })}

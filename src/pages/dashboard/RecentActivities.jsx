@@ -70,7 +70,7 @@ export default function RecentActivities({ warning }) {
                     <span className="text-yellow-700 font-medium">{warning}</span>
                 </div>
             )}
-            <div className="max-h-[420px] overflow-y-auto">
+            <div className="max-h-[474px] overflow-y-auto">
                 <List
                     itemLayout="horizontal"
                     dataSource={activities}

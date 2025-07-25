@@ -5,11 +5,12 @@ import customerService from "../../service/customerService";
 import formatPrice from "../../utils/formatPrice";
 import DebtAdjustmentModal from "../modals/DebtAdjustment";
 import LoadingLogo from '../LoadingLogo';
+import cashbookService from '../../service/cashbookService';
 
 const statusMap = {
     pending: 'Tạo đơn hàng',
     partial_paid: 'Thanh toán một phần',
-    payment: 'Thanh toán',
+    payment: 'Điều chỉnh',
     completed: 'Hoàn tất',
     cancelled: 'Hủy bỏ',
     return: 'Trả hàng',
@@ -31,7 +32,7 @@ const columns = [
     {
         title: "Giá trị", dataIndex: "gia_tri", key: "gia_tri", align: "right",
         render: (val, record) => {
-            const isNegative = ["payment", "partial_paid", "return", "receipt"].includes(record.loai);
+            const isNegative = ["partial_paid", "return", "receipt"].includes(record.loai);
             return `${isNegative ? "-" : ""}${formatPrice(val)}`;
         },
     },
@@ -42,6 +43,7 @@ const columns = [
 ];
 
 const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
+    console.log("🚀 ~ CustomerReceivablesTab ~ customerData:", customerData)
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -54,6 +56,23 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
         fetchCustomerTransactions()
         fetchCustomers()
         setIsPaymentModalOpen(false);
+    };
+
+    const handleDebtAdjustment = async (values) => {
+        // values: { adjustmentValue, description, paymentMethod, category }
+        const body = {
+            amount: Number(values.adjustmentValue),
+            type: 'payment',
+            category: values.category || 'customer_refund',
+            payment_method: values.paymentMethod || 'cash',
+            customer_id: customerData?.customer_id,
+            description: values.description || '',
+        };
+        await cashbookService.createTransaction(body);
+        fetchCustomerReceivables();
+        fetchCustomerTransactions();
+        fetchCustomers();
+        setIsModalOpen(false);
     };
 
     // Danh sách các đơn hàng chưa thanh toán
@@ -94,9 +113,9 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
                     </Button>
                 </div>
                 <div className="flex gap-2">
-                    {/* <Button type="primary" icon={<span>✏️</span>} onClick={() => setIsModalOpen(true)}>
+                    <Button type="primary" icon={<span>✏️</span>} onClick={() => setIsModalOpen(true)}>
                         Điều chỉnh
-                    </Button> */}
+                    </Button>
                     <Button icon={<span>💳</span>} onClick={() => setIsPaymentModalOpen(true)}>
                         Thanh toán
                     </Button>
@@ -105,11 +124,8 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
             <DebtAdjustmentModal
                 open={isModalOpen}
                 onCancel={() => setIsModalOpen(false)}
-                initialDebt={20000000}
-                onSubmit={(values) => {
-                    console.log("Dữ liệu điều chỉnh:", values);
-                    setIsModalOpen(false);
-                }}
+                initialDebt={customerData?.total_remaining_value}
+                onSubmit={handleDebtAdjustment}
             />
             <PaymentModal
                 open={isPaymentModalOpen}

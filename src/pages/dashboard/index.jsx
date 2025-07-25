@@ -60,7 +60,7 @@ const Dashboard = () => {
                 productService.getAllProducts(),
                 productService.getAllProducts({ year: currentYear, month: currentMonth }),
                 orderService.getAllOrder({ year: currentYear, month: currentMonth }),
-                orderService.getAllOrder({ page: 1, limit: 5 }),
+                orderService.getAllOrder({ page: 1, limit: 6 }),
             ]);
 
             const formatCustomerInitials = (data) => {
@@ -350,7 +350,7 @@ const Dashboard = () => {
                                     <p className="text-sm text-gray-500 mb-1">Khách hàng</p>
                                     <p className="text-2xl font-bold text-gray-800">{totalCustomer}</p>
                                     <div className="flex items-center text-xs text-blue-600 mt-2">
-                                        <span>+{totalCustomersThisMonth} khách hàng mới trong tháng</span>
+                                        <span>+{totalCustomersThisMonth} khách hàng mới</span>
                                     </div>
                                 </div>
                             </div>
@@ -369,7 +369,7 @@ const Dashboard = () => {
                                     <p className="text-sm text-gray-500 mb-1">Sản phẩm</p>
                                     <p className="text-2xl font-bold text-gray-800">{totalProduct}</p>
                                     <div className="flex items-center text-xs text-purple-600 mt-2">
-                                        <span>+{totalProductsThisMonth} sản phẩm mới trong tháng</span>
+                                        <span>+{totalProductsThisMonth} sản phẩm mới</span>
                                     </div>
                                 </div>
                             </div>
@@ -388,7 +388,7 @@ const Dashboard = () => {
                                     <p className="text-sm text-gray-500 mb-1">Đơn hàng</p>
                                     <p className="text-2xl font-bold text-gray-800">{orderData?.pagination?.total || 0}</p>
                                     <div className="flex items-center text-xs text-orange-600 mt-2">
-                                        <span>+{totalOrdersThisMonth} đơn hàng mới trong tháng</span>
+                                        <span>+{totalOrdersThisMonth} đơn hàng mới</span>
                                     </div>
                                 </div>
                             </div>
@@ -407,7 +407,7 @@ const Dashboard = () => {
                             }}
                             bodyStyle={{ padding: "24px" }}
                         >
-                            <div style={{ height: "280px" }}>
+                            <div style={{ height: "340px" }}>
                                 <Line data={revenueData} options={chartOptions} />
                             </div>
                         </Card>

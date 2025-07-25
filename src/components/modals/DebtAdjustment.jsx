@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Modal, Form, Input, Button, DatePicker } from "antd";
+import { Modal, Form, Input, Button, DatePicker, Select } from "antd";
 import dayjs from "dayjs";
 import customerService from "../../service/customerService";
 
@@ -17,23 +17,29 @@ const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt }) => {
     try {
       const values = await form.validateFields();
       setLoading(true);
-      const res = await customerService.debtAdjustment({
-        "customer_id": "cus-12345",
-        "adjustment_amount": -2000000,
-        "adjustment_date": "2025-07-16",
-        "description": "Giảm công nợ theo biên bản",
-      }
-      )
-      console.log("🚀 ~ handleSubmit ~ res:", res)
+      // Trả về đúng dữ liệu cần thiết cho parent
       setTimeout(() => {
         setLoading(false);
-        onSubmit(values);
+        onSubmit({
+          adjustmentValue: values.adjustmentValue,
+          description: values.description,
+        });
         form.resetFields();
       }, 500);
     } catch (error) {
       console.error("Validation failed:", error);
     }
   };
+
+  const paymentMethods = [
+    { label: "Tiền mặt", value: "cash" },
+    { label: "Chuyển khoản", value: "bank_transfer" },
+    { label: "Thẻ", value: "card" },
+  ];
+  const categories = [
+    { label: "Hoàn tiền khách trả hàng", value: "customer_refund" },
+    { label: "Điều chỉnh khác", value: "other_adjustment" },
+  ];
 
   return (
     <Modal
@@ -57,19 +63,15 @@ const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt }) => {
           wrapperCol={{ span: 18 }}
           labelAlign="left"
         >
-          <Form.Item label="Ngày điều chỉnh" name="adjustmentDate" rules={[{ required: true, message: "Vui lòng chọn ngày!" }]}>
-            <DatePicker
-              disabledDate={(current) => {
-                return current && current > dayjs().endOf("day")
-              }}
-              className="w-full"
-            />
-          </Form.Item>
-
-          <Form.Item label="Giá trị nợ điều chỉnh" name="adjustmentValue" rules={[{ required: true, message: "Nhập số tiền điều chỉnh!" }]}>
+          <Form.Item label="Số tiền điều chỉnh" name="adjustmentValue" rules={[{ required: true, message: "Nhập số tiền điều chỉnh!" }]}>
             <Input type="number" placeholder="Nhập số tiền" />
           </Form.Item>
-
+          <Form.Item label="Phương thức" name="paymentMethod" initialValue="cash" rules={[{ required: true, message: "Chọn phương thức!" }]}>
+            <Select options={paymentMethods} />
+          </Form.Item>
+          <Form.Item label="Loại điều chỉnh" name="category" initialValue="customer_refund" rules={[{ required: true, message: "Chọn loại điều chỉnh!" }]}>
+            <Select options={categories} />
+          </Form.Item>
           <Form.Item label="Mô tả" name="description">
             <Input.TextArea rows={3} placeholder="Nhập mô tả" />
           </Form.Item>

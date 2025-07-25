@@ -65,3 +65,6 @@ export const DEBT_ADJUSTMENT_URL = `${API_URL}/debt-adjustment`;
 
 // SUPPLIER_RETURN_URL
 export const SUPPLIER_RETURN_URL = `${API_URL}/supplier-returns`;
+
+// CASHBOOK_URL
+export const CASHBOOK_URL = `${API_URL}/cashbook`;

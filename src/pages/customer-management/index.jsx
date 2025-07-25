@@ -171,7 +171,8 @@ const CustomerManagement = () => {
         new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value),
       align: "right",
       responsive: ["lg"]
-    }, {
+    },
+    {
       title: "Tổng công nợ",
       dataIndex: "total_remaining_value",
       key: "total_remaining_value",
