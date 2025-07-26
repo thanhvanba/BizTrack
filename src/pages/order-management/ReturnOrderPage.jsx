@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Table, Button, Input, Tag } from 'antd';
+import { Table, Button, Input, Tag, Card, Typography } from 'antd';
 import './index.css'; // file này cần chứa tailwind directives
 import ExpandedOrderTabs from '../../components/order/ExpandedOrderTabs';
 import ReturnInvoiceModal from '../../components/modals/ReturnInvoiceModal';
@@ -10,7 +10,7 @@ import formatPrice from '../../utils/formatPrice';
 import LoadingLogo from '../../components/LoadingLogo';
 
 const { Search } = Input;
-
+const { Title } = Typography;
 
 const ReturnOrderPage = () => {
     const [expandedRowKeys, setExpandedRowKeys] = useState([])
@@ -176,49 +176,61 @@ const ReturnOrderPage = () => {
     return (
         <div className="p-5">
             <div className="flex justify-between items-center mb-4">
-                <Search placeholder="Tìm theo mã phiếu trả" style={{ width: 220 }} />
+                <Title
+                    level={2}
+                    className="text-xl md:text-2xl font-bold m-0 text-gray-800"
+                >
+                    Quản lý đơn trả hàng
+                </Title>
                 <div className="flex gap-3">
                     <Button type="primary" onClick={() => setOpen(true)} >Trả hàng</Button>
                     <Button>Xuất file</Button>
                 </div>
             </div>
             <ReturnInvoiceModal visible={open} onClose={() => setOpen(false)} onSelect={handleSelectInvoice} />
-            <Table
-                rowKey="return_id"
-                dataSource={ordersReturnData}
-                loading={(loading || loadingApprove) ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
-                columns={columns}
-                pagination={{
-                    current: pagination.current,
-                    pageSize: pagination.pageSize,
-                    total: pagination.total,
-                    showSizeChanger: true,
-                    pageSizeOptions: ['5', '10', '20', '50'],
-                }}
-                expandable={{
-                    expandedRowRender: (record) => (
-                        <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
-                            <ExpandedOrderTabs record={record} />
-                        </div>
-                    ),
-                    expandedRowKeys,
-                    onExpand: (expanded, record) => {
-                        setExpandedRowKeys(expanded ? [record.return_id] : []);
-                    },
-                }}
-                onRow={(record) => ({
-                    onClick: () => toggleExpand(record.return_id),
-                    className: "cursor-pointer",
-                })}
-                rowClassName={(record) =>
-                    expandedRowKeys.includes(record.return_id)
-                        ? "border-x-2 border-t-2 border-blue-500 !border-collapse z-10 bg-blue-50 rounded-md shadow-sm"
-                        : "hover:bg-gray-50 transition-colors"
-                }
-                onChange={handleTableChange}
-                scroll={{ x: "max-content" }}
-                locale={{ emptyText: "Không có đơn hàng nào" }}
-            />
+            <Card
+                className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
+                bodyStyle={{ padding: "16px" }}
+            >
+                <Search placeholder="Tìm theo mã phiếu trả" className='mb-4' style={{ width: 220 }} />
+                <Table
+                    rowKey="return_id"
+                    dataSource={ordersReturnData}
+                    loading={(loading || loadingApprove) ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
+                    columns={columns}
+                    pagination={{
+                        current: pagination.current,
+                        pageSize: pagination.pageSize,
+                        total: pagination.total,
+                        showSizeChanger: true,
+                        showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} đơn trả hàng`,
+                        pageSizeOptions: ['5', '10', '20', '50'],
+                    }}
+                    expandable={{
+                        expandedRowRender: (record) => (
+                            <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
+                                <ExpandedOrderTabs record={record} />
+                            </div>
+                        ),
+                        expandedRowKeys,
+                        onExpand: (expanded, record) => {
+                            setExpandedRowKeys(expanded ? [record.return_id] : []);
+                        },
+                    }}
+                    onRow={(record) => ({
+                        onClick: () => toggleExpand(record.return_id),
+                        className: "cursor-pointer",
+                    })}
+                    rowClassName={(record) =>
+                        expandedRowKeys.includes(record.return_id)
+                            ? "border-x-2 border-t-2 border-blue-500 !border-collapse z-10 bg-blue-50 rounded-md shadow-sm"
+                            : "hover:bg-gray-50 transition-colors"
+                    }
+                    onChange={handleTableChange}
+                    scroll={{ x: "max-content" }}
+                    locale={{ emptyText: "Không có đơn hàng nào" }}
+                />
+            </Card>
         </div>
     );
 };

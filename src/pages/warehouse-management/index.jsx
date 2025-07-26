@@ -195,6 +195,7 @@ const WarehouseManagement = () => {
             pageSize: pagination.pageSize,
             total: pagination.total,
             showSizeChanger: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} kho`,
             pageSizeOptions: ['5', '10', '20', '50'],
           }}
           onChange={handleTableChange}

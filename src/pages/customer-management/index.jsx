@@ -24,6 +24,13 @@ const CustomerManagement = () => {
     pageSize: 5,
     total: 0,
   })
+  const [searchPagination, setSearchPagination] = useState({
+    current: 1,
+    pageSize: 5,
+    total: 0,
+  });
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   const fetchCustomers = async (page = pagination.current, limit = pagination.pageSize) => {
     setLoading(true);
@@ -44,18 +51,33 @@ const CustomerManagement = () => {
     }
   }
   const handleTableChange = (paginationInfo) => {
-    const { current, pageSize } = paginationInfo
-    fetchCustomers(current, pageSize)
+    if (isSearching) {
+      handleSearch(searchText, paginationInfo.current, paginationInfo.pageSize);
+    } else {
+      const { current, pageSize } = paginationInfo
+      fetchCustomers(current, pageSize)
+    }
   }
-  const handleSearch = debounce(async (value) => {
+  const handleSearch = debounce(async (value, page = 1, pageSize = 5) => {
     if (!value) {
-      fetchCustomers(); // gọi lại toàn bộ đơn hàng
+      setIsSearching(false);
+      setSearchText("");
+      fetchCustomers(); // gọi lại toàn bộ khách hàng
       return;
     }
+    setIsSearching(true);
+    setSearchText(value);
     try {
-      const response = await searchService.searchCustomerByPhone(value);
+      const response = await searchService.searchCustomer(value, page, pageSize);
       const data = response.data || [];
       setCustomers(data.map(customer => ({ ...customer, key: customer?.customer_id, })));
+      if (response.pagination) {
+        setSearchPagination({
+          current: response.pagination.currentPage,
+          pageSize: response.pagination.pageSize,
+          total: response.pagination.total,
+        });
+      }
     } catch (error) {
       useToastNotify("Không thể tìm thấy khách hàng theo số điện thoại.", 'error');
     }
@@ -205,7 +227,7 @@ const CustomerManagement = () => {
       >
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <Input
-            placeholder="Tìm kiếm theo số điện thoại"
+            placeholder="Tìm kiếm theo số điện thoại / tên khách hàng"
             prefix={<SearchOutlined />}
             allowClear
             onChange={(e) => handleSearch(e.target.value)}
@@ -219,10 +241,11 @@ const CustomerManagement = () => {
           dataSource={customers}
           rowKey='customer_id'
           pagination={{
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            total: pagination.total,
+            current: isSearching ? searchPagination.current : pagination.current,
+            pageSize: isSearching ? searchPagination.pageSize : pagination.pageSize,
+            total: isSearching ? searchPagination.total : pagination.total,
             showSizeChanger: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} khách hàng`, 
             pageSizeOptions: ['5', '10', '20', '50'],
           }}
           expandable={{

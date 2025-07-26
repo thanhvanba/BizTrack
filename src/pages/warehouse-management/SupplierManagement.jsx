@@ -49,11 +49,11 @@ const SupplierManagement = () => {
   }
   const handleSearch = debounce(async (value) => {
     if (!value) {
-      fetchSuppliers(); // gọi lại toàn bộ đơn hàng
+      fetchSuppliers(); // gọi lại toàn bộ đơn Tìm
       return;
     }
     try {
-      const response = await searchService.searchCustomerByPhone(value);
+      const response = await searchService.searchCustomer(value);
       const data = response.data || [];
       setSuppliers(data.map(supplier => ({ ...supplier, key: supplier?.supplier_id, })));
     } catch (error) {
@@ -186,7 +186,7 @@ const SupplierManagement = () => {
       >
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <Input
-            placeholder="Tìm kiếm theo số điện thoại"
+            placeholder="Tìm kiếm theo số điện thoại / tên nhà cung cấp"
             prefix={<SearchOutlined />}
             allowClear
             onChange={(e) => handleSearch(e.target.value)}
@@ -204,6 +204,7 @@ const SupplierManagement = () => {
             pageSize: pagination.pageSize,
             total: pagination.total,
             showSizeChanger: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} nhà cung cấp`,
             pageSizeOptions: ['5', '10', '20', '50'],
           }}
           expandable={{

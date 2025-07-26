@@ -59,10 +59,10 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
     };
 
     const handleDebtAdjustment = async (values) => {
-        // values: { adjustmentValue, description, paymentMethod, category }
+        // values: { adjustmentValue, type, description, paymentMethod, category }
         const body = {
             amount: Number(values.adjustmentValue),
-            type: 'payment',
+            type: values.type || 'payment',
             category: values.category || 'customer_refund',
             payment_method: values.paymentMethod || 'cash',
             customer_id: customerData?.customer_id,

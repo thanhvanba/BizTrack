@@ -39,8 +39,8 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
 
       if (response.pagination) {
         setPagination({
-          current: response.pagination.page,
-          pageSize: response.pagination.limit,
+          current: response.pagination.currentPage,
+          pageSize: response.pagination.pageSize,
           total: response.pagination.total,
         });
       }
@@ -153,6 +153,7 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
               pageSize: pagination.pageSize,
               total: pagination.total,
               showSizeChanger: true,
+              showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} hóa đơn`,
               pageSizeOptions: ['5', '10', '20', '50'],
             }}
             onChange={handleTableChange}

@@ -52,6 +52,13 @@ const OrderManagement = () => {
     pageSize: 5,
     total: 0,
   });
+  const [searchPagination, setSearchPagination] = useState({
+    current: 1,
+    pageSize: 5,
+    total: 0,
+  });
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   const currentDate = dayjs();
   const [selectedOptions, setSelectedOptions] = useState('init');
@@ -157,8 +164,8 @@ const OrderManagement = () => {
 
       if (response.pagination) {
         setPagination({
-          current: response.pagination.page,
-          pageSize: response.pagination.limit,
+          current: response.pagination.currentPage,
+          pageSize: response.pagination.pageSize,
           total: response.pagination.total,
         });
       }
@@ -171,25 +178,40 @@ const OrderManagement = () => {
 
   //HÀM XỬ LÝ CHUYỂN TRANG
   const handleTableChange = (newPagination) => {
-    const params = {};
-    if (Number(orderStatus) !== -1) {
-      params.order_status = orderStatus;
+    if (isSearching) {
+      handleSearch(searchText, newPagination.current, newPagination.pageSize);
+    } else {
+      const params = {};
+      if (Number(orderStatus) !== -1) {
+        params.order_status = orderStatus;
+      }
+      fetchOrders({
+        page: newPagination.current,
+        limit: newPagination.pageSize,
+        params,
+      });
     }
-    fetchOrders({
-      page: newPagination.current,
-      limit: newPagination.pageSize,
-      params,
-    });
   };
-  const handleSearch = debounce(async (value) => {
+  const handleSearch = debounce(async (value, page = 1, pageSize = 5) => {
     if (!value) {
+      setIsSearching(false);
+      setSearchText("");
       fetchOrders(); // gọi lại toàn bộ đơn hàng
       return;
     }
+    setIsSearching(true);
+    setSearchText(value);
     try {
-      const response = await searchService.searchOrdersByPhone(value);
+      const response = await searchService.searchOrders(value, page, pageSize);
       const data = response.data || [];
       setOrdersData(data.map(order => ({ ...order, key: order.order_id })));
+      if (response.pagination) {
+        setSearchPagination({
+          current: response.pagination.currentPage,
+          pageSize: response.pagination.pageSize,
+          total: response.pagination.total,
+        });
+      }
     } catch (error) {
       useToastNotify("Không thể tìm đơn hàng theo số điện thoại.", 'error');
     }
@@ -229,20 +251,17 @@ const OrderManagement = () => {
       title: "Mã đơn hàng",
       dataIndex: "order_code",
       key: "order_code",
-      sorter: (a, b) => a.order_code.localeCompare(b.order_code),
     },
     {
       title: "Khách hàng",
       dataIndex: "customer",
       key: "customer",
       render: customer => customer.customer_name,
-      sorter: (a, b) => a.customer.customer_name.localeCompare(b.customer.customer_name),
     },
     {
       title: "Ngày giao",
       dataIndex: "order_date",
       key: "order_date",
-      sorter: (a, b) => new Date(a.order_date) - new Date(b.order_date),
       render: (date) => new Date(date).toLocaleDateString("vi-VN"),
       responsive: ["md"],
     },
@@ -251,7 +270,6 @@ const OrderManagement = () => {
       dataIndex: "total_amount",
       key: "total_amount",
       render: (total) => formatPrice(total),
-      sorter: (a, b) => a.total_amount - b.total_amount,
       align: "right",
       responsive: ["md"],
     },
@@ -269,14 +287,12 @@ const OrderManagement = () => {
       dataIndex: "final_amount",
       key: "final_amount",
       render: (final) => formatPrice(final),
-      sorter: (a, b) => a.final_amount - b.final_amount,
       align: "right",
     },
     {
       title: "Ngày tạo",
       dataIndex: "created_at",
       key: "created_at",
-      sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
       render: (date) => new Date(date).toLocaleString("vi-VN"),
     },
     // {
@@ -354,15 +370,6 @@ const OrderManagement = () => {
           </Space>
         );
       },
-      filters: [
-        { text: "Mới", value: "Mới" },
-        { text: "Xác nhận", value: "Xác nhận" },
-        { text: "Đang đóng hàng", value: "Đang đóng hàng" },
-        { text: "Đang giao", value: "Đang giao" },
-        { text: "Hoàn tất", value: "Hoàn tất" },
-        { text: "Huỷ đơn", value: "Huỷ đơn" },
-      ],
-      onFilter: (value, record) => record.order_status === value,
     },
   ];
 
@@ -392,7 +399,7 @@ const OrderManagement = () => {
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative w-full">
             <Input
-              placeholder="Tìm kiếm theo số điện thoại khách hàng"
+              placeholder="Tìm kiếm theo số điện thoại khách hàng / tên khách hàng"
               prefix={<SearchOutlined className="text-gray-400" />}
               onChange={(e) => handleSearch(e.target.value)}
               allowClear
@@ -416,10 +423,11 @@ const OrderManagement = () => {
           rowKey='order_id'
           dataSource={ordersData}
           pagination={{
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            total: pagination.total,
+            current: isSearching ? searchPagination.current : pagination.current,
+            pageSize: isSearching ? searchPagination.pageSize : pagination.pageSize,
+            total: isSearching ? searchPagination.total : pagination.total,
             showSizeChanger: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} đơn hàng`,
             pageSizeOptions: ['5', '10', '20', '50'],
           }}
           expandable={{

@@ -17,7 +17,6 @@ const { Option } = Select
 
 const ProductManagement = () => {
   const [searchText, setSearchText] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("all")
   const [createModalVisible, setCreateModalVisible] = useState(false)
   const [editModalVisible, setEditModalVisible] = useState(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
@@ -29,6 +28,13 @@ const ProductManagement = () => {
     pageSize: 5,
     total: 0,
   })
+  const [searchPagination, setSearchPagination] = useState({
+    current: 1,
+    pageSize: 5,
+    total: 0,
+  });
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
 
   const [categories, setCategories] = useState([])
 
@@ -44,8 +50,8 @@ const ProductManagement = () => {
       )
       if (response.pagination) {
         setPagination({
-          current: response.pagination.page,
-          pageSize: response.pagination.limit,
+          current: response.pagination.currentPage,
+          pageSize: response.pagination.pageSize,
           total: response.pagination.total,
         });
       }
@@ -64,19 +70,31 @@ const ProductManagement = () => {
       useToastNotify("Không thể tải danh sách danh mục.", 'error')
     }
   }
-  const handleSearch = debounce(async (value) => {
+  const handleSearch = debounce(async (value, page = 1, pageSize = 5) => {
     if (!value) {
-      fetchProducts(); // gọi lại toàn bộ đơn hàng
+      setIsSearching(false);
+      setSearchValue("");
+      fetchProducts(); // gọi lại toàn bộ sản phẩm
       return;
     }
+    setIsSearching(true);
+    setSearchValue(value);
     try {
-      const response = await searchService.searchProductsByName(value);
+      const response = await searchService.searchProducts(value, page, pageSize);
       const data = response.data || [];
       setProductsData(data.map(product => ({ ...product, key: product.product_id, })));
+      if (response.pagination) {
+        setSearchPagination({
+          current: response.pagination.currentPage,
+          pageSize: response.pagination.pageSize,
+          total: response.pagination.total,
+        });
+      }
     } catch (error) {
       useToastNotify("Không thể tìm sản phẩm.", 'error');
     }
   }, 500);
+
   useEffect(() => {
     fetchProducts()
     fetchCategories()
@@ -144,8 +162,12 @@ const ProductManagement = () => {
   }
 
   const handleTableChange = (paginationInfo) => {
-    const { current, pageSize } = paginationInfo
-    fetchProducts(current, pageSize)
+    if (isSearching) {
+      handleSearch(searchValue, paginationInfo.current, paginationInfo.pageSize);
+    } else {
+      const { current, pageSize } = paginationInfo
+      fetchProducts(current, pageSize)
+    }
   }
 
   // Handle category created from ProductModal
@@ -160,7 +182,6 @@ const ProductManagement = () => {
       key: "sku",
       width: 120,
       render: (sku) => <span className="font-mono">{sku || '--'}</span>,
-      sorter: (a, b) => a.sku?.localeCompare(b.sku),
     },
     {
       title: "Sản phẩm",
@@ -182,7 +203,6 @@ const ProductManagement = () => {
           </div>
         </div>
       ),
-      sorter: (a, b) => a.product_name.localeCompare(b.product_name),
     },
     {
       title: "Mô tả",
@@ -197,17 +217,11 @@ const ProductManagement = () => {
     },
     {
       title: "Danh mục",
-      dataIndex: "category_id",
-      key: "category_id",
-      render: (categoryId) => {
-        const category = categories.find(c => c.category_id === categoryId)
-        return category ? category.category_name : '--'
+      dataIndex: "category_name",
+      key: "category_name",
+      render: (values) => {
+        return values ? values : '--'
       },
-      filters: categories.map(c => ({
-        text: c.category_name,
-        value: c.category_id
-      })),
-      onFilter: (value, record) => record.category_id === value,
       responsive: ["md"],
     },
     {
@@ -215,7 +229,6 @@ const ProductManagement = () => {
       dataIndex: "product_retail_price",
       key: "product_retail_price",
       render: (price) => formatPrice(price),
-      sorter: (a, b) => a.product_retail_price - b.product_retail_price,
       align: "right",
     },
     {
@@ -237,11 +250,6 @@ const ProductManagement = () => {
         }
         return <Tag color={color}>{status === 1 ? 'Hoạt động' : 'Ẩn'}</Tag>
       },
-      filters: [
-        { text: "Hoạt động", value: true },
-        { text: "Ẩn", value: false },
-      ],
-      onFilter: (value, record) => record.is_active === value,
     },
     {
       title: "Thao tác",
@@ -304,7 +312,7 @@ const ProductManagement = () => {
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1 w-full">
             <Input
-              placeholder="Tìm kiếm sản phẩm theo tên"
+              placeholder="Tìm kiếm sản phẩm theo tên/ theo sku"
               prefix={<SearchOutlined className="text-gray-400" />}
               onChange={(e) => handleSearch(e.target.value)}
               allowClear
@@ -331,10 +339,11 @@ const ProductManagement = () => {
           columns={columns}
           dataSource={productsData}
           pagination={{
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            total: pagination.total,
+            current: isSearching ? searchPagination.current : pagination.current,
+            pageSize: isSearching ? searchPagination.pageSize : pagination.pageSize,
+            total: isSearching ? searchPagination.total : pagination.total,
             showSizeChanger: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} sản phẩm`,
             pageSizeOptions: ['5', '10', '20', '50'],
           }}
           onChange={handleTableChange}

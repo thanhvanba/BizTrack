@@ -185,7 +185,7 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
     }
     setFetching(true);
     try {
-      const res = await searchService.searchProductsByName(value);
+      const res = await searchService.searchProducts(value);
       setSearchOptions((res.data || []).filter(p => !details.some(d => d.product_id === p.product_id)));
     } finally {
       setFetching(false);
@@ -327,7 +327,7 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
               <Select
                 showSearch
                 value={selectedProduct}
-                placeholder="Tìm kiếm và chọn sản phẩm"
+                placeholder="Tìm kiếm và chọn sản phẩm theo tên/ theo sku"
                 onSearch={handleSearchProduct}
                 onChange={val => { setSelectedProduct(val); handleAddProduct(val); }}
                 filterOption={false}
