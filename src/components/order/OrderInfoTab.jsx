@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Table,
   Typography,
@@ -24,6 +24,7 @@ import {
 
 import formatPrice from "../../utils/formatPrice";
 import { useLocation, useNavigate } from "react-router-dom";
+import PrintInvoice from "../PrintInvoice";
 
 const { Text, Title } = Typography;
 const { TextArea } = Input;
@@ -32,6 +33,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
   console.log("🚀 ~ OrderInfoTab ~ orderData:", orderData)
   const location = useLocation();
   const navigate = useNavigate()
+
   const {
     order_id,
     order_code,
@@ -81,8 +83,8 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
     location.pathname.includes('return-order') ?
       {
         title: "Giá trả",
-        dataIndex: "refund_amount",
-        key: "refund_amount",
+        dataIndex: "item_return_price",
+        key: "item_return_price",
         align: "right",
         render: (price) => formatPrice(price),
       }
@@ -104,6 +106,45 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
   const totalProductDiscount = products?.reduce(
     (sum, item) => sum + item.discount, 0
   );
+
+  // Convert order data to invoice data for printing
+  const convertOrderToInvoice = () => {
+    const isReturnOrder = location.pathname.includes('return-order');
+    const orderItems = isReturnOrder ? data?.details : products;
+
+    return {
+      invoiceNumber: order_code || data?.return_id,
+      date: new Date(order_date || data?.created_at).toLocaleDateString("vi-VN"),
+      customer: {
+        name: customer?.customer_name || data?.customer_name,
+        phone: customer?.phone || data?.phone || '--',
+        address: shipping_address || '--'
+      },
+      company: {
+        name: 'BizTrack',
+        phone: '0367657890',
+        address: '--'
+      },
+      items: orderItems?.map(item => ({
+        name: item.product_name,
+        unitPrice: isReturnOrder ? item.refund_amount : item.price,
+        quantity: item.quantity,
+        amount: isReturnOrder ? item.refund_amount : (item.price * item.quantity)
+      })) || [],
+      total: total_amount || record?.total_refund,
+      discount: totalProductDiscount + order_amount || 0,
+      shippingFee: shipping_fee || 0,
+      amountPaid: amount_paid || 0,
+      note: note || data?.note || '',
+      finalTotal: final_amount || record?.total_refund
+    };
+  };
+
+  const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
+
+  const handlePrint = () => {
+    setIsPrintModalVisible(true);
+  };
 
   return (
     <>
@@ -224,29 +265,33 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
           </div>
 
           {/* Action Buttons */}
-          {!location.pathname.includes('return-order') && <Row justify="space-between" align="middle" className="mt-6">
-            <Col>
-              {order_status === "Mới" &&
+          <Row justify="space-between" align="middle" className="mt-6">
+
+            {!location.pathname.includes('return-order') &&
+              <Col>
+                {order_status === "Mới" &&
+                  <Button
+                    color="primary"
+                    variant="filled"
+                    style={{ marginRight: 8 }}
+                    onClick={() => onUpdateOrderStatus(order_id, "Xác nhận")}
+                  >
+                    Xác nhận
+                  </Button>
+                }
                 <Button
-                  color="primary"
+                  icon={<DeleteOutlined />}
+                  color="danger"
                   variant="filled"
                   style={{ marginRight: 8 }}
-                  onClick={() => onUpdateOrderStatus(order_id, "Xác nhận")}
+                  onClick={() => onUpdateOrderStatus(order_id, "Huỷ đơn")}
                 >
-                  Xác nhận
+                  Hủy
                 </Button>
-              }
-              <Button
-                icon={<DeleteOutlined />}
-                color="danger"
-                variant="filled"
-                style={{ marginRight: 8 }}
-                onClick={() => onUpdateOrderStatus(order_id, "Huỷ đơn")}
-              >
-                Hủy
-              </Button>
-              <Button>Xuất file</Button>
-            </Col>
+                <Button>Xuất file</Button>
+              </Col>
+
+            }
             <Col>
               {order_status === "Mới" &&
                 <Button
@@ -281,12 +326,19 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
                 </Tooltip>
               )}
 
-              <Button icon={<PrinterOutlined />}>In</Button>
+              <Button icon={<PrinterOutlined />} onClick={handlePrint}>In</Button>
             </Col>
           </Row>
-          }
         </div> : <div></div>
       }
+
+      {/* Print Invoice Component */}
+      <PrintInvoice
+        visible={isPrintModalVisible}
+        onClose={() => setIsPrintModalVisible(false)}
+        invoiceData={convertOrderToInvoice()}
+        type={location.pathname.includes('return-order') ? 'sale_return' : 'sale'}
+      />
     </>
   );
 }

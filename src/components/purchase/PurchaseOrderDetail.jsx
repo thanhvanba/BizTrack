@@ -1,11 +1,44 @@
-import { Card, Row, Col, Typography, Table, Divider } from "antd";
+import { Card, Row, Col, Typography, Table, Divider, Button } from "antd";
 import formatPrice from "../../utils/formatPrice";
+import PrintInvoice from "../PrintInvoice";
+import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
 export default function PurchaseOrderDetail({ order }) {
+  const location = useLocation();
   console.log("🚀 ~ PurchaseOrderDetail ~ order:", order)
+  const [printInvoiceVisible, setPrintInvoiceVisible] = useState(false);
+
   const totalAmount = order?.details?.reduce((sum, detail) => sum + detail.quantity * (detail.price ?? detail.refund_amount), 0);
+
+  // Chuẩn hóa dữ liệu hóa đơn nhập hàng cho PrintInvoice
+  const purchaseInvoiceData = order ? {
+    invoiceNumber: order.po_id || order.return_id,
+    date: order.posted_at ? new Date(order.posted_at).toLocaleString() : new Date(order.created_at).toLocaleString(),
+    customer: {
+      name: order.supplier_name,
+      phone: order.supplier_phone || '',
+      address: order.supplier_address || '',
+    },
+    company: {
+      phone: '',
+      address: order.warehouse_name ? `${order.warehouse_name}` : '',
+    },
+    items: (order.details || []).map(detail => ({
+      name: detail.product_name,
+      unitPrice: detail.price ?? detail.refund_amount,
+      quantity: detail.quantity,
+      amount: (detail.quantity || 0) * (detail.price ?? detail.refund_amount),
+    })),
+    total: totalAmount,
+    discount: order.discount || 0,
+    shippingFee: order.shipping_fee || 0,
+    amountPaid: order.amount_paid || 0,
+    note: order.note,
+    finalTotal: (totalAmount - (order.discount || 0) + (order.shipping_fee || 0)),
+  } : null;
 
   const columns = [
     {
@@ -98,6 +131,17 @@ export default function PurchaseOrderDetail({ order }) {
             </Table.Summary.Cell>
           </Table.Summary.Row>
         )}
+      />
+
+      <Button type="primary" className="mb-4" onClick={() => setPrintInvoiceVisible(true)}>
+        In hóa đơn
+      </Button>
+
+      <PrintInvoice
+        visible={printInvoiceVisible}
+        onClose={() => setPrintInvoiceVisible(false)}
+        invoiceData={purchaseInvoiceData}
+        type={location.pathname.includes('purchase-return') ? 'purchase_return' : 'purchase'}
       />
     </Card>
   );

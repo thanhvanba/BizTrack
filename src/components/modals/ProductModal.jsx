@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { Modal, Form, Input, Select, InputNumber, Upload, Button, message, Switch, Row, Col, Typography } from "antd"
 import { PlusOutlined } from "@ant-design/icons"
 import CategoryModal from "./CategoryModal"
 import categoryService from "../../service/categoryService"
+import searchService from "../../service/searchService"
 import useToastNotify from "../../utils/useToastNotify"
+import { debounce } from "lodash"
 
 const { Text } = Typography
 const { Option } = Select
@@ -23,6 +25,8 @@ const ProductModal = ({
   const [fileList, setFileList] = useState([])
   const [categoryModalVisible, setCategoryModalVisible] = useState(false)
   const [selectedCategoryId, setSelectedCategoryId] = useState(null) // Thêm state để quản lý category đã chọn
+  const [searchCategories, setSearchCategories] = useState([]) // State cho kết quả tìm kiếm danh mục
+  const [searchLoading, setSearchLoading] = useState(false) // Loading state cho search
 
   // Thiết lập giá trị form khi mở modal hoặc product thay đổi
   useEffect(() => {
@@ -106,6 +110,32 @@ const ProductModal = ({
     }
   }
 
+  // Handler để tìm kiếm danh mục
+  const handleSearchCategory = async (searchText) => {
+    if (!searchText || searchText.trim() === '') {
+      setSearchCategories([])
+      return
+    }
+
+    try {
+      setSearchLoading(true)
+      const response = await searchService.searchCategoryByName(searchText.trim(), 1, 100)
+      if (response?.data) {
+        setSearchCategories(response.data)
+      } else {
+        setSearchCategories([])
+      }
+    } catch (error) {
+      console.error('Error searching categories:', error)
+      setSearchCategories([])
+    } finally {
+      setSearchLoading(false)
+    }
+  }
+
+  // Debounce search handler giống product-management
+  const debouncedSearchCategory = useCallback(debounce(handleSearchCategory, 500), [])
+
   const uploadButton = (
     <div>
       <PlusOutlined />
@@ -171,14 +201,29 @@ const ProductModal = ({
                     onChange={(value) => {
                       setSelectedCategoryId(value)
                       form.setFieldsValue({ category_id: value })
+                      // Không reset searchCategories ở đây để dropdown không bị đóng
                     }}
-                    key={`${categories.length}-${Date.now()}`} // Force re-render
+                    showSearch
+                    filterOption={false}
+                    onSearch={debouncedSearchCategory}
+                    notFoundContent={searchLoading ? "Đang tìm kiếm..." : "Không tìm thấy danh mục"}
+                    loading={searchLoading}
                   >
-                    {categories.map((category) => (
-                      <Option key={category.category_id} value={category.category_id}>
-                        {category.category_name}
-                      </Option>
-                    ))}
+                    {/* Hiển thị kết quả tìm kiếm nếu có */}
+                    {searchCategories.length > 0 ? (
+                      searchCategories.map((category) => (
+                        <Option key={category.category_id} value={category.category_id}>
+                          {category.category_name}
+                        </Option>
+                      ))
+                    ) : (
+                      // Hiển thị danh sách categories gốc nếu không có kết quả tìm kiếm
+                      categories.map((category) => (
+                        <Option key={category.category_id} value={category.category_id}>
+                          {category.category_name}
+                        </Option>
+                      ))
+                    )}
                   </Select>
                 </Col>
               </Row>

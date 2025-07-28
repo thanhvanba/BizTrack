@@ -64,7 +64,7 @@ const ProductManagement = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await categoryService.getAllCategories()
+      const response = await categoryService.getAllCategories({ page: 1, limit: 100 })
       setCategories(response.data)
     } catch (error) {
       useToastNotify("Không thể tải danh sách danh mục.", 'error')
