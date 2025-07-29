@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button, Table, Modal } from "antd";
 import PaymentModal from "../modals/PaymentModal";
 import DebtAdjustmentModal from "../modals/DebtAdjustment";
+import customerService from "../../service/customerService";
 import supplierService from "../../service/supplierService";
 import formatPrice from "../../utils/formatPrice";
 import LoadingLogo from '../LoadingLogo';
@@ -53,7 +54,7 @@ const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
 
     const handleRecordBulkPayment = async (invoiceData) => {
         try {
-            await supplierService.createSupplierTransaction(supplierData?.supplier_id, invoiceData);
+            await customerService.recordBulkPayment(invoiceData);
             useToastNotify("Thanh toán thành công", "success");
             fetchSupplierPayables()
             fetchSupplierTransactions()
@@ -90,10 +91,26 @@ const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
     const fetchSupplierPayables = async () => {
         try {
             const res = await supplierService.getSupplierPayable(supplierData?.supplier_id)
+            console.log("🚀 ~ fetchSupplierPayables ~ res:", res)
             if (res && res.data) {
-                setSupplierPayables(res.data)
+                // Map dữ liệu để phù hợp với PaymentModal
+                const mappedData = {
+                    ...res.data,
+                    unpaid_invoices: res.data.unpaid_invoices?.map(invoice => ({
+                        invoice_id: invoice.invoice_id || invoice.order_id,
+                        invoice_code: invoice.invoice_code || invoice.order_code,
+                        issued_date: invoice.issued_date || invoice.created_at,
+                        final_amount: invoice.final_amount || invoice.total_amount,
+                        amount_paid: invoice.amount_paid || 0,
+                        remaining_receivable: invoice.remaining_receivable || (invoice.final_amount - (invoice.amount_paid || 0))
+                    })) || []
+                };
+                setSupplierPayables(mappedData)
+                console.log("🚀 ~ mapped supplierPayables:", mappedData)
+                console.log("🚀 ~ mapped unpaid_invoices:", mappedData.unpaid_invoices)
             }
         } catch (error) {
+            console.error("Lỗi fetchSupplierPayables:", error)
             useToastNotify("Không thể tải dữ liệu công nợ", "error");
         }
     }

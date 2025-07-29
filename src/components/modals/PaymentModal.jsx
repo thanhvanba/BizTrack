@@ -5,6 +5,8 @@ import useToastNotify from "../../utils/useToastNotify";
 
 const PaymentModal = ({ open, onCancel, onSubmit, unpaidInvoice, initialDebt, customerName }) => {
   console.log("🚀 ~ PaymentModal ~ unpaidInvoice:", unpaidInvoice)
+  console.log("🚀 ~ PaymentModal ~ initialDebt:", initialDebt)
+  console.log("🚀 ~ PaymentModal ~ customerName:", customerName)
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [dataSource, setDataSource] = useState(unpaidInvoice || []);
