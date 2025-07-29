@@ -122,57 +122,8 @@ const InventoryManagement = () => {
   console.log("🚀 ~ InventoryManagement ~ filteredData:", filteredData)
 
   const [expandedRowKeys, setExpandedRowKeys] = useState([])
-  const [selectedRowKeys, setSelectedRowKeys] = useState([])
-
-  // Handle select all checkbox
-  const handleSelectAll = (checked) => {
-    if (checked) {
-      setSelectedRowKeys(filteredData.map((item) => item.key))
-    } else {
-      setSelectedRowKeys([])
-    }
-  }
-
-  // Handle individual row checkbox
-  const handleRowSelect = (key, checked) => {
-    if (checked) {
-      setSelectedRowKeys([...selectedRowKeys, key])
-    } else {
-      setSelectedRowKeys(selectedRowKeys.filter((k) => k !== key))
-    }
-  }
-  // Check if all rows are selected
-  const isAllSelected = selectedRowKeys.length === filteredData.length && filteredData.length > 0
-
-  // Check if some rows are selected (for indeterminate state)
-  const isIndeterminate = selectedRowKeys.length > 0 && selectedRowKeys.length < filteredData.length
 
   const columns = [
-    {
-      key: "checkbox",
-      title: (
-        <input
-          type="checkbox"
-          className="w-4 h-4"
-          checked={isAllSelected}
-          ref={(input) => {
-            if (input) input.indeterminate = isIndeterminate
-          }}
-          onChange={(e) => handleSelectAll(e.target.checked)}
-        />
-      ),
-      dataIndex: "checkbox",
-      width: 40,
-      render: (_, record) => (
-        <input
-          type="checkbox"
-          className="w-4 h-4"
-          checked={selectedRowKeys.includes(record.key)}
-          onChange={(e) => handleRowSelect(record.key, e.target.checked)}
-          onClick={(e) => e.stopPropagation()}
-        />
-      ),
-    },
     {
       title: "Sản phẩm",
       dataIndex: ["product", "product_name"],
@@ -194,33 +145,22 @@ const InventoryManagement = () => {
           </div>
         </div>
       ),
-      sorter: (a, b) => a.product?.product_name.localeCompare(b.product?.product_name),
     },
-    // {
-    //   title: "Danh mục",
-    //   dataIndex: ["product", "category", "category_name"],
-    //   key: "category",
-    //   filters: categoryFilters,
-    //   onFilter: (value, record) =>
-    //     record.product?.category?.category_name === value,
-    //   render: (text) => (
-    //     <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
-    //       {text}
-    //     </span>
-    //   ),
-    //   responsive: ["md"],
-    // },
+    {
+      title: "Danh mục",
+      dataIndex: ["product", "category", "category_name"],
+      key: "category",
+      render: (text) => (
+        <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+          {text}
+        </span>
+      ),
+      responsive: ["md"],
+    },
     {
       title: "Kho",
       dataIndex: ["warehouse", "warehouse_name"],
       key: "location",
-      filters:
-        warehouses.data?.map((w) => ({
-          text: w.warehouse_name,
-          value: w.warehouse_name,
-        })) || [],
-      onFilter: (value, record) =>
-        record.warehouse?.warehouse_name === value,
       responsive: ["lg"],
     },
     {
@@ -229,9 +169,6 @@ const InventoryManagement = () => {
       key: "price",
       align: "right",
       render: (price) => formatPrice(price),
-      sorter: (a, b) =>
-        Number(a.product?.product_retail_price) -
-        Number(b.product?.product_retail_price),
       responsive: ["lg"],
     },
     {
@@ -239,7 +176,6 @@ const InventoryManagement = () => {
       dataIndex: ["quantity"],
       key: "quantity",
       align: "right",
-      sorter: (a, b) => a.product?.quantity - b.product?.quantity,
     },
     {
       title: "Khách đặt",
@@ -253,8 +189,6 @@ const InventoryManagement = () => {
       title: "Khả dụng",
       dataIndex: ["available_stock"],
       key: "available_stock",
-      sorter: (a, b) =>
-        a.product?.available_stock - b.product?.available_stock,
       align: "right",
     },
     {
@@ -275,24 +209,11 @@ const InventoryManagement = () => {
         }
         return <Tag color={color}>{text}</Tag>;
       },
-      filters: [
-        { text: "Đủ hàng", value: "Đủ hàng" },
-        { text: "Sắp hết", value: "Sắp hết" },
-        { text: "Hết hàng", value: "Hết hàng" },
-      ],
-      onFilter: (value, record) => {
-        const qty = record.product?.available_stock ?? 0;
-        if (qty > 5 && value === "Đủ hàng") return true;
-        if (qty > 0 && qty <= 5 && value === "Sắp hết") return true;
-        if (qty <= 0 && value === "Hết hàng") return true;
-        return false;
-      },
     },
     {
       title: "Ngày tạo",
       dataIndex: "created_at",
       key: "created_at",
-      sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
       render: (date) => new Date(date).toLocaleString("vi-VN"),
     },
     // {
@@ -362,25 +283,6 @@ const InventoryManagement = () => {
           </Select>
         </div>
 
-        {/* Selected items info */}
-        {selectedRowKeys.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4 flex items-center justify-between">
-            <span className="text-blue-700">
-              Đã chọn {selectedRowKeys.length} / {filteredData.length} mục
-            </span>
-            <div className="flex gap-2">
-              <button className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600">
-                Thao tác hàng loạt
-              </button>
-              <button
-                className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50"
-                onClick={() => setSelectedRowKeys([])}
-              >
-                Bỏ chọn tất cả
-              </button>
-            </div>
-          </div>
-        )}
         <Table
           loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
           columns={columns}

@@ -1,28 +1,133 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, Table, Modal } from "antd";
 import PaymentModal from "../modals/PaymentModal";
 import DebtAdjustmentModal from "../modals/DebtAdjustment";
+import supplierService from "../../service/supplierService";
+import formatPrice from "../../utils/formatPrice";
+import LoadingLogo from '../LoadingLogo';
+import useToastNotify from "../../utils/useToastNotify";
+
+const statusMap = {
+    pending: 'Tạo đơn hàng',
+    partial_paid: 'Thanh toán một phần',
+    payment: 'Điều chỉnh',
+    completed: 'Hoàn tất',
+    cancelled: 'Hủy bỏ',
+    return: 'Trả hàng',
+    receipt: 'Thanh toán đơn hàng'
+};
 
 const columns = [
     { title: "Mã giao dịch", dataIndex: "transaction_code", key: "transaction_code" },
-    { title: "Ngày giao dịch", dataIndex: "transaction_date", key: "transaction_date" },
-    { title: "Loại", dataIndex: "transaction_type", key: "transaction_type" },
-    { title: "Giá trị", dataIndex: "amount", key: "amount", align: "right", render: (val) => `${val.toLocaleString()}₫` },
-    { title: "Dư nợ", dataIndex: "balance", key: "balance", align: "right", render: (val) => `${val.toLocaleString()}₫` },
+    {
+        title: "Ngày giao dịch", dataIndex: "transaction_date", key: "transaction_date",
+        render: (val) => {
+            return new Date(val).toLocaleString("vi-VN")
+        }
+    },
+    {
+        title: "Loại", dataIndex: "loai", key: "loai",
+        render: (value) => statusMap[value] || value,
+    },
+    {
+        title: "Giá trị", dataIndex: "amount", key: "amount", align: "right",
+        render: (val, record) => {
+            const isNegative = ["partial_paid", "return", "receipt"].includes(record.loai);
+            return `${isNegative ? "-" : ""}${formatPrice(val)}`;
+        },
+    },
+    {
+        title: "Dư nợ", dataIndex: "balance", key: "balance", align: "right",
+        render: (val) => `${formatPrice(val)}`
+    },
 ];
 
-const data = [
-    { key: "1", transaction_code: "GT001", transaction_date: "04/06/2025", transaction_type: "Thanh toán", amount: 500000, balance: 0 },
-    { key: "2", transaction_code: "GT002", transaction_date: "05/06/2025", transaction_type: "Hoàn tiền", amount: 750000, balance: 250000 },
-];
-
-const SupplierPayablesTab = () => {
+const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
+    console.log("🚀 ~ SupplierPayablesTab ~ supplierData:", supplierData)
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [supplierPayables, setSupplierPayables] = useState()
+    console.log("🚀 ~ SupplierPayablesTab ~ supplierPayables:", supplierPayables)
+    const [supplierTransactions, setSupplierTransactions] = useState()
+
+    const handleRecordBulkPayment = async (invoiceData) => {
+        try {
+            await supplierService.createSupplierTransaction(supplierData?.supplier_id, invoiceData);
+            useToastNotify("Thanh toán thành công", "success");
+            fetchSupplierPayables()
+            fetchSupplierTransactions()
+            fetchSuppliers()
+            setIsPaymentModalOpen(false);
+        } catch (error) {
+            useToastNotify("Thanh toán thất bại", "error");
+        }
+    };
+
+    const handleDebtAdjustment = async (values) => {
+        try {
+            // values: { adjustmentValue, type, description, paymentMethod, category }
+            const body = {
+                amount: Number(values.adjustmentValue),
+                type: values.type || 'payment',
+                category: values.category || 'supplier_refund',
+                payment_method: values.paymentMethod || 'cash',
+                supplier_id: supplierData?.supplier_id,
+                description: values.description || '',
+            };
+            await supplierService.createSupplierTransaction(supplierData?.supplier_id, body);
+            useToastNotify("Điều chỉnh công nợ thành công", "success");
+            fetchSupplierPayables();
+            fetchSupplierTransactions();
+            fetchSuppliers();
+            setIsModalOpen(false);
+        } catch (error) {
+            useToastNotify("Điều chỉnh công nợ thất bại", "error");
+        }
+    };
+
+    // Danh sách các đơn hàng chưa thanh toán
+    const fetchSupplierPayables = async () => {
+        try {
+            const res = await supplierService.getSupplierPayable(supplierData?.supplier_id)
+            if (res && res.data) {
+                setSupplierPayables(res.data)
+            }
+        } catch (error) {
+            useToastNotify("Không thể tải dữ liệu công nợ", "error");
+        }
+    }
+
+    // Danh sách các giao dịch liên quan đến nhà cung cấp
+    const fetchSupplierTransactions = async () => {
+        setLoading(true)
+        try {
+            const res = await supplierService.getSupplierTransactionLedger(supplierData?.supplier_id)
+            if (res && res.data) {
+                setSupplierTransactions(res.data)
+            }
+        } catch (error) {
+            useToastNotify("Không thể tải dữ liệu giao dịch", "error");
+        }
+        setLoading(false)
+    }
+
+    useEffect(() => {
+        if (supplierData?.supplier_id) {
+            fetchSupplierPayables()
+            fetchSupplierTransactions()
+        }
+    }, [supplierData?.supplier_id])
 
     return (
         <div>
-            <Table columns={columns} dataSource={data} pagination={false} size="small" />
+            <Table
+                loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
+                columns={columns}
+                dataSource={supplierTransactions}
+                pagination={false}
+                size="small"
+            />
             <div className="flex justify-between mt-4">
                 <div className="flex gap-2">
                     <Button type="primary" icon={<span>📥</span>}>
@@ -41,20 +146,16 @@ const SupplierPayablesTab = () => {
             <DebtAdjustmentModal
                 open={isModalOpen}
                 onCancel={() => setIsModalOpen(false)}
-                initialDebt={20000000}
-                onSubmit={(values) => {
-                    console.log("Dữ liệu điều chỉnh:", values);
-                    setIsModalOpen(false);
-                }}
+                initialDebt={supplierData?.total_remaining_value}
+                onSubmit={handleDebtAdjustment}
             />
             <PaymentModal
                 open={isPaymentModalOpen}
                 onCancel={() => setIsPaymentModalOpen(false)}
-                initialDebt={10000000}
-                onSubmit={(values) => {
-                    console.log("Dữ liệu thanh toán:", values);
-                    setIsPaymentModalOpen(false);
-                }}
+                unpaidInvoice={supplierPayables?.unpaid_invoices}
+                initialDebt={supplierPayables?.total_payable}
+                customerName={supplierData?.supplier_name}
+                onSubmit={handleRecordBulkPayment}
             />
         </div>
     );

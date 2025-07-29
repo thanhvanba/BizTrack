@@ -1,4 +1,4 @@
-import { SUPPLIERS_URL, PURCHASE_ORDERS_URL } from "../apiUrl";
+import { SUPPLIERS_URL, PURCHASE_ORDERS_URL, SUPPLIER_REPORT_URL } from "../apiUrl";
 import axiosService from "../axiosService";
 
 const supplierService = {
@@ -75,6 +75,50 @@ const supplierService = {
     return axiosService()({
       url: `${PURCHASE_ORDERS_URL}/supplier/${supplierId}/receivables`,
       method: "GET",
+    })
+      .then((res) => res.data)
+      .catch((error) => { throw error; });
+  },
+
+  // Lấy sổ cái giao dịch của nhà cung cấp
+  getSupplierTransactionLedger: async (supplierId, params = {}) => {
+    return axiosService()({
+      url: `${SUPPLIER_REPORT_URL}/${supplierId}/transaction-ledger`,
+      method: "GET",
+      params,
+    })
+      .then((res) => res.data)
+      .catch((error) => { throw error; });
+  },
+
+  // Lấy lịch sử đơn nhập hàng của nhà cung cấp
+  getSupplierPOHistory: async (supplierId, params = {}) => {
+    return axiosService()({
+      url: `${SUPPLIER_REPORT_URL}/${supplierId}/po-history`,
+      method: "GET",
+      params,
+    })
+      .then((res) => res.data)
+      .catch((error) => { throw error; });
+  },
+
+  // Lấy công nợ phải trả nhà cung cấp
+  getSupplierPayable: async (supplierId, params = {}) => {
+    return axiosService()({
+      url: `${SUPPLIER_REPORT_URL}/${supplierId}/payable`,
+      method: "GET",
+      params,
+    })
+      .then((res) => res.data)
+      .catch((error) => { throw error; });
+  },
+
+  // Tạo giao dịch cho nhà cung cấp
+  createSupplierTransaction: async (supplierId, data) => {
+    return axiosService()({
+      url: `${SUPPLIER_REPORT_URL}/${supplierId}/transaction`,
+      method: "POST",
+      data,
     })
       .then((res) => res.data)
       .catch((error) => { throw error; });

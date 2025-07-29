@@ -210,7 +210,7 @@ const SupplierManagement = () => {
           expandable={{
             expandedRowRender: (record) => (
               <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
-                <ExpandedSupplierTabs setEditModalVisible={setEditModalVisible} setDeleteModalVisible={setDeleteModalVisible} setSelectedSupplier={setSelectedSupplier} record={record} />
+                <ExpandedSupplierTabs setEditModalVisible={setEditModalVisible} setDeleteModalVisible={setDeleteModalVisible} setSelectedSupplier={setSelectedSupplier} record={record} fetchSuppliers={fetchSuppliers} />
               </div>
             ),
             expandedRowKeys,
