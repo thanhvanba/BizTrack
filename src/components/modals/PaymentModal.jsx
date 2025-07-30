@@ -149,7 +149,7 @@ const PaymentModal = ({ open, onCancel, onSubmit, unpaidInvoice, initialDebt, cu
       footer={[
         <Button key="cancel" onClick={onCancel}>Bỏ qua</Button>,
         <Button key="submit" type="primary" onClick={handleSubmit} loading={loading}>
-          Tạo phiếu thu
+          Tạo phiếu
         </Button>,
       ]}
     >

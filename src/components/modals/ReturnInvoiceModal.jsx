@@ -121,7 +121,7 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
     >
       <div className="flex gap-4">
         {/* Left Sidebar */}
-        <div className="w-1/4 space-y-4">
+        {/* <div className="w-1/4 space-y-4">
           <div className="bg-gray-100 p-4 rounded-md">
             <p className="font-semibold mb-2">Tìm kiếm</p>
             <Input placeholder="Theo mã hóa đơn" prefix={<SearchOutlined />} className="mb-2" />
@@ -140,10 +140,10 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
               onChange={setDateRange}
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Table */}
-        <div className="w-3/4">
+        <div className="w-full">
           <Table
             columns={columns}
             loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
@@ -159,6 +159,7 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
             onChange={handleTableChange}
             rowKey="key"
             size="small"
+            scroll={{ x: "max-content" }}
           />
           {/* <div className="flex justify-between mt-4 items-center">
             <span className="text-sm text-gray-600">

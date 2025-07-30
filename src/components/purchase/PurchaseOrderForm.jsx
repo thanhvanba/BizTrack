@@ -322,8 +322,8 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
 
         {/* Thanh tìm kiếm và chọn sản phẩm động */}
         <div className="mb-4">
-          <Row gutter={12} align="middle">
-            <Col flex="auto">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
               <Select
                 showSearch
                 value={selectedProduct}
@@ -345,26 +345,23 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
                   </Option>
                 ))}
               </Select>
-            </Col>
-            <Col>
-              <Button
-                type="primary"
-
-                className=""
-                onClick={() => {
-                  fetchCategories()
-                  setCreateProductVisible(true)
-                }}
-              >
-                +
-              </Button>
-            </Col>
+            </div>
+            <Button
+              type="primary"
+              onClick={() => {
+                fetchCategories()
+                setCreateProductVisible(true)
+              }}
+              className="whitespace-nowrap flex-shrink-0"
+            >
+              +
+            </Button>
             <Tooltip
               title={`Chỉ hiển thị sản phẩm chưa được chọn vào đơn hàng`}
             >
-              <InfoCircleOutlined style={{ color: "#1890ff" }} />
+              <InfoCircleOutlined style={{ color: "#1890ff" }} className="flex-shrink-0" />
             </Tooltip>
-          </Row>
+          </div>
           {errors.details && (
             <Text type="danger" className="block mt-2">
               {errors.details}

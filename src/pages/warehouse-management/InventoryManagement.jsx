@@ -255,7 +255,7 @@ const InventoryManagement = () => {
       </div>
 
       <Card className="rounded-xl shadow-md" bodyStyle={{ padding: "16px" }}>
-        <div className="mb-4 grid grid-cols-3 gap-3 p-4 bg-white rounded-lg shadow-md">
+        <div className="mb-4 grid grid-cols-3 gap-3 bg-white rounded-lg">
           {/* Ô tìm kiếm */}
           <Input
             placeholder="Tìm kiếm sản phẩm, danh mục, vị trí..."

@@ -436,6 +436,7 @@ const Dashboard = () => {
                                 pagination={false}
                                 size="middle"
                                 className="custom-table"
+                                scroll={{ x: "max-content" }}
                             />
                         </Card>
                     </Col>

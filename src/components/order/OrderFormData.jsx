@@ -581,7 +581,8 @@ const OrderFormData = ({
       title: "Mã SP",
       dataIndex: ["product", "product_id"],
       key: "product_id",
-      width: 220,
+      width: 120,
+      responsive: ['md'],
     },
     {
       title: "Sản phẩm",
@@ -592,7 +593,7 @@ const OrderFormData = ({
           <Button
             type="link"
             onClick={() => addProduct(record)}
-            className="p-0 hover:text-gray-700"
+            className="p-0 hover:text-gray-700 text-xs sm:text-sm"
           >
             {text}
           </Button>
@@ -604,6 +605,7 @@ const OrderFormData = ({
       dataIndex: ["product", "product_retail_price"],
       key: "product_retail_price",
       align: "right",
+      width: 100,
       render: (product_retail_price) => formatCurrency(product_retail_price),
     },
     {
@@ -611,11 +613,13 @@ const OrderFormData = ({
       dataIndex: ["product", "available_quantity"],
       key: "available_quantity",
       align: "center",
+      width: 80,
     },
     {
       title: "",
       key: "action",
       align: "center",
+      width: 60,
       render: (_, record) => (
         <Button
           type="primary"
@@ -633,14 +637,20 @@ const OrderFormData = ({
       title: "Mã SP",
       dataIndex: "product_id",
       key: "product_id",
-      width: 200,
+      width: 100,
+      responsive: ['md'],
       render: (val) => val.slice(0, 8),
     },
     {
       title: "Sản phẩm",
       dataIndex: "product_name",
       key: "product_name",
-      width: 140,
+      width: 120,
+      render: (text) => (
+        <div className="text-xs sm:text-sm truncate" title={text}>
+          {text}
+        </div>
+      ),
     },
 
     // 👇 Cột "Giá trả" sẽ chỉ được thêm nếu mode === "return"
@@ -651,6 +661,7 @@ const OrderFormData = ({
           dataIndex: "product_return_price",
           key: "product_return_price",
           align: "right",
+          width: 160,
           render: (_, record) => (
             <div className="flex items-center gap-1">
               <InputNumber
@@ -666,7 +677,8 @@ const OrderFormData = ({
                   `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                 }
                 parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                className="w-32"
+                style={{ width: '100%' }}
+                size="small"
               />
               <Tooltip
                 title={`Giá bán gốc: ${record.product_retail_price?.toLocaleString()} ₫`}
@@ -682,6 +694,7 @@ const OrderFormData = ({
           dataIndex: "quantity_return",
           key: "quantity_return",
           align: "center",
+          width: 100,
           render: (_, record) => (
             <div className="flex justify-center items-center">
               <InputNumber
@@ -692,9 +705,10 @@ const OrderFormData = ({
                 onChange={(value) => {
                   updateQuantityReturn(record.product_id, value);
                 }}
-                className="w-14"
+                className="w-12 sm:w-14"
+                size="small"
               />
-              <div className="w-6 text-lg text-neutral-400">
+              <div className="w-4 sm:w-6 text-xs sm:text-lg text-neutral-400">
                 / {record.quantity - record.returned_quantity}
               </div>
             </div>
@@ -707,6 +721,7 @@ const OrderFormData = ({
           dataIndex: "product_retail_price",
           key: "product_retail_price",
           align: "right",
+          width: 160,
           render: (_, record) => (
             <InputNumber
               min={0}
@@ -714,6 +729,7 @@ const OrderFormData = ({
               value={record.product_retail_price}
               addonAfter="₫"
               disabled={mode === "return"}
+              style={{ width: '100%' }}
               onChange={(value) => {
                 updatePrice(record.product_id, value);
                 discountTypes[record.product_id] === "%" &&
@@ -727,7 +743,8 @@ const OrderFormData = ({
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
               parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-              className="w-32"
+              className="w-20 sm:w-32"
+              size="small"
             />
           ),
         },
@@ -736,6 +753,7 @@ const OrderFormData = ({
           dataIndex: "quantity",
           key: "quantity",
           align: "center",
+          width: 80,
           render: (_, record) => (
             <div className="flex justify-center items-center">
               <InputNumber
@@ -743,7 +761,8 @@ const OrderFormData = ({
                 max={record.available_quantity}
                 value={record.quantity}
                 onChange={(value) => updateQuantity(record.product_id, value)}
-                className="w-14"
+                className="w-12 sm:w-14"
+                size="small"
               />
             </div>
           ),
@@ -755,10 +774,11 @@ const OrderFormData = ({
       dataIndex: "discount",
       key: "discount",
       align: "right",
+      width: 60,
       render: (_, record) => {
         const discountType = discountTypes[record.product_id] || "đ";
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-1 sm:gap-2">
             <InputNumber
               min={0}
               step={1000}
@@ -772,14 +792,16 @@ const OrderFormData = ({
                 `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
               }
               parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-              className="w-24"
+              className="w-16 sm:w-24"
+              size="small"
             />
             <Select
               value={discountType}
               onChange={(newType) =>
                 updateDiscount(record.product_id, record.discount, newType)
               }
-              style={{ width: 60 }}
+              style={{ width: 50 }}
+              size="small"
               disabled={mode === "return"}
               options={[
                 { label: "%", value: "%" },
@@ -795,7 +817,7 @@ const OrderFormData = ({
       title: "Thành tiền",
       key: "subtotal",
       align: "right",
-      width: 140,
+      width: 120,
       render: (_, record) => {
         if (mode === "return" && refundAmount?.itemRefunds) {
           const itemRefund = refundAmount.itemRefunds.find(
@@ -820,10 +842,12 @@ const OrderFormData = ({
       title: "",
       key: "action",
       align: "center",
+      width: 50,
       render: (_, record) => (
         <Button
           type="text"
           danger
+          size="small"
           icon={<DeleteOutlined />}
           onClick={() => removeProduct(record.product_id)}
         />
@@ -861,8 +885,8 @@ const OrderFormData = ({
 
   return (
     <div className="relative">
-      <div className="flex justify-between items-center">
-        <h1 className="text-xl font-semibold mb-3">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-lg sm:text-xl font-semibold">
           {mode === "edit"
             ? `Chỉnh sửa đơn hàng #${order?.order_code}`
             : mode === "return"
@@ -874,26 +898,23 @@ const OrderFormData = ({
         form={form}
         layout="vertical"
         onValuesChange={handleValuesChange}
-      // initialValues={{
-      //     order_date: mode === 'create' ? null : dayjs(order?.order_date),
-      //     warehouse_id: mode === 'edit' ? order?.warehouse_id : null
-      // }}
       >
-        <div className="grid grid-cols-3 gap-4 mb-10 pb-10">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-10 pb-10">
+          <div className="lg:col-span-2">
             {/* Product selection by warehouse */}
             {mode !== "return" && (
-              <div className="p-4 bg-white rounded-lg shadow mb-4">
-                <div className="flex justify-between">
-                  <div className="font-medium mb-2">Sản phẩm</div>
+              <div className="p-3 sm:p-4 bg-white rounded-lg shadow mb-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
+                  <div className="font-medium">Sản phẩm</div>
                   <Form.Item
                     name="warehouse_id"
                     rules={[
                       { required: true, message: "Vui lòng chọn kho hàng" },
                     ]}
+                    className="mb-0"
                   >
                     <Select
-                      className="highlight-select"
+                      className="highlight-select w-full sm:w-auto"
                       placeholder="Chọn kho hàng"
                       onChange={handleWarehouseChange}
                       disabled={
@@ -919,25 +940,29 @@ const OrderFormData = ({
                     onChange={(e) => setSearchText(e.target.value)}
                     className="mb-2"
                   />
-                  <Table
-                    columns={productColumns}
-                    dataSource={filteredProducts}
-                    rowKey="product_id"
-                    size="small"
-                    pagination={{ pageSize: 5 }}
-                    className="mb-4"
-                  />
+                  <div className="overflow-x-auto">
+                    <Table
+                      columns={productColumns}
+                      dataSource={filteredProducts}
+                      rowKey="product_id"
+                      size="small"
+                      pagination={{ pageSize: 5 }}
+                      className="mb-4"
+                      scroll={{ x: 600 }}
+                      responsive
+                    />
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Selected products */}
             {selectedProducts.length > 0 && (
-              <div className="rounded-lg p-4 bg-white">
-                <div className="flex justify-between">
-                  <div className="font-medium mb-2">Sản phẩm đã chọn</div>
+              <div className="rounded-lg p-3 sm:p-4 bg-white">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
+                  <div className="font-medium">Sản phẩm đã chọn</div>
                   {mode === "return" && (
-                    <div>
+                    <div className="text-sm text-gray-600">
                       <span className="font-medium">Kho:</span>{" "}
                       {warehouses?.find(
                         (w) =>
@@ -946,30 +971,28 @@ const OrderFormData = ({
                     </div>
                   )}
                 </div>
-                <Table
-                  columns={selectedProductColumns}
-                  dataSource={
-                    mode === "return"
-                      ? orderEligibility?.products
-                      : selectedProducts
-                  }
-                  rowKey="product_id"
-                  size="small"
-                  pagination={false}
-                />
-                {/* <div style={{ marginTop: 16, textAlign: "right" }}>
-                  <Text strong>Số tiền hoàn trả: </Text>
-                  <Text type="danger" strong>
-                    {formatCurrency(refundAmount.totalRefund)}
-                  </Text>
-                </div> */}
+                <div className="overflow-x-auto">
+                  <Table
+                    columns={selectedProductColumns}
+                    dataSource={
+                      mode === "return"
+                        ? orderEligibility?.products
+                        : selectedProducts
+                    }
+                    rowKey="product_id"
+                    size="small"
+                    pagination={false}
+                    scroll={{ x: 800 }}
+                    responsive
+                  />
+                </div>
               </div>
             )}
 
             {mode === "return" && (
               <>
                 {/* Phí vận chuyển */}
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 mt-4">
                   <label className="font-medium flex items-center gap-1">
                     Phí vận chuyển
                   </label>
@@ -999,7 +1022,7 @@ const OrderFormData = ({
                   placeholder="Ghi chú"
                   variant="outlined"
                   rows={2}
-                  value={returnOrderData.note} // binding value để TextArea phản ánh đúng state
+                  value={returnOrderData.note}
                   onChange={(e) =>
                     setReturnOrderData((prev) => ({
                       ...prev,
@@ -1012,7 +1035,7 @@ const OrderFormData = ({
           </div>
 
           {/* Order information */}
-          <div className="p-4 bg-white rounded-lg shadow">
+          <div className="p-3 sm:p-4 bg-white rounded-lg shadow">
             <div className="font-medium mb-2">Thông tin đơn hàng</div>
             <Divider />
             <div className="font-medium mb-2">Khách hàng</div>
@@ -1073,7 +1096,6 @@ const OrderFormData = ({
                 />
               </div>
 
-              {/* <ShippingAddressForm form={form} /> */}
               <Form.Item
                 name="shipping_address"
                 label="Địa chỉ cụ thể"
@@ -1087,7 +1109,7 @@ const OrderFormData = ({
                   disabled={mode === "return"}
                 />
               </Form.Item>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Form.Item
                   name="order_date"
                   label="Ngày giao hàng"
@@ -1140,7 +1162,7 @@ const OrderFormData = ({
             <Divider />
             <div className="font-medium mb-2">Thanh toán</div>
             <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Form.Item name="shipping_fee" label="Phí vận chuyển">
                   <InputNumber
                     min={0}
@@ -1159,14 +1181,14 @@ const OrderFormData = ({
                 </Form.Item>
 
                 <Form.Item name="order_amount" label="Giảm giá đơn hàng">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 w-full">
                     <InputNumber
                       min={0}
                       step={1000}
                       max={orderDiscountType === '%' ? 100 : calculateTotalAmount()}
                       variant="filled"
                       placeholder="Nhập phí giảm giá"
-                      className="!w-32"
+                      className="!w-full flex-1"
                       disabled={mode === "return"}
                       value={orderDiscount}
                       formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
@@ -1176,7 +1198,7 @@ const OrderFormData = ({
                     <Select
                       value={orderDiscountType}
                       onChange={(type) => updateOrderDiscount(orderDiscount, type)}
-                      style={{ width: 60 }}
+                      style={{ width: 50 }}
                       disabled={mode === "return"}
                       options={[
                         { label: "%", value: "%" },
@@ -1207,78 +1229,80 @@ const OrderFormData = ({
           </div>
 
           {selectedProducts.length !== 0 && mode !== "return" && (
-            <div className="col-span-2 bg-white p-4 rounded-lg shadow space-y-2">
-              <Descriptions column={4} size="small" bordered>
-                <Descriptions.Item
-                  label="Tổng số tiền"
-                  className="font-medium !text-xl"
-                  span={4}
-                >
-                  <div style={{ textAlign: "right" }}>
-                    {formatCurrency(calculateTotalAmount())}
-                  </div>
-                </Descriptions.Item>
+            <div className="lg:col-span-2 bg-white p-3 sm:p-4 rounded-lg shadow space-y-2">
+              <div className="overflow-x-auto">
+                <Descriptions column={{ xs: 1, sm: 2, md: 4 }} size="small" bordered>
+                  <Descriptions.Item
+                    label="Tổng số tiền"
+                    className="font-medium !text-lg sm:!text-xl"
+                    span={4}
+                  >
+                    <div style={{ textAlign: "right" }}>
+                      {formatCurrency(calculateTotalAmount())}
+                    </div>
+                  </Descriptions.Item>
 
-                <Descriptions.Item label="Giảm giá theo đơn hàng" span={2}>
-                  <div style={{ textAlign: "right" }}>
-                    {formatCurrency(getOrderDiscountAmount())}
-                  </div>
-                </Descriptions.Item>
+                  <Descriptions.Item label="Giảm giá theo đơn hàng" span={2}>
+                    <div style={{ textAlign: "right" }}>
+                      {formatCurrency(getOrderDiscountAmount())}
+                    </div>
+                  </Descriptions.Item>
 
-                <Descriptions.Item label="Giảm giá theo từng sản phẩm" span={2}>
-                  <div style={{ textAlign: "right" }}>
-                    {formatCurrency(calculateDiscountAmount() - getOrderDiscountAmount())}
-                  </div>
-                </Descriptions.Item>
+                  <Descriptions.Item label="Giảm giá theo từng sản phẩm" span={2}>
+                    <div style={{ textAlign: "right" }}>
+                      {formatCurrency(calculateDiscountAmount() - getOrderDiscountAmount())}
+                    </div>
+                  </Descriptions.Item>
 
-                <Descriptions.Item
-                  label="Tổng giảm giá"
-                  style={{ color: "green" }}
-                  span={4}
-                >
-                  <div style={{ textAlign: "right" }}>
-                    <strong>{formatCurrency(calculateDiscountAmount())}</strong>
-                  </div>
-                </Descriptions.Item>
+                  <Descriptions.Item
+                    label="Tổng giảm giá"
+                    style={{ color: "green" }}
+                    span={4}
+                  >
+                    <div style={{ textAlign: "right" }}>
+                      <strong>{formatCurrency(calculateDiscountAmount())}</strong>
+                    </div>
+                  </Descriptions.Item>
 
-                <Descriptions.Item label="Sau giảm giá" span={4}>
-                  <div style={{ textAlign: "right" }}>
-                    {formatCurrency(
-                      calculateTotalAmount() - calculateDiscountAmount()
-                    )}
-                  </div>
-                </Descriptions.Item>
+                  <Descriptions.Item label="Sau giảm giá" span={4}>
+                    <div style={{ textAlign: "right" }}>
+                      {formatCurrency(
+                        calculateTotalAmount() - calculateDiscountAmount()
+                      )}
+                    </div>
+                  </Descriptions.Item>
 
-                <Descriptions.Item label="Phí vận chuyển" span={4}>
-                  <div style={{ textAlign: "right" }}>
-                    {formatCurrency(shippingFee)}
-                  </div>
-                </Descriptions.Item>
+                  <Descriptions.Item label="Phí vận chuyển" span={4}>
+                    <div style={{ textAlign: "right" }}>
+                      {formatCurrency(shippingFee)}
+                    </div>
+                  </Descriptions.Item>
 
-                <Descriptions.Item label="Cần thanh toán" span={4}>
-                  <div style={{ textAlign: "right" }}>
-                    {formatCurrency(calculateFinalAmount())}
-                  </div>
-                </Descriptions.Item>
+                  <Descriptions.Item label="Cần thanh toán" span={4}>
+                    <div style={{ textAlign: "right" }}>
+                      {formatCurrency(calculateFinalAmount())}
+                    </div>
+                  </Descriptions.Item>
 
-                <Descriptions.Item label="Đã thanh toán" span={4}>
-                  <div style={{ textAlign: "right" }}>
-                    {formatCurrency(transferAmount)}
-                  </div>
-                </Descriptions.Item>
+                  <Descriptions.Item label="Đã thanh toán" span={4}>
+                    <div style={{ textAlign: "right" }}>
+                      {formatCurrency(transferAmount)}
+                    </div>
+                  </Descriptions.Item>
 
-                <Descriptions.Item
-                  label="Còn thiếu"
-                  span={4}
-                  style={{ color: "red" }}
-                >
-                  <div style={{ textAlign: "right" }}>
-                    <strong>
-                      {formatCurrency(calculateFinalAmount() - transferAmount)}
-                    </strong>
-                  </div>
-                </Descriptions.Item>
-              </Descriptions>
+                  <Descriptions.Item
+                    label="Còn thiếu"
+                    span={4}
+                    style={{ color: "red" }}
+                  >
+                    <div style={{ textAlign: "right" }}>
+                      <strong>
+                        {formatCurrency(calculateFinalAmount() - transferAmount)}
+                      </strong>
+                    </div>
+                  </Descriptions.Item>
+                </Descriptions>
+              </div>
             </div>
           )}
         </div>
@@ -1286,24 +1310,19 @@ const OrderFormData = ({
 
       {/* Footer */}
       <div
+        className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 px-4 sm:px-6 py-3 sm:py-4 z-50"
         style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          width: "100%",
-          background: "#fff",
-          borderTop: "1px solid #f0f0f0",
-          padding: "8px 24px",
           display: "flex",
+          flexDirection: "column sm:flex-row",
           justifyContent: "space-between",
           alignItems: "center",
-          zIndex: 1000,
+          gap: "8px",
         }}
       >
         {/* Left side - payment info */}
-        <div>
+        <div className="text-center sm:text-left">
           <div>
-            <Text strong style={{ fontSize: 16 }}>
+            <Text strong className="text-sm sm:text-base">
               Cần thanh toán:
               {mode === 'return' ?
                 formatCurrency(refundAmount.totalRefund)
@@ -1314,7 +1333,7 @@ const OrderFormData = ({
 
           {mode !== "return" && (
             <div>
-              <Text style={{ color: "red" }}>
+              <Text className="text-red-500 text-xs sm:text-sm">
                 COD: {formatCurrency(calculateFinalAmount() - transferAmount)}
               </Text>
             </div>
@@ -1323,14 +1342,15 @@ const OrderFormData = ({
         {mode !== "return" ? (
           <>
             {/* Right side - actions */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Tag color="cyan" style={{ fontSize: 14 }}>
+            <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
+              <Tag color="cyan" className="text-xs sm:text-sm">
                 Trạng thái: <Text strong>Mới</Text>
               </Tag>
-              <Button onClick={() => navigate("/orders")}>Hủy</Button>
+              <Button size="small" onClick={() => navigate("/orders")}>Hủy</Button>
               <Button
                 type="primary"
                 icon={<SaveOutlined />}
+                size="small"
                 onClick={handleSubmitOrder}
                 disabled={selectedProducts.length === 0}
                 loading={formLoading}
@@ -1343,6 +1363,7 @@ const OrderFormData = ({
           <Button
             type="primary"
             icon={<SaveOutlined />}
+            size="small"
             onClick={handleCreateOrderReturn}
             disabled={selectedProducts.length === 0}
             loading={formLoading}

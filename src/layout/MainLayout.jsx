@@ -12,23 +12,41 @@ const MainLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const [mobileView, setMobileView] = useState(false);
+    // Custom hook for mobile detection
+    const useMobileDetection = () => {
+        const [isMobile, setIsMobile] = useState(false);
+
+        useEffect(() => {
+            if (typeof window === 'undefined') return;
+
+            // Use CSS media query for more reliable detection
+            const mediaQuery = window.matchMedia('(max-width: 768px)');
+
+            const handleMediaQueryChange = (e) => {
+                console.log("🚀 ~ Media query change ~ isMobile:", e.matches, "window.innerWidth:", window.innerWidth, "clientWidth:", document.documentElement.clientWidth);
+                setIsMobile(e.matches);
+            };
+
+            // Set initial value
+            handleMediaQueryChange(mediaQuery);
+
+            // Add listener
+            mediaQuery.addEventListener('change', handleMediaQueryChange);
+
+            return () => {
+                mediaQuery.removeEventListener('change', handleMediaQueryChange);
+            };
+        }, []);
+
+        return isMobile;
+    };
+
+    const mobileView = useMobileDetection();
     const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
     const [sessionExpiredVisible, setSessionExpiredVisible] = useState(false);
 
     const currentTab = location.pathname.replace("/", "") || "dashboard";
     const [activeTab, setActiveTab] = useState(currentTab);
-
-    // Handle responsive view
-    useEffect(() => {
-        const handleResize = () => {
-            const isMobile = window.innerWidth < 768;
-            setMobileView(isMobile);
-        };
-        handleResize();
-        window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
-    }, []);
 
     // Sync activeTab with route
     useEffect(() => {
@@ -99,7 +117,7 @@ const MainLayout = () => {
                     />
                 </div>
                 <Content>
-                    <div className="p-3 md:p-6 transition-all duration-300 animate-fadeIn h-[89vh] overflow-y-auto">
+                    <div className="p-2 sm:p-3 md:p-6 transition-all duration-300 animate-fadeIn h-[calc(100vh-4rem)] sm:h-[calc(100vh-5rem)] overflow-y-auto">
                         <Outlet context={{}} />
                     </div>
                 </Content>

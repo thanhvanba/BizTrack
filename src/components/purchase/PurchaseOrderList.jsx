@@ -53,6 +53,7 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
+      align: "center",
       render: (status, record) =>
         isReturnPage ? (
           <Tag color={status === "pending" ? "orange" : "green"}>
@@ -102,18 +103,19 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex md:flex-row flex-col justify-between items-center mb-4 gap-4">
         <Input
           placeholder="Tìm kiếm theo mã đơn hoặc nhà cung cấp"
           prefix={<SearchOutlined />}
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
-          style={{ width: 400 }}
+          className="md:w-full w-3/4"
         />
         <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={onCreateNew}
+          className="md:w-1/4 w-full"
         >
           {isReturnPage ? 'Tạo đơn trả hàng nhập' : 'Tạo đơn nhập hàng'}
         </Button>
@@ -144,6 +146,7 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
         })}
         pagination={pagination}
         onChange={onChange}
+        scroll={{ x: "max-content" }}
       />
     </div>
   );

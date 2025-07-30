@@ -178,7 +178,15 @@ export default function Header({ onToggleMobileDrawer, isMobile, setActiveTab, a
   const navigate = useNavigate()
   return (
     <div className="w-full shadow-lg bg-white">
-      <div className="flex items-center w-full px-4 h-20">
+      <div className="flex items-center w-full px-4 h-20 justify-between">
+
+        {isMobile && (
+          <Button
+            icon={<MenuOutlined />}
+            type="text"
+            onClick={onToggleMobileDrawer}
+          />
+        )}
         {/* Logo */}
         <div className="flex items-center mr-6">
           <Image width={140} preview={false} src={logo} alt="Logo" />
@@ -192,18 +200,11 @@ export default function Header({ onToggleMobileDrawer, isMobile, setActiveTab, a
             onOpenChange={handleOpenChange}
             onClick={handleMenuClick}
             items={menuItems}
-            className="flex-1 border-none min-w-0"
+            className="flex-1 border-none min-w-0 items-center mx-auto"
           />
         )}
         {/* Notification & Account */}
-        <div className="flex items-center ml-auto gap-4">
-          {isMobile && (
-            <Button
-              icon={<MenuOutlined />}
-              type="text"
-              onClick={onToggleMobileDrawer}
-            />
-          )}
+        <div className="flex items-center gap-4">
           {!isMobile && <ListNotification />}
           {Object.keys(profileInfo).length ? (
             <div className="flex items-center gap-2">

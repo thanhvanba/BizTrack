@@ -11,7 +11,7 @@ export default function PurchaseOrderDetail({ order }) {
   console.log("🚀 ~ PurchaseOrderDetail ~ order:", order)
   const [printInvoiceVisible, setPrintInvoiceVisible] = useState(false);
 
-  const totalAmount = order?.details?.reduce((sum, detail) => sum + detail.quantity * (detail.price ?? detail.refund_amount), 0);
+  const totalAmount = order?.details?.reduce((sum, detail) => sum + detail.quantity * (detail.price ?? detail.item_return_price), 0);
 
   // Chuẩn hóa dữ liệu hóa đơn nhập hàng cho PrintInvoice
   const purchaseInvoiceData = order ? {
@@ -63,13 +63,13 @@ export default function PurchaseOrderDetail({ order }) {
       dataIndex: "price",
       key: "price",
       align: "right",
-      render: (_, detail) => formatPrice(detail.price ?? detail.refund_amount),
+      render: (_, detail) => formatPrice(detail.price ?? detail.item_return_price),
     },
     {
       title: "Thành tiền",
       key: "total",
       align: "right",
-      render: (_, detail) => formatPrice((detail.quantity || 0) * (detail.price ?? detail.refund_amount)),
+      render: (_, detail) => formatPrice((detail.quantity || 0) * (detail.price ?? detail.item_return_price)),
     },
   ];
 
@@ -84,12 +84,15 @@ export default function PurchaseOrderDetail({ order }) {
           <Text type="secondary">Trạng thái</Text>
           <div>
             <span
-              className={`px-2 py-1 rounded-full text-xs font-medium ${order?.status === "draft" || order?.status === "pending"
-                ? "bg-orange-100 text-orange-800"
-                : "bg-green-100 text-green-800"
-                }`}
+              className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                order?.status === "draft" || order?.status === "pending"
+                  ? "bg-orange-100 text-orange-800"
+                  : "bg-green-100 text-green-800"
+              }`}
             >
-              {order?.status === "draft" || order?.status === "pending" ? "Chờ duyệt" : "Đã nhập"}
+              {order?.status === "draft" || order?.status === "pending" ? "Chờ duyệt" :
+               order?.status === "approved" ? "Đã trả" :
+               order?.status === "posted" ? "Đã nhập" : "Đã nhập"}
             </span>
           </div>
         </Col>

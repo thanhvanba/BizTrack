@@ -125,30 +125,7 @@ const CustomerManagement = () => {
     }
   }
   const [expandedRowKeys, setExpandedRowKeys] = useState([])
-  const [selectedRowKeys, setSelectedRowKeys] = useState([])
 
-  // Handle select all checkbox
-  const handleSelectAll = (checked) => {
-    if (checked) {
-      setSelectedRowKeys(customers.map((item) => item.key))
-    } else {
-      setSelectedRowKeys([])
-    }
-  }
-
-  // Handle individual row checkbox
-  const handleRowSelect = (key, checked) => {
-    if (checked) {
-      setSelectedRowKeys([...selectedRowKeys, key])
-    } else {
-      setSelectedRowKeys(selectedRowKeys.filter((k) => k !== key))
-    }
-  }
-  // Check if all rows are selected
-  const isAllSelected = selectedRowKeys.length === customers.length && customers.length > 0
-
-  // Check if some rows are selected (for indeterminate state)
-  const isIndeterminate = selectedRowKeys.length > 0 && selectedRowKeys.length < customers.length
   const toggleExpand = (key) => {
     if (expandedRowKeys.includes(key)) {
       setExpandedRowKeys([])
@@ -176,7 +153,6 @@ const CustomerManagement = () => {
       title: "Số điện thoại",
       dataIndex: "phone",
       key: "phone",
-      responsive: ["md"]
     },
     // {
     //   title: "Tổng đơn hàng",
@@ -192,7 +168,6 @@ const CustomerManagement = () => {
       render: (value) =>
         new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value),
       align: "right",
-      responsive: ["lg"]
     },
     {
       title: "Tổng công nợ",
@@ -201,7 +176,6 @@ const CustomerManagement = () => {
       render: (value) =>
         new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value),
       align: "right",
-      responsive: ["lg"]
     },
   ]
 

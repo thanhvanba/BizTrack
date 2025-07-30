@@ -147,20 +147,17 @@ const SupplierManagement = () => {
       title: "Email",
       dataIndex: "email",
       key: "email",
-      responsive: ["md"],
       render: (email) => email || '-'
     },
     {
       title: "Số điện thoại",
       dataIndex: "phone",
       key: "phone",
-      responsive: ["md"]
     },
     {
       title: "Địa chỉ",
       dataIndex: "address",
       key: "address",
-      responsive: ["md"]
     },
   ]
 

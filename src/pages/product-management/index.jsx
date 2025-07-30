@@ -299,7 +299,7 @@ const ProductManagement = () => {
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => setCreateModalVisible(true)}
-          className="bg-blue-500 hover:bg-blue-600 border-0 shadow-md hover:shadow-lg transition-all flex items-center self-start md:self-auto"
+          className="md:w-1/6 w-full bg-blue-500 hover:bg-blue-600 border-0 shadow-md hover:shadow-lg transition-all flex items-center self-start md:self-auto"
         >
           Thêm sản phẩm
         </Button>

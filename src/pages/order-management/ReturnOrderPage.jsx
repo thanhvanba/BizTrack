@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Table, Button, Input, Tag, Card, Typography } from 'antd';
 import './index.css'; // file này cần chứa tailwind directives
+import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons"
 import ExpandedOrderTabs from '../../components/order/ExpandedOrderTabs';
 import ReturnInvoiceModal from '../../components/modals/ReturnInvoiceModal';
 import { useNavigate } from 'react-router-dom';
@@ -174,7 +175,7 @@ const ReturnOrderPage = () => {
     }, []);
 
     return (
-        <div className="p-5">
+        <div>
             <div className="flex justify-between items-center mb-4">
                 <Title
                     level={2}
@@ -187,12 +188,21 @@ const ReturnOrderPage = () => {
                     <Button>Xuất file</Button>
                 </div>
             </div>
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <Input
+                    placeholder="Tìm kiếm theo mã đơn hàng"
+                    prefix={<SearchOutlined />}
+                    allowClear
+                    onChange={(e) => handleSelectInvoice}
+                    className="md:max-w-md"
+                />
+            </div>
             <ReturnInvoiceModal visible={open} onClose={() => setOpen(false)} onSelect={handleSelectInvoice} />
             <Card
                 className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
                 bodyStyle={{ padding: "16px" }}
             >
-                <Search placeholder="Tìm theo mã phiếu trả" className='mb-4' style={{ width: 220 }} />
+                <Search placeholder="Tìm theo mã phiếu trả" className='mb-4 md:w-1/6 w-full' />
                 <Table
                     rowKey="return_id"
                     dataSource={ordersReturnData}

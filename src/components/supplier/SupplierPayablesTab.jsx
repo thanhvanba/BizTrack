@@ -11,11 +11,11 @@ import useToastNotify from "../../utils/useToastNotify";
 const statusMap = {
     pending: 'Tạo đơn hàng',
     partial_paid: 'Thanh toán một phần',
-    payment: 'Điều chỉnh',
+    payment: 'Thanh toán đơn nhập',
     completed: 'Hoàn tất',
     cancelled: 'Hủy bỏ',
     return: 'Trả hàng',
-    receipt: 'Thanh toán đơn hàng'
+    receipt: 'Trả hàng'
 };
 
 const columns = [
@@ -27,13 +27,13 @@ const columns = [
         }
     },
     {
-        title: "Loại", dataIndex: "loai", key: "loai",
+        title: "Loại", dataIndex: "type", key: "type",
         render: (value) => statusMap[value] || value,
     },
     {
         title: "Giá trị", dataIndex: "amount", key: "amount", align: "right",
         render: (val, record) => {
-            const isNegative = ["partial_paid", "return", "receipt"].includes(record.loai);
+            const isNegative = ["partial_paid", "payment", "receipt", "return"].includes(record.type);
             return `${isNegative ? "-" : ""}${formatPrice(val)}`;
         },
     },
