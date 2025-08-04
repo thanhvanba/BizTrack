@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchWarehouses } from "../../redux/warehouses/warehouses.slice";
 // import adjustmentService from "../../service/adjustmentService";
 import useToastNotify from "../../utils/useToastNotify";
-import AdjustmentForm from "../../components/transfer/AdjustmentForm";
+import AdjustmentForm from "../../components/warehouse/AdjustmentForm";
 import AdjustmentList from "../../components/transfer/AdjustmentList";
 
 const { TabPane } = Tabs;

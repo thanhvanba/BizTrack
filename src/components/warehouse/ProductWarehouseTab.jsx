@@ -25,6 +25,7 @@ const columns = [
         title: "Đối tác",
         dataIndex: "doi_tac",
         key: "doi_tac",
+        render: (value) => value || "-",
     },
     {
         title: "Giá GD",
@@ -43,11 +44,11 @@ const columns = [
         title: "Khả dụng",
         dataIndex: "ton_cuoi",
         key: "ton_cuoi",
-        align: "right", 
+        align: "right",
     },
 ];
 
-const ProductWarehouseTab = ({ productId, warehouseId }) => {
+const ProductWarehouseTab = ({ productId, warehouseId, reloadKey }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -71,7 +72,7 @@ const ProductWarehouseTab = ({ productId, warehouseId }) => {
         if (productId && warehouseId) {
             fetchHistory();
         }
-    }, [productId, warehouseId]);
+    }, [productId, warehouseId, reloadKey]);
 
     return (
         <div className="relative">
