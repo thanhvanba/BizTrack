@@ -1,4 +1,24 @@
-import { useState, useEffect } from "react";
+/**
+ * OrderFormData Component
+ * 
+ * Mục đích: Component chính để tạo, chỉnh sửa và xử lý trả hàng đơn hàng
+ * 
+ * Tính năng chính:
+ * - Tạo đơn hàng mới (create mode)
+ * - Chỉnh sửa đơn hàng (edit mode) 
+ * - Xử lý trả hàng (return mode)
+ * - Quản lý sản phẩm và tính toán giá trị
+ * - Tích hợp với MultiOrderFormTabs cho tạo nhiều đơn hàng
+ * - Lưu trữ tạm thời vào localStorage
+ * 
+ * Props:
+ * - mode: "create" | "edit" | "return" - Chế độ hoạt động
+ * - order: Object - Dữ liệu đơn hàng (cho edit/return mode)
+ * - selectedProducts: Array - Danh sách sản phẩm đã chọn
+ * - onSave: Function - Callback khi lưu thành công
+ * - onChange: Function - Callback khi form thay đổi
+ */
+import { useState, useEffect, useMemo } from "react";
 import {
   Modal,
   Form,
@@ -41,6 +61,14 @@ const { Option } = Select;
 const { Text } = Typography;
 const { TextArea } = Input;
 
+/**
+ * Component chính xử lý form đơn hàng
+ * @param {string} mode - Chế độ hoạt động: "create" | "edit" | "return"
+ * @param {object} orderProp - Dữ liệu đơn hàng (cho edit/return mode)
+ * @param {array} selectedProductsProps - Danh sách sản phẩm đã chọn
+ * @param {function} onSave - Callback khi lưu thành công
+ * @param {function} onChange - Callback khi form thay đổi
+ */
 const OrderFormData = ({
   mode = "create",
   order: orderProp,
@@ -48,13 +76,16 @@ const OrderFormData = ({
   onSave,
   onChange,
 }) => {
+  console.log("🚀 ~ OrderFormData ~ orderProp:", orderProp)
   const { orderId } = useParams();
+
+  // State quản lý dữ liệu khách hàng và sản phẩm
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
   const [order, setOrder] = useState(null);
   const [orderEligibility, setOrderEligibility] = useState(null);
-  console.log("🚀 ~ OrderFormData ~ orderEligibility:", orderEligibility);
 
+  // Form instance và state quản lý trả hàng
   const [form] = Form.useForm();
   const [returnOrderData, setReturnOrderData] = useState({
     customer_id: "",
@@ -66,46 +97,64 @@ const OrderFormData = ({
     return_details: [],
   });
 
+  // State quản lý loading và trạng thái form
   const [loading, setLoading] = useState(mode === "edit");
   const [formLoading, setFormLoading] = useState(false);
 
+  // Redux store và warehouses
   const dispatch = useDispatch();
   const warehouses = useSelector(
     (state) => state.warehouse.warehouses.data || []
   );
-  const { mobileView, collapsed } = useOutletContext();
 
+  // State quản lý modal và loại giảm giá
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [discountTypes, setDiscountTypes] = useState({});
 
+  // State quản lý sản phẩm đã chọn và các giá trị tính toán
   const [selectedProducts, setSelectedProducts] = useState(
     selectedProductsProps || []
   );
+  console.log("🚀 ~ OrderFormData ~ selectedProducts:", selectedProducts)
   const [shippingFee, setShippingFee] = useState(0);
   const [orderDiscount, setOrderDiscount] = useState(0);
-  const [transferAmount, setTransferAmount] = useState(0);
+
+  const [transferAmount, setTransferAmount] = useState(orderProp?.amount_paid || 0);
+  const [transferAmountByInput, setTransferAmountByInput] = useState(orderProp?.amount_paid || 0);
+  console.log("🚀 ~ OrderFormData ~ transferAmountByInput:", transferAmountByInput)
+
+  console.log("🚀 ~ OrderFormData ~ transferAmount:", transferAmount)
   const [refundAmount, setRefundAmount] = useState(0);
   const [orderDetailSummary, setOrderDetailSummary] = useState(null);
+  // Utility function để format tiền tệ
   const formatCurrency = (value) =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(value);
 
+  // State quản lý tìm kiếm và navigation
   const [searchText, setSearchText] = useState("");
   const navigate = useNavigate();
   const [selectedCustomerId, setSelectedCustomerId] = useState();
 
-  // Thêm state cho loại giảm giá đơn hàng
+  // State quản lý loại giảm giá đơn hàng (% hoặc ₫)
   const [orderDiscountType, setOrderDiscountType] = useState('₫');
 
-  // Hàm cập nhật giảm giá đơn hàng
+  /**
+   * Cập nhật giảm giá đơn hàng và đồng bộ với form
+   * @param {number} value - Giá trị giảm giá
+   * @param {string} type - Loại giảm giá ('%' hoặc '₫')
+   */
   const updateOrderDiscount = (value, type) => {
     setOrderDiscount(Number(value) || 0);
     setOrderDiscountType(type);
   };
 
-  // Hàm tính số tiền giảm giá đơn hàng thực tế
+  /**
+   * Tính số tiền giảm giá đơn hàng thực tế
+   * @returns {number} Số tiền giảm giá
+   */
   const getOrderDiscountAmount = () => {
     if (orderDiscountType === '%') {
       return (orderDiscount / 100) * calculateTotalAmount();
@@ -113,7 +162,12 @@ const OrderFormData = ({
     return orderDiscount;
   };
 
-  // Chỉ gọi fetchWarehouses nếu chưa có trong store
+  /**
+   * useEffect khởi tạo dữ liệu ban đầu
+   * - Fetch danh sách khách hàng
+   * - Fetch danh sách warehouses từ Redux
+   * - Fetch chi tiết đơn hàng nếu là edit/return mode
+   */
   useEffect(() => {
     fetchCustomers();
     dispatch(fetchWarehouses());
@@ -123,7 +177,9 @@ const OrderFormData = ({
     }
   }, [orderId]);
 
-  // Call api
+  /**
+   * Fetch danh sách khách hàng từ API
+   */
   const fetchCustomers = async () => {
     try {
       setLoading(true);
@@ -135,17 +191,28 @@ const OrderFormData = ({
       setLoading(false);
     }
   };
+
+  /**
+   * Fetch danh sách sản phẩm theo warehouse ID
+   * @param {string} warehouseId - ID của warehouse
+   */
   const fetchInventoryByWarehouseId = async (warehouseId) => {
     const res = await inventoryService.getInventoryByWarehouseId(warehouseId);
     if (res && res.data) {
       setProducts(res.data);
     }
   };
-  // Khi form thay đổi giá trị customer_id, đồng bộ state
+  /**
+   * Đồng bộ selectedCustomerId khi form thay đổi customer_id
+   */
   useEffect(() => {
     setSelectedCustomerId(form.getFieldValue('customer_id'));
   }, [form.getFieldValue('customer_id')]);
 
+  /**
+   * Xử lý tạo khách hàng mới
+   * @param {object} data - Dữ liệu khách hàng mới
+   */
   const handleCreateCustomer = async (data) => {
     try {
       const res = await customerService.createCustomer(data);
@@ -163,7 +230,14 @@ const OrderFormData = ({
       useToastNotify("Thêm khách hàng không thành công.", "error");
     }
   };
-  // Sử dụng cho edit và return order
+  /**
+   * Fetch chi tiết đơn hàng (sử dụng cho edit và return mode)
+   * Bao gồm:
+   * - Thông tin đơn hàng
+   * - Danh sách sản phẩm
+   * - Kiểm tra eligibility cho return
+   * - Lịch sử trả hàng
+   */
   const fetchOrderDetails = async () => {
     try {
       setLoading(true);
@@ -231,6 +305,10 @@ const OrderFormData = ({
     }
   };
 
+  /**
+   * Xử lý tạo đơn trả hàng
+   * Lọc sản phẩm có quantity_return > 0 và tạo return_details
+   */
   const handleCreateOrderReturn = async () => {
     const data = {
       ...returnOrderData,
@@ -252,7 +330,10 @@ const OrderFormData = ({
     }
   };
 
-  // Sử dụng cho tạo nhiều đơn hàng
+  /**
+   * useEffect đồng bộ dữ liệu từ orderProp (sử dụng cho tạo nhiều đơn hàng)
+   * Cập nhật form values khi orderProp thay đổi
+   */
   useEffect(() => {
     if (orderProp) {
       form.setFieldsValue({
@@ -269,28 +350,17 @@ const OrderFormData = ({
     }
   }, [orderProp]);
 
+  /**
+   * Fetch sản phẩm khi warehouse_id thay đổi
+   */
   useEffect(() => {
     fetchInventoryByWarehouseId(orderProp?.warehouse_id);
   }, [orderProp?.warehouse_id]);
 
-  //   useEffect(() => {
-  //     if (!order || !orderEligibility?.products) return;
-  //     let productPriceMap = {};
-  //     let productDiscountMap = {};
-  //     for (const p of order?.products || []) {
-  //       productPriceMap[p.product_id] = p.price;
-  //       productDiscountMap[p.product_id] = p.discount || 0;
-  //     }
-  //     const refund = calculateRefund(
-  //       order,
-  //       orderEligibility.products,
-  //       productPriceMap,
-  //       productDiscountMap,
-  //       orderDetailSummary
-  //     );
-  //     setRefundAmount(refund);
-  //   }, [order, orderEligibility?.products, orderDetailSummary]);
-
+  /**
+   * Tính toán số tiền hoàn trả cho return mode
+   * Sử dụng calculateRefund utility với tổng số tiền đã hoàn trước đó
+   */
   useEffect(() => {
     if (!order || !orderEligibility?.products) return;
 
@@ -316,18 +386,17 @@ const OrderFormData = ({
     setRefundAmount(refund);
   }, [order, orderEligibility?.products, orderDetailSummary]);
 
-  console.log("🚀 ~ OrderFormData ~ refundAmount:", refundAmount)
 
 
-  const handleValuesChange = (_, allValues) => {
-    onChange?.(allValues, selectedProducts);
-  };
-  useEffect(() => {
-    if (selectedProducts.length !== 0) {
-      onChange?.(form.getFieldsValue(), selectedProducts);
-    }
-  }, [selectedProducts]);
-
+  /**
+   * Xử lý submit đơn hàng
+   * Bao gồm:
+   * - Validate form
+   * - Format dữ liệu
+   * - Gọi API tạo/cập nhật đơn hàng
+   * - Hiển thị thông báo
+   * - Navigate hoặc callback onSave
+   */
   const handleSubmitOrder = async () => {
     try {
       setFormLoading(true);
@@ -345,7 +414,7 @@ const OrderFormData = ({
         order: {
           customer_id: values.customer_id,
           order_date: formattedOrderDate,
-          order_amount: getOrderDiscountAmount() ?? 0,
+          order_amount: (getOrderDiscountAmount() || orderProp?.order_amount || 0) ?? 0,
           shipping_address: values.shipping_address,
           shipping_fee: values.shipping_fee ?? 0,
           amount_paid: values.amount_paid ?? 0,
@@ -385,13 +454,17 @@ const OrderFormData = ({
     }
   };
 
-  // xử lý form
+  // Lọc sản phẩm theo searchText
   const filteredProducts = products.filter((product) =>
     product?.product?.product_name
       .toLowerCase()
       .includes(searchText.toLowerCase())
   );
-  // Tổng tiền đơn hàng
+  /**
+   * Tính tổng tiền đơn hàng
+   * Sử dụng orderEligibility.products cho return mode, selectedProducts cho create/edit mode
+   * @returns {number} Tổng tiền đơn hàng
+   */
   const calculateTotalAmount = () => {
     const sourceData =
       mode === "return" ? orderEligibility?.products ?? [] : selectedProducts;
@@ -407,7 +480,10 @@ const OrderFormData = ({
       );
     }, 0);
   };
-  // Tổng giảm giá sản phẩm + đơn hàng
+  /**
+   * Tính tổng giảm giá (sản phẩm + đơn hàng)
+   * @returns {number} Tổng giảm giá
+   */
   const calculateDiscountAmount = () => {
     const sourceData =
       mode === "return" ? orderEligibility?.products ?? [] : selectedProducts;
@@ -418,18 +494,62 @@ const OrderFormData = ({
     return (
       discountProduct +
       parseFloat(
-        mode === "return" ? returnOrderData.order_amount : getOrderDiscountAmount()
+        mode === "return" ? returnOrderData.order_amount : (getOrderDiscountAmount() || orderProp?.order_amount || 0)
       )
     );
   };
 
-  const calculateFinalAmount = () => {
+  /**
+   * Tính số tiền cuối cùng cần thanh toán
+   * Công thức: Tổng tiền - Tổng giảm giá + Phí vận chuyển
+   */
+  const finalAmount = useMemo(() => {
     return (
       Number(calculateTotalAmount()) -
       Number(calculateDiscountAmount()) +
-      Number(mode === "return" ? returnOrderData.shipping_fee : shippingFee)
+      Number(mode === "return" ? returnOrderData.shipping_fee : (shippingFee || orderProp?.shipping_fee || 0))
     );
+  }, [selectedProducts, orderEligibility, returnOrderData, shippingFee, orderDiscount, mode]);
+
+  /**
+   * Tự động cập nhật transferAmount và form khi finalAmount thay đổi
+   * Đảm bảo đồng bộ giữa state và form
+   */
+  useEffect(() => {
+    setTransferAmount(finalAmount);
+    console.log("🚀 ~ OrderFormData ~ finalAmount:", finalAmount)
+    // form.setFieldsValue({ amount_paid: finalAmount });
+    const currentValues = {
+      ...form.getFieldsValue(),
+      amount_paid: finalAmount, // Gán lại trước khi gửi đi
+    };
+    onChange?.(currentValues, selectedProducts);
+  }, [selectedProducts, form, finalAmount]);
+
+  /**
+ * Callback khi form values thay đổi
+ */
+  const handleValuesChange = (_, allValues) => {
+    console.log("🚀 ~ handleValuesChange ~ allValues:", allValues)
+    const updatedValues = { ...allValues, amount_paid: transferAmount };
+    onChange?.(updatedValues, selectedProducts);
   };
+
+  /**
+   * Đồng bộ dữ liệu với parent component khi selectedProducts thay đổi
+   */
+  useEffect(() => {
+    console.log("🚀 ~ OrderFormData ~ transferAmount 1:", transferAmount)
+    console.log("🚀 ~ O000000000transferAmountByInput:", transferAmountByInput)
+    if (selectedProducts.length !== 0) {
+      const currentValues = {
+        ...form.getFieldsValue(),
+        amount_paid: transferAmount, // Gán lại trước khi gửi đi
+      };
+      onChange?.(currentValues, selectedProducts);
+    }
+  }, [transferAmountByInput]);
+
   const addProduct = (inventory) => {
     const product = inventory?.product;
     const productId = product?.product_id;
@@ -1109,46 +1229,24 @@ const OrderFormData = ({
                   disabled={mode === "return"}
                 />
               </Form.Item>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Form.Item
-                  name="order_date"
-                  label="Ngày giao hàng"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn ngày đặt hàng" },
-                  ]}
-                >
-                  <DatePicker
-                    placeholder="Chọn ngày"
-                    disabledDate={(current) =>
-                      current && current < dayjs().startOf("day")
-                    }
-                    variant="filled"
-                    className="w-full"
-                    format="DD/MM/YYYY"
-                    disabled={mode === "return"}
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  name="payment_method"
-                  label="Thanh toán"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Vui lòng chọn phương thức thành toán",
-                    },
-                  ]}
-                >
-                  <Select
-                    placeholder="Chọn phương thức"
-                    variant="filled"
-                    disabled={mode === "return"}
-                  >
-                    <Option value="Chuyển khoản">Chuyển khoản</Option>
-                    <Option value="COD">COD</Option>
-                  </Select>
-                </Form.Item>
-              </div>
+              <Form.Item
+                name="order_date"
+                label="Ngày giao hàng"
+                rules={[
+                  { required: true, message: "Vui lòng chọn ngày đặt hàng" },
+                ]}
+              >
+                <DatePicker
+                  placeholder="Chọn ngày"
+                  disabledDate={(current) =>
+                    current && current < dayjs().startOf("day")
+                  }
+                  variant="filled"
+                  className="w-full"
+                  format="DD/MM/YYYY"
+                  disabled={mode === "return"}
+                />
+              </Form.Item>
 
               <Form.Item name="note" label="Ghi chú">
                 <TextArea
@@ -1180,12 +1278,12 @@ const OrderFormData = ({
                   />
                 </Form.Item>
 
-                <Form.Item name="order_amount" label="Giảm giá đơn hàng">
-                  <div className="flex items-center gap-2 w-full">
+                <div className="flex items-center gap-2 w-full">
+                  <Form.Item name="order_amount" label="Giảm giá đơn hàng">
                     <InputNumber
                       min={0}
                       step={1000}
-                      max={orderDiscountType === '%' ? 100 : calculateTotalAmount()}
+                      max={orderDiscountType === '%' ? 100 : finalAmount}
                       variant="filled"
                       placeholder="Nhập phí giảm giá"
                       className="!w-full flex-1"
@@ -1195,21 +1293,40 @@ const OrderFormData = ({
                       parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
                       onChange={(value) => updateOrderDiscount(value, orderDiscountType)}
                     />
-                    <Select
-                      value={orderDiscountType}
-                      onChange={(type) => updateOrderDiscount(orderDiscount, type)}
-                      style={{ width: 50 }}
-                      disabled={mode === "return"}
-                      options={[
-                        { label: "%", value: "%" },
-                        { label: "₫", value: "₫" },
-                      ]}
-                    />
-                  </div>
-                </Form.Item>
-              </div>
 
-              <Form.Item name="amount_paid" label="Tiền trả trước">
+                  </Form.Item>
+                  <Select
+                    value={orderDiscountType}
+                    onChange={(type) => updateOrderDiscount(orderDiscount, type)}
+                    style={{ width: 50 }}
+                    disabled={mode === "return"}
+                    options={[
+                      { label: "%", value: "%" },
+                      { label: "₫", value: "₫" },
+                    ]}
+                  />
+                </div>
+              </div>
+              <Form.Item
+                name="payment_method"
+                label="Phương thức thanh toán"
+                rules={[
+                  {
+                    required: true,
+                    message: "Vui lòng chọn phương thức thành toán",
+                  },
+                ]}
+              >
+                <Select
+                  placeholder="Chọn phương thức"
+                  variant="filled"
+                  disabled={mode === "return"}
+                >
+                  <Option value="Tiền mặt">Tiền mặt</Option>
+                  <Option value="Chuyển khoản">Chuyển khoản</Option>
+                </Select>
+              </Form.Item>
+              <Form.Item name="amount_paid" label="Khách thanh toán">
                 <InputNumber
                   min={0}
                   step={1000}
@@ -1222,7 +1339,10 @@ const OrderFormData = ({
                     `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                   }
                   parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
-                  onChange={(value) => setTransferAmount(value)}
+                  onChange={(value) => {
+                    setTransferAmountByInput(value);
+                    setTransferAmount(value);
+                  }}
                 />
               </Form.Item>
             </div>
@@ -1244,13 +1364,13 @@ const OrderFormData = ({
 
                   <Descriptions.Item label="Giảm giá theo đơn hàng" span={2}>
                     <div style={{ textAlign: "right" }}>
-                      {formatCurrency(getOrderDiscountAmount())}
+                      {formatCurrency(getOrderDiscountAmount() || orderProp?.order_amount || 0)}
                     </div>
                   </Descriptions.Item>
 
                   <Descriptions.Item label="Giảm giá theo từng sản phẩm" span={2}>
                     <div style={{ textAlign: "right" }}>
-                      {formatCurrency(calculateDiscountAmount() - getOrderDiscountAmount())}
+                      {formatCurrency(calculateDiscountAmount() - (getOrderDiscountAmount() || orderProp?.order_amount || 0))}
                     </div>
                   </Descriptions.Item>
 
@@ -1274,19 +1394,19 @@ const OrderFormData = ({
 
                   <Descriptions.Item label="Phí vận chuyển" span={4}>
                     <div style={{ textAlign: "right" }}>
-                      {formatCurrency(shippingFee)}
+                      {formatCurrency(shippingFee || orderProp?.shipping_fee || 0)}
                     </div>
                   </Descriptions.Item>
 
                   <Descriptions.Item label="Cần thanh toán" span={4}>
                     <div style={{ textAlign: "right" }}>
-                      {formatCurrency(calculateFinalAmount())}
+                      {formatCurrency(finalAmount)}
                     </div>
                   </Descriptions.Item>
 
                   <Descriptions.Item label="Đã thanh toán" span={4}>
                     <div style={{ textAlign: "right" }}>
-                      {formatCurrency(transferAmount)}
+                      {formatCurrency(orderProp?.amount_paid || transferAmount)}
                     </div>
                   </Descriptions.Item>
 
@@ -1297,7 +1417,7 @@ const OrderFormData = ({
                   >
                     <div style={{ textAlign: "right" }}>
                       <strong>
-                        {formatCurrency(calculateFinalAmount() - transferAmount)}
+                        {formatCurrency(finalAmount - (orderProp?.amount_paid || transferAmount))}
                       </strong>
                     </div>
                   </Descriptions.Item>
@@ -1326,18 +1446,26 @@ const OrderFormData = ({
               Cần thanh toán:
               {mode === 'return' ?
                 formatCurrency(refundAmount.totalRefund)
-                : formatCurrency(calculateFinalAmount())
+                : formatCurrency(finalAmount)
               }
             </Text>
           </div>
 
-          {mode !== "return" && (
-            <div>
-              <Text className="text-red-500 text-xs sm:text-sm">
-                COD: {formatCurrency(calculateFinalAmount() - transferAmount)}
-              </Text>
-            </div>
-          )}
+          {(() => {
+            const debtAmount = mode === 'return'
+              ? refundAmount.totalRefund
+              : finalAmount - (orderProp?.amount_paid || transferAmount);
+
+            return debtAmount !== 0 ? (
+              <div>
+                <div className="text-red-500 text-xs sm:text-sm">
+                  Tính vào công nợ:
+                  {formatCurrency(debtAmount)}
+                </div>
+              </div>
+            ) : null;
+          })()}
+
         </div>
         {mode !== "return" ? (
           <>

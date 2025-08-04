@@ -55,7 +55,7 @@ const menuItems = [
       { key: 'suppliers', label: 'Nhà cung cấp' },
       { key: 'purchase', label: 'Nhập hàng' },
       { key: 'purchase-return', label: 'Trả hàng nhập' },
-      // { key: 'transfer', label: 'Điều chỉnh kho' },
+      { key: 'adjust-inventory', label: 'Điều chỉnh kho' },
     ],
   },
   {

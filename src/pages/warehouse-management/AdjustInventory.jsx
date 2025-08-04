@@ -9,7 +9,7 @@ import AdjustmentList from "../../components/transfer/AdjustmentList";
 
 const { TabPane } = Tabs;
 
-export default function TransferManagement() {
+export default function AdjustInventory() {
   const [activeTab, setActiveTab] = useState("adjustment");
   const [adjustments, setAdjustments] = useState([]);
   const [selectedAdjustment, setSelectedAdjustment] = useState(null);
@@ -108,7 +108,7 @@ export default function TransferManagement() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Quản lý kho</h1>
+      <h1 className="text-2xl font-bold mb-6">Điều chỉnh tồn kho</h1>
 
       <div className="bg-white p-4 rounded-lg shadow">
         <Tabs activeKey={activeTab} onChange={setActiveTab}>

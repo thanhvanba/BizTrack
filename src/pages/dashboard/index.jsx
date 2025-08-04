@@ -41,6 +41,7 @@ const Dashboard = () => {
         totalProductsThisMonth: 0,
         totalOrdersThisMonth: 0,
     });
+    console.log("🚀 ~ Dashboard ~ analysisData:", analysisData)
     const navigate = useNavigate()
     const handleGetAnalysisData = async () => {
         try {
@@ -54,7 +55,7 @@ const Dashboard = () => {
             const [resCurrentRevenue, resPreviousRevenue, resRevenue, resCustomer, resCustomersByMonth, resProduct, resProductsByMonth, resOrdersByMonth, resOrder] = await Promise.all([
                 analysisService.getRevenueByTimePeriod({ startDate: currentMonthFormatted, period: 'month' }),
                 analysisService.getRevenueByTimePeriod({ startDate: previousMonthFormatted, period: 'month' }),
-                analysisService.getOutstandingDebt(),
+                analysisService.getRevenueByTimePeriod(),
                 customerService.getAllCustomers(),
                 customerService.getAllCustomers({ year: currentYear, month: currentMonth }),
                 productService.getAllProducts(),
@@ -81,7 +82,7 @@ const Dashboard = () => {
             };
 
             setAnalysisData({
-                revenue: resRevenue,
+                revenue: resRevenue?.data[0],
                 totalCustomer: resCustomer?.pagination?.total || 0,
                 totalProduct: resProduct?.pagination?.total || 0,
                 orderData: {
@@ -328,7 +329,7 @@ const Dashboard = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Doanh thu</p>
-                                    <p className="text-2xl font-bold text-gray-800">{formatPrice(revenue?.total_money?.total_outstanding) || 0}</p>
+                                    <p className="text-2xl font-bold text-gray-800">{formatPrice(revenue?.actual_revenue) || 0}</p>
                                     <div className={`flex items-center text-xs ${revenueMoM > 0 ? 'text-green-600' : 'text-red-600'} mt-2`}>
                                         {revenueMoM > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
                                         <span className="ml-1">{Math.round(revenueMoM * 10) / 10}% so với tháng trước</span>

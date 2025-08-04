@@ -9,11 +9,11 @@ import PurchaseManagement from '../pages/warehouse-management/PurchaseManagement
 import InventoryManagement from '../pages/warehouse-management/InventoryManagement';
 import WarehouseManagement from '../pages/warehouse-management';
 import OrderFormPage from '../pages/order-management/OrderFormPage';
-import TransferManagement from '../pages/warehouse-management/TransferManagement';
 import SupplierManagement from '../pages/warehouse-management/SupplierManagement';
 import ReturnOrderPage from '../pages/order-management/ReturnOrderPage';
 import HomePage from '../pages/home-page';
 import CashBookPage from '../pages/cash-book';
+import AdjustInventory from '../pages/warehouse-management/AdjustInventory';
 
 export const homeRoute = { path: '', element: <HomePage /> };
 
@@ -33,7 +33,7 @@ export const privateRoutes = [
   { path: 'inventory', element: <InventoryManagement /> },
   { path: 'purchase', element: <PurchaseManagement /> },
   { path: 'purchase-return', element: <PurchaseManagement /> },
-  { path: 'transfer', element: <TransferManagement /> },
+  { path: 'adjust-inventory', element: <AdjustInventory /> },
   { path: 'suppliers', element: <SupplierManagement /> },
   { path: 'cash-book', element: <CashBookPage />, },
 ];

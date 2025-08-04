@@ -23,7 +23,6 @@ const MainLayout = () => {
             const mediaQuery = window.matchMedia('(max-width: 768px)');
 
             const handleMediaQueryChange = (e) => {
-                console.log("🚀 ~ Media query change ~ isMobile:", e.matches, "window.innerWidth:", window.innerWidth, "clientWidth:", document.documentElement.clientWidth);
                 setIsMobile(e.matches);
             };
 

@@ -54,6 +54,9 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
     products,
     data,
   } = orderData;
+  console.log("🚀 ~ OrderInfoTab ~ amount_paid:", amount_paid)
+  console.log("🚀 ~ OrderInfoTab ~ total_refund:", total_refund)
+  console.log("🚀 ~ OrderInfoTab ~ final_amount:", final_amount)
   const columns = [
     {
       title: "Mã hàng",
@@ -306,7 +309,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
               {order_status === "Hoàn tất" && (
                 <Tooltip
                   title={
-                    (final_amount - (amount_paid + total_refund)) <= 0
+                    (final_amount - total_refund) <= 0
                       ? "Không có mặt hàng để hoàn trả đối với hóa đơn này"
                       : ""
                   }
@@ -317,7 +320,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
                       danger
                       type="default"
                       style={{ marginRight: 8 }}
-                      disabled={(final_amount - (amount_paid + total_refund)) <= 0}
+                      disabled={(final_amount - total_refund) <= 0}
                       onClick={() => navigate(`/return-order/${order_id}`)}
                     >
                       Trả hàng

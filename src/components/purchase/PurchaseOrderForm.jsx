@@ -374,6 +374,25 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
           {details.length === 0 && (
             <Text type="secondary">Chưa có sản phẩm nào được chọn.</Text>
           )}
+
+          {details.length > 0 && (
+            <Row gutter={12} align="middle" className="mb-2 font-semibold text-gray-700 px-2">
+              <Col flex="2 1 200px">
+                <Text>Tên sản phẩm</Text>
+              </Col>
+              <Col flex="1 1 100px">
+                <Text>Số lượng</Text>
+              </Col>
+              <Col flex="1 1 120px">
+                <Text>Đơn giá</Text>
+              </Col>
+              <Col flex="1 1 120px">
+                <Text>Thành tiền</Text>
+              </Col>
+              <Col style={{ width: 40 }}></Col> {/* Cột nút xoá */}
+            </Row>
+          )}
+          
           {details.map((detail, index) => (
             <Row gutter={12} align="middle" key={detail.product_id} className="mb-2 bg-gray-50 p-2 rounded">
               <Col flex="2 1 200px">
@@ -416,6 +435,7 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
         <div className="text-right mt-6">
           <p className="text-gray-600">Tổng giá trị:</p>
           <Title level={3}>{totalAmount.toLocaleString()} VNĐ</Title>
+          <p className="text-red-800">Tính vào công nợ: {totalAmount.toLocaleString()}đ</p>
         </div>
 
         <div className="flex justify-end mt-6 gap-3">

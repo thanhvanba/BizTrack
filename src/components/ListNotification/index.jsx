@@ -43,7 +43,6 @@ function ListNotification() {
   const [showDetailNotification, setShowDetailNotification] = useState(false)
 
   const [notifications, setNotifications] = useState([])
-  console.log("🚀 ~ ListNotification ~ notifications:", notifications)
   const [notification, setNotification] = useState([])
   const [dataNotification, setDataNotification] = useState({})
   const [usersByRole, setUsersByRole] = useState([])

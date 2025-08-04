@@ -160,7 +160,11 @@ export default function CashBookPage() {
         </div>
         <div>
           <div className="text-xs text-gray-500">Tổng chi</div>
-          <div className="font-bold text-lg text-red-500">-{summary.total_payment?.toLocaleString()}</div>
+          {summary.total_payment !== 0 ? (
+            <div className="font-bold text-lg text-red-500">-{summary.total_payment?.toLocaleString()}</div>
+          ) : (
+            <div className="font-bold text-lg text-red-500">{summary.total_payment?.toLocaleString()}</div>
+          )}
         </div>
         <div>
           <div className="text-xs text-gray-500">Tồn quỹ</div>

@@ -50,6 +50,26 @@ const inventoryService = {
             .then(res => res.data)
             .catch(error => { throw error; });
     },
+
+    decreaseInventory: async (data) => {
+        return axiosService()({
+            url: `${INVENTORY_URL}/stock/decrease`,
+            method: 'PUT',
+            data,
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
+
+    increaseInventory: async (data) => {
+        return axiosService()({
+            url: `${INVENTORY_URL}/stock/increase`,
+            method: 'PUT',
+            data,
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
 };
 
 export default inventoryService;

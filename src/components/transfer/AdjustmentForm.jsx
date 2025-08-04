@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
-import { Table, Input, Select, Button, Typography, Divider, InputNumber } from "antd";
-import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Table, Input, Select, Button, Typography, Divider, InputNumber, Tooltip, Row, Col } from "antd";
+import { PlusOutlined, DeleteOutlined, InfoCircleOutlined } from "@ant-design/icons";
 import productService from "../../service/productService";
+import LoadingLogo from "../LoadingLogo";
+import searchService from "../../service/searchService";
+import { debounce } from "lodash";
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -140,6 +143,45 @@ export default function AdjustmentForm({ onSubmit, initialValues, onCancel }) {
     0
   );
 
+
+  // Thêm state cho select sản phẩm
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [searchOptions, setSearchOptions] = useState([]);
+  const [fetching, setFetching] = useState(false);
+
+  // Hàm search sản phẩm động
+  const handleSearchProduct = debounce(async (value) => {
+    if (!value) {
+      setSearchOptions([]);
+      return;
+    }
+    setFetching(true);
+    try {
+      const res = await searchService.searchProducts(value);
+      setSearchOptions((res.data || []).filter(p => !details.some(d => d.product_id === p.product_id)));
+    } finally {
+      setFetching(false);
+    }
+  }, 400);
+
+  // Thêm sản phẩm đã chọn vào details
+  const handleAddProduct = (productId) => {
+    if (!productId) return;
+    if (details.some(d => d.product_id === productId)) return;
+    const product = searchOptions.find(p => p.product_id === productId) || {};
+    setDetails([
+      ...details,
+      {
+        product_id: productId,
+        quantity: 1,
+        price: product?.product_retail_price || 0,
+        product_name: product?.product_name || ""
+      }
+    ]);
+    setSelectedProduct(null);
+    setSearchOptions([]);
+  };
+
   const columns = [
     {
       title: "Sản phẩm",
@@ -268,16 +310,123 @@ export default function AdjustmentForm({ onSubmit, initialValues, onCancel }) {
 
         <Divider orientation="left">Chi tiết điều chỉnh</Divider>
 
+        {/* Thanh tìm kiếm và chọn sản phẩm động */}
         <div className="mb-4">
-          <Button icon={<PlusOutlined />} onClick={handleAddDetail}>
-            Thêm sản phẩm
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 min-w-0">
+              <Select
+                showSearch
+                value={selectedProduct}
+                placeholder="Tìm kiếm và chọn sản phẩm theo tên/ theo sku"
+                onSearch={handleSearchProduct}
+                onChange={val => { setSelectedProduct(val); handleAddProduct(val); }}
+                filterOption={false}
+                notFoundContent={
+                  fetching
+                    ? <LoadingLogo size={40} className="mx-auto my-8" />
+                    : <span style={{ color: '#888' }}>Không tìm thấy sản phẩm</span>
+                }
+                style={{ width: '100%' }}
+                allowClear
+              >
+                {searchOptions.map(p => (
+                  <Option key={p.product_id} value={p.product_id}>
+                    {p.product_name}
+                  </Option>
+                ))}
+              </Select>
+            </div>
+            <Button
+              type="primary"
+              onClick={() => {
+                fetchCategories()
+                setCreateProductVisible(true)
+              }}
+              className="whitespace-nowrap flex-shrink-0"
+            >
+              +
+            </Button>
+            <Tooltip
+              title={`Chỉ hiển thị sản phẩm chưa được chọn vào đơn hàng`}
+            >
+              <InfoCircleOutlined style={{ color: "#1890ff" }} className="flex-shrink-0" />
+            </Tooltip>
+          </div>
           {errors.details && (
             <Text type="danger" className="block mt-2">
               {errors.details}
             </Text>
           )}
         </div>
+
+        {/* Danh sách sản phẩm đã chọn */}
+        <div className="mb-4">
+          {details.length === 0 && (
+            <Text type="secondary">Chưa có sản phẩm nào được chọn.</Text>
+          )}
+
+          {details.length > 0 && (
+            <Row gutter={12} align="middle" className="mb-2 font-semibold text-gray-700 px-2">
+              <Col flex="2 1 200px">
+                <Text>Tên sản phẩm</Text>
+              </Col>
+              <Col flex="1 1 100px">
+                <Text>Số lượng</Text>
+              </Col>
+              <Col flex="1 1 120px">
+                <Text>Đơn giá</Text>
+              </Col>
+              <Col flex="1 1 120px">
+                <Text>Thành tiền</Text>
+              </Col>
+              <Col style={{ width: 40 }}></Col> {/* Cột nút xoá */}
+            </Row>
+          )}
+
+          {details.map((detail, index) => (
+            <Row
+              gutter={12}
+              align="middle"
+              key={detail.product_id}
+              className="mb-2 bg-gray-50 p-2 rounded"
+            >
+              <Col flex="2 1 200px">
+                <Text>{detail.product_name}</Text>
+              </Col>
+              <Col flex="1 1 100px">
+                <InputNumber
+                  min={1}
+                  value={detail.quantity}
+                  onChange={val => handleDetailChange(val, "quantity", index)}
+                  style={{ width: '100%' }}
+                />
+              </Col>
+              <Col flex="1 1 120px">
+                <InputNumber
+                  min={0}
+                  step={1000}
+                  value={detail.price}
+                  style={{ width: '100%' }}
+                  formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                  parser={value => value.replace(/,/g, "")}
+                  onChange={val => handleDetailChange(val, "price", index)}
+                />
+              </Col>
+              <Col flex="1 1 120px">
+                <Text strong>{(detail.quantity * detail.price).toLocaleString()} VNĐ</Text>
+              </Col>
+              <Col>
+                <Button
+                  type="text"
+                  icon={<DeleteOutlined />}
+                  danger
+                  onClick={() => handleRemoveDetail(index)}
+                />
+              </Col>
+            </Row>
+          ))}
+        </div>
+
 
         <Table
           dataSource={details}
