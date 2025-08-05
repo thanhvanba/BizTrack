@@ -141,6 +141,17 @@ export default function Header({ onToggleMobileDrawer, isMobile, setActiveTab, a
         {
           key: '3',
           label: (
+            <div className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-md">
+              <BoxPlotOutlined />
+              <button onClick={() => navigate("/register")}>
+                Đăng ký tài khoản mới
+              </button>
+            </div>
+          ),
+        },
+        {
+          key: '4',
+          label: (
             <div onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-md">
               <LogoutOutlined />
               <span>Đăng xuất</span>

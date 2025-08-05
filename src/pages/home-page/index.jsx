@@ -54,7 +54,7 @@ export default function HomePage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-            <div className="container mx-auto px-4 py-16">
+            <div className="container mx-auto px-4 py-10">
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div className="flex justify-center mb-6">
@@ -90,7 +90,7 @@ export default function HomePage() {
                             >
                                 Đăng nhập để sử dụng
                             </Button>
-                            <div className="text-center pt-4">
+                            {/* <div className="text-center pt-4">
                                 <Text className="text-sm text-gray-600">
                                     Chưa có tài khoản?{" "}
                                     <Text
@@ -100,7 +100,7 @@ export default function HomePage() {
                                         Đăng ký ngay
                                     </Text>
                                 </Text>
-                            </div>
+                            </div> */}
                         </>
                     )}
                 </div>
@@ -129,48 +129,6 @@ export default function HomePage() {
                         </Col>
                     ))}
                 </Row>
-
-                {/* Login Buttons */}
-                {/* <div className="max-w-md mx-auto">
-                    <Card className="p-6">
-                        <div className="text-center pb-4">
-                            <Title level={2} className="text-2xl mb-2">
-                                Bắt đầu sử dụng BizTrack
-                            </Title>
-                            <Paragraph className="text-gray-600">
-                                Chọn phương thức đăng nhập phù hợp với bạn
-                            </Paragraph>
-                        </div>
-                        <Space direction="vertical" size="middle" className="w-full">
-                            <Button
-                                type="primary"
-                                size="large"
-                                className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700"
-                                onClick={handleLogin}
-                            >
-                                Đăng nhập với tài khoản
-                            </Button>
-                            {/* <Button
-                                size="large"
-                                className="w-full h-12 text-lg border-blue-600 text-blue-600 hover:bg-blue-50"
-                                onClick={handleQuickLogin}
-                            >
-                                Đăng nhập nhanh
-                            </Button> *
-                            <div className="text-center pt-4">
-                                <Text className="text-sm text-gray-600">
-                                    Chưa có tài khoản?{" "}
-                                    <Text
-                                        className="text-blue-600 hover:underline font-medium cursor-pointer"
-                                        onClick={handleRegister}
-                                    >
-                                        Đăng ký ngay
-                                    </Text>
-                                </Text>
-                            </div>
-                        </Space>
-                    </Card>
-                </div> */}
             </div>
         </div>
     );

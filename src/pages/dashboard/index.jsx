@@ -444,7 +444,7 @@ const Dashboard = () => {
                 </Row>
             </div>
 
-            <div className="col-span-12 lg:col-span-1 hidden lg:block">
+            <div className="col-span-12 lg:col-span-1 hidden lg:block h-full">
                 <RecentActivities warning="Có 1 hoạt động đăng nhập khác thường cần kiểm tra." />
             </div>
         </div>

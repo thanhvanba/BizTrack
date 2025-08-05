@@ -154,16 +154,16 @@ export default function RecentActivities({ warning }) {
                     <HistoryOutlined className="text-gray-500" />
                 </span>
             }
-            className="shadow-md rounded-xl"
+            className="shadow-md rounded-xl h-full"
             bodyStyle={{ padding: 0 }}
         >
-            {warning && (
+            {/* {warning && (
                 <div className="flex items-center gap-2 p-3 bg-yellow-50 border-b border-yellow-200">
                     <ExclamationCircleOutlined className="text-yellow-500 text-lg" />
                     <span className="text-yellow-700 font-medium">{warning}</span>
                 </div>
-            )}
-            <div className="max-h-[474px] overflow-y-auto px-2">
+            )} */}
+            <div className="max-h-[524px] overflow-y-auto px-2">
                 <List
                     itemLayout="horizontal"
                     dataSource={activities}
@@ -213,7 +213,9 @@ export default function RecentActivities({ warning }) {
                             onClick={handleLoadMore}
                             className="hover:bg-slate-100 flex justify-center items-center gap-1 py-2"
                         >
-                            <div className="bg-slate-200 rounded-full w-8 h-8 flex justify-center items-center"><DownOutlined /> </div>{loadingMore ? "Đang tải..." : "Xem thêm "}
+                            <div className="bg-slate-200 rounded-full w-8 h-8 flex justify-center items-center">
+                                <DownOutlined />
+                            </div>{loadingMore ? "Đang tải..." : "Xem thêm "}
                         </div>
                     </div>
                 )}

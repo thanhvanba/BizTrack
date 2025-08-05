@@ -41,7 +41,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center pt-3 sm:px-6 lg:px-8">
       <div
-        onClick={() => navigate('/')}
+        onClick={() => navigate('/dashboard')}
         className="flex gap-2 font-bold   text-blue-500 hover:text-blue-500/80 cursor-pointer"
       >
         <LeftOutlined />
@@ -157,12 +157,12 @@ export default function RegisterPage() {
               </Button>
             </Form.Item>
 
-            <div className="text-center">
+            {/* <div className="text-center">
               <span className="text-gray-600">Đã có tài khoản? </span>
               <button onClick={() => navigate("/login")} className="cursor-pointer text-blue-500 hover:text-blue-500/80 font-medium">
                 Đăng nhập ngay
               </button>
-            </div>
+            </div> */}
           </Form>
 
           <div className="mt-6">

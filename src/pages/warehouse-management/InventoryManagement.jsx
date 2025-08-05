@@ -110,6 +110,8 @@ const InventoryManagement = () => {
   useEffect(() => {
     if (warehouses.data?.length) {
       fetchInventories();
+    } else {
+      setLoading(false); // Thêm dòng này để dừng loading nếu không có warehouse
     }
   }, [warehouses]);
 
