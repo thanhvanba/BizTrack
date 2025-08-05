@@ -14,6 +14,7 @@ import ReturnOrderPage from '../pages/order-management/ReturnOrderPage';
 import HomePage from '../pages/home-page';
 import CashBookPage from '../pages/cash-book';
 import AdjustInventory from '../pages/warehouse-management/AdjustInventory';
+import CustomerImport from '../pages/CustomerImport';
 
 export const homeRoute = { path: '', element: <HomePage /> };
 
@@ -36,4 +37,5 @@ export const privateRoutes = [
   { path: 'adjust-inventory', element: <AdjustInventory /> },
   { path: 'suppliers', element: <SupplierManagement /> },
   { path: 'cash-book', element: <CashBookPage />, },
+  { path: 'customer-import', element: <CustomerImport />, },
 ];
