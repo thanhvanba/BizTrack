@@ -126,12 +126,12 @@ export default function PurchaseManagement() {
     // Đơn trả hàng nhập
     const handleCreatePurchaseReturn = async (data) => {
         try {
-            await purchaseOrderService.createReturn(data);
-            useToastNotify("Tạo đơn trả hàng nhập thành công", "success");
+            const res = await purchaseOrderService.createReturn(data);
+            useToastNotify(`${res.message}`, "success");
             fetchPurchaseReturn();
             setActiveTab("list");
         } catch (error) {
-            useToastNotify("Có lỗi khi tạo đơn trả hàng nhập", "error");
+            useToastNotify(`${error.response.data.message}`, "error");
         }
     };
     const handleEditPurchaseReturn = async (returnId, data) => {

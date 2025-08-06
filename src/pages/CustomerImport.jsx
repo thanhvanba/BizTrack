@@ -21,35 +21,36 @@ export default function CustomerImport() {
   useEffect(() => {
     async function fetchTypes() {
       setLoading(true);
-      setError('');
-      try {
-        const res = await importService.getEntityTypes();
-        setEntityTypes(res.data || []);
-      } catch (err) {
-        setError('Không thể tải loại dữ liệu!');
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchTypes();
-  }, []);
+      setError(null);
 
-  useEffect(() => {
-    const found = entityTypes.find(e => e.type === selectedType);
-    setSelectedEntity(found || null);
-    // Reset template khi đổi entity type
-    setTemplateText('');
-  }, [selectedType, entityTypes]);
+      const response = await axiosService().get(
+        `${CUSTOMERS_URL}/import-template`,
+        {
+          responseType: "text",
+        }
+      );
 
-  // Fetch template khi chọn entity type
-  const fetchTemplate = async () => {
-    if (!selectedType) return;
-    setTemplateLoading(true);
-    try {
-      const template = await importService.getTemplate(selectedType);
-      setTemplateText(template);
-    } catch (err) {
-      setError('Không thể tải template: ' + (err?.message || 'Unknown error'));
+      // Tạo file download
+      const blob = new Blob([response.data], {
+        type: "text/plain; charset=utf-8",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "customers-import-template.txt";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      console.log("✅ Template downloaded successfully");
+    } catch (error) {
+      console.error("❌ Download template failed:", error);
+      setError(
+        `Download template failed: ${
+          error.response?.data?.message || error.message
+        }`
+      );
     } finally {
       setTemplateLoading(false);
     }

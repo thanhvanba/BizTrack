@@ -41,76 +41,122 @@ const Dashboard = () => {
         totalProductsThisMonth: 0,
         totalOrdersThisMonth: 0,
     });
-    console.log("🚀 ~ Dashboard ~ analysisData:", analysisData)
-    const navigate = useNavigate()
-    const handleGetAnalysisData = async () => {
-        try {
-            const currentMonth = dayjs().month() + 1;
-            const currentYear = dayjs().year();
-            const currentMonthFormatted = dayjs().format('YYYY-MM');
 
-            const previousMonth = dayjs().subtract(1, 'month').month() + 1;
-            const previousMonthFormatted = dayjs().subtract(1, 'month').format('YYYY-MM');
+    const [financialStatistics, setFinancialStatistics] = useState()
+    console.log("🚀 ~ Dashboard ~ financialStatistics:", financialStatistics)
 
-            const [resCurrentRevenue, resPreviousRevenue, resRevenue, resCustomer, resCustomersByMonth, resProduct, resProductsByMonth, resOrdersByMonth, resOrder] = await Promise.all([
-                analysisService.getRevenueByTimePeriod({ startDate: currentMonthFormatted, period: 'month' }),
-                analysisService.getRevenueByTimePeriod({ startDate: previousMonthFormatted, period: 'month' }),
-                analysisService.getRevenueByTimePeriod(),
-                customerService.getAllCustomers(),
-                customerService.getAllCustomers({ year: currentYear, month: currentMonth }),
-                productService.getAllProducts(),
-                productService.getAllProducts({ year: currentYear, month: currentMonth }),
-                orderService.getAllOrder({ year: currentYear, month: currentMonth }),
-                orderService.getAllOrder({ page: 1, limit: 6 }),
-            ]);
-
-            const formatCustomerInitials = (data) => {
-                return data.map((order) => {
-                    const name = order.customer?.customer_name || "";
-                    const nameParts = name.trim().split(" ");
-                    const initials = nameParts.length >= 2
-                        ? nameParts[0][0].toUpperCase() + nameParts[nameParts.length - 1][0].toUpperCase()
-                        : nameParts[0]?.[0]?.toUpperCase() || "";
-                    return {
-                        ...order,
-                        customer: {
-                            ...order.customer,
-                            initials,
-                        },
-                    };
-                });
-            };
-
-            setAnalysisData({
-                revenue: resRevenue?.data[0],
-                totalCustomer: resCustomer?.pagination?.total || 0,
-                totalProduct: resProduct?.pagination?.total || 0,
-                orderData: {
-                    ...resOrder,
-                    data: formatCustomerInitials(resOrder.data),
-                },
-                revenueMoM: ((resCurrentRevenue[0]?.total_revenue - resPreviousRevenue[0]?.total_revenue) / resPreviousRevenue[0]?.total_revenue) * 100,
-                totalCustomersThisMonth: resCustomersByMonth?.pagination?.total || 0,
-                totalProductsThisMonth: resProductsByMonth?.pagination?.total || 0,
-                totalOrdersThisMonth: resOrdersByMonth?.pagination?.total || 0,
-            });
-
-        } catch (error) {
-            console.error("❌ Lỗi khi lấy dữ liệu phân tích:", error);
-        }
-    };
-
+    const navigate = useNavigate();
 
     useEffect(() => {
+
+        const handleGetAnalysisData = async () => {
+            try {
+                const currentMonth = dayjs().month() + 1;
+                const currentYear = dayjs().year();
+                const currentMonthFormatted = dayjs().format('YYYY-MM');
+                const previousMonthFormatted = dayjs().subtract(1, 'month').format('YYYY-MM');
+
+                const [
+                    resCurrentRevenue,
+                    resPreviousRevenue,
+                    resRevenue,
+                    resCustomer,
+                    resCustomersByMonth,
+                    resProduct,
+                    resProductsByMonth,
+                    resOrdersByMonth,
+                    resOrder
+                ] = await Promise.all([
+                    analysisService.getRevenueByTimePeriod({ startDate: currentMonthFormatted, period: 'month' }),
+                    analysisService.getRevenueByTimePeriod({ startDate: previousMonthFormatted, period: 'month' }),
+                    analysisService.getRevenueByTimePeriod(),
+                    customerService.getAllCustomers(),
+                    customerService.getAllCustomers({ year: currentYear, month: currentMonth }),
+                    productService.getAllProducts(),
+                    productService.getAllProducts({ year: currentYear, month: currentMonth }),
+                    orderService.getAllOrder({ year: currentYear, month: currentMonth }),
+                    orderService.getAllOrder({ page: 1, limit: 6 }),
+                ]);
+
+                const formatCustomerInitials = (data) => {
+                    return data.map((order) => {
+                        const name = order.customer?.customer_name || "";
+                        const nameParts = name.trim().split(" ");
+                        const initials = nameParts.length >= 2
+                            ? nameParts[0][0].toUpperCase() + nameParts[nameParts.length - 1][0].toUpperCase()
+                            : nameParts[0]?.[0]?.toUpperCase() || "";
+                        return {
+                            ...order,
+                            customer: {
+                                ...order.customer,
+                                initials,
+                            },
+                        };
+                    });
+                };
+
+                const prevRevenue = resPreviousRevenue[0]?.actual_revenue ?? 0;
+                const currRevenue = resCurrentRevenue[0]?.actual_revenue ?? 0;
+                const revenueMoM = prevRevenue !== 0
+                    ? ((currRevenue - prevRevenue) / prevRevenue) * 100
+                    : null;
+
+                setAnalysisData({
+                    revenue: resRevenue?.data[0],
+                    totalCustomer: resCustomer?.pagination?.total || 0,
+                    totalProduct: resProduct?.pagination?.total || 0,
+                    orderData: {
+                        ...resOrder,
+                        data: formatCustomerInitials(resOrder.data),
+                    },
+                    revenueMoM,
+                    totalCustomersThisMonth: resCustomersByMonth?.pagination?.total || 0,
+                    totalProductsThisMonth: resProductsByMonth?.pagination?.total || 0,
+                    totalOrdersThisMonth: resOrdersByMonth?.pagination?.total || 0,
+                });
+
+            } catch (error) {
+                console.error("❌ Lỗi khi lấy dữ liệu phân tích:", error);
+            }
+        };
         handleGetAnalysisData()
+
+
+        const handelGetDataRevenue = async () => {
+            const res = await analysisService.getFinancialStatistics({ type: "month", year: 2025, month: 8 })
+
+            if (res && res?.data) {
+                setFinancialStatistics(res.data)
+            }
+        }
+        handelGetDataRevenue()
     }, [])
 
+    const renderRevenueMoM = (value) => {
+        if (value === null) {
+            return <span className="text-gray-500 text-xs mt-2 block">Không có dữ liệu so sánh</span>;
+        }
+
+        const formatted = Math.abs(value).toFixed(1) + "%";
+        const isPositive = value >= 0;
+
+        return (
+            <div className={`flex items-center text-xs mt-2 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
+                <span className="ml-1">
+                    {isPositive ? "+" : "-"}
+                    {formatted} so với tháng trước
+                </span>
+            </div>
+        );
+    };
+
     const revenueData = {
-        labels: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6"],
+        labels: financialStatistics?.title,
         datasets: [
             {
                 label: "Doanh thu (triệu đồng)",
-                data: [65, 78, 90, 81, 106, 152],
+                data: financialStatistics?.revenue,
                 borderColor: "#3b82f6",
                 backgroundColor: "rgba(59, 130, 246, 0.1)",
                 tension: 0.4,
@@ -119,7 +165,7 @@ const Dashboard = () => {
             },
             {
                 label: "Chi phí (triệu đồng)",
-                data: [45, 50, 55, 48, 62, 95],
+                data: financialStatistics?.expense,
                 borderColor: "#ef4444",
                 backgroundColor: "rgba(239, 68, 68, 0.05)",
                 tension: 0.4,
@@ -169,7 +215,6 @@ const Dashboard = () => {
                         rotation: 0,
                     }),
                 },
-                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
             },
         },
         scales: {
@@ -218,7 +263,6 @@ const Dashboard = () => {
             title: "Mã đơn hàng",
             dataIndex: "order_code",
             key: "order_code",
-            className: "text-gray-700",
         },
         {
             title: "Khách hàng",
@@ -246,41 +290,14 @@ const Dashboard = () => {
             render: (status) => {
                 let color, bgColor, textColor;
                 switch (status) {
-                    case "Mới":
-                        color = "blue";
-                        bgColor = "bg-blue-100";
-                        textColor = "text-blue-800";
-                        break;
-                    case "Xác nhận":
-                        color = "cyan";
-                        bgColor = "bg-cyan-100";
-                        textColor = "text-cyan-800";
-                        break;
-                    case "Đang đóng hàng":
-                        color = "orange";
-                        bgColor = "bg-orange-100";
-                        textColor = "text-orange-800";
-                        break;
-                    case "Đang giao":
-                        color = "purple";
-                        bgColor = "bg-purple-100";
-                        textColor = "text-purple-800";
-                        break;
-                    case "Hoàn tất":
-                        color = "green";
-                        bgColor = "bg-green-100";
-                        textColor = "text-green-800";
-                        break;
+                    case "Mới": color = "blue"; bgColor = "bg-blue-100"; textColor = "text-blue-800"; break;
+                    case "Xác nhận": color = "cyan"; bgColor = "bg-cyan-100"; textColor = "text-cyan-800"; break;
+                    case "Đang đóng hàng": color = "orange"; bgColor = "bg-orange-100"; textColor = "text-orange-800"; break;
+                    case "Đang giao": color = "purple"; bgColor = "bg-purple-100"; textColor = "text-purple-800"; break;
+                    case "Hoàn tất": color = "green"; bgColor = "bg-green-100"; textColor = "text-green-800"; break;
                     case "Huỷ đơn":
-                    case "Huỷ điều chỉnh":
-                        color = "red";
-                        bgColor = "bg-red-100";
-                        textColor = "text-red-800";
-                        break;
-                    default:
-                        color = "gray";
-                        bgColor = "bg-gray-100";
-                        textColor = "text-gray-800";
+                    case "Huỷ điều chỉnh": color = "red"; bgColor = "bg-red-100"; textColor = "text-red-800"; break;
+                    default: color = "gray"; bgColor = "bg-gray-100"; textColor = "text-gray-800";
                 }
                 return (
                     <div className={`flex items-center ${textColor}`}>
@@ -297,7 +314,6 @@ const Dashboard = () => {
             dataIndex: "final_amount",
             key: "final_amount",
             align: "right",
-            className: "font-medium text-gray-800",
             render: (value) =>
                 new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(parseFloat(value))
         },
@@ -330,10 +346,11 @@ const Dashboard = () => {
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Doanh thu</p>
                                     <p className="text-2xl font-bold text-gray-800">{formatPrice(revenue?.actual_revenue) || 0}</p>
-                                    <div className={`flex items-center text-xs ${revenueMoM > 0 ? 'text-green-600' : 'text-red-600'} mt-2`}>
+                                    {/* <div className={`flex items-center text-xs ${revenueMoM > 0 ? 'text-green-600' : 'text-red-600'} mt-2`}>
                                         {revenueMoM > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
                                         <span className="ml-1">{Math.round(revenueMoM * 10) / 10}% so với tháng trước</span>
-                                    </div>
+                                    </div> */}
+                                    {renderRevenueMoM(revenueMoM)}
                                 </div>
                             </div>
                         </Card>
@@ -424,12 +441,12 @@ const Dashboard = () => {
                                     Xem tất cả
                                 </div>
                             }
-                            className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
+                            className="h-[448px] rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
                             headStyle={{
                                 borderBottom: "1px solid #f0f0f0",
                                 padding: "16px 24px",
                             }}
-                            bodyStyle={{ padding: "0" }}
+                            bodyStyle={{ padding: "12px" }}
                         >
                             <Table
                                 columns={recentOrdersColumns}

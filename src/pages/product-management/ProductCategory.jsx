@@ -1,5 +1,5 @@
 // ProductCategory.jsx
-import { Typography, Table, Button, Space, Tooltip, Tag } from "antd"
+import { Typography, Table, Button, Space, Tooltip, Tag, Card } from "antd"
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons"
 import { useEffect, useState } from "react"
 import CategoryModal from "../../components/modals/CategoryModal"
@@ -154,22 +154,27 @@ const ProductCategory = () => {
         </Button>
       </div>
 
-      <Table
-        loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
-        dataSource={categories}
-        columns={columns}
-        size="middle"
-        pagination={{
-          current: pagination.current,
-          pageSize: pagination.pageSize,
-          total: pagination.total,
-          showSizeChanger: true,
-          showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} danh mục`,
-          pageSizeOptions: ['5', '10', '20', '50'],
-        }}
-        onChange={handleTableChange}
-        rowClassName="hover:bg-gray-50 transition-colors"
-      />
+      <Card
+        className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
+        bodyStyle={{ padding: "16px" }}
+      >
+        <Table
+          loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
+          dataSource={categories}
+          columns={columns}
+          size="middle"
+          pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
+            showSizeChanger: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} danh mục`,
+            pageSizeOptions: ['5', '10', '20', '50'],
+          }}
+          onChange={handleTableChange}
+          rowClassName="hover:bg-gray-50 transition-colors"
+        />
+      </Card>
 
       <CategoryModal
         open={isCreateModalOpen}

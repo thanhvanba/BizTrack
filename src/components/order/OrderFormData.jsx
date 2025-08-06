@@ -401,6 +401,7 @@ const OrderFormData = ({
     try {
       setFormLoading(true);
       const values = await form.validateFields();
+      console.log("🚀 ~ handleSubmitOrder ~ values:", values)
       const formattedOrderDate = dayjs(values.order_date).format("YYYY-MM-DD");
 
       const orderDetails = selectedProducts.map((item) => ({
@@ -439,16 +440,24 @@ const OrderFormData = ({
 
       if (res) {
         useToastNotify(
-          `Đơn hàng đã được ${mode === "create" ? "thêm" : "cập nhật"
-          } thành công!`,
+          `Đơn hàng đã được ${mode === "create" ? "thêm" : "cập nhật"} thành công!`,
           "success"
         );
       }
     } catch (error) {
-      useToastNotify(
-        `${mode === "create" ? "Thêm" : "Cập nhật"} đơn hàng không thành công.`,
-        "error"
-      );
+      // Show each validation error as a toast
+      if (error && error.errorFields) {
+        error.errorFields.forEach(fieldError => {
+          fieldError.errors.forEach(msg => {
+            useToastNotify(msg, "error");
+          });
+        });
+      } else {
+        useToastNotify(
+          `${mode === "create" ? "Thêm" : "Cập nhật"} đơn hàng không thành công.`,
+          "error"
+        );
+      }
     } finally {
       setFormLoading(false);
     }

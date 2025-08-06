@@ -171,8 +171,8 @@ const CustomerManagement = () => {
     },
     {
       title: "Tổng công nợ",
-      dataIndex: "total_remaining_value",
-      key: "total_remaining_value",
+      dataIndex: "debt",
+      key: "debt",
       render: (value) =>
         new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value),
       align: "right",
@@ -219,7 +219,7 @@ const CustomerManagement = () => {
             pageSize: isSearching ? searchPagination.pageSize : pagination.pageSize,
             total: isSearching ? searchPagination.total : pagination.total,
             showSizeChanger: true,
-            showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} khách hàng`, 
+            showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} khách hàng`,
             pageSizeOptions: ['5', '10', '20', '50'],
           }}
           expandable={{

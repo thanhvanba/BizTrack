@@ -67,11 +67,11 @@ const searchService = {
     },
 
     // Tìm kiếm tồn kho
-    searchInventory: async (params = {}, page = 1, limit = 10) => {
+    searchInventory: async (q, page = 1, limit = 10) => {
         return axiosService()({
             url: `${SEARCH_URL}/inventory`,
             method: 'GET',
-            params: { ...params, page, limit },
+            params: { q, page, limit },
         })
             .then(res => res.data)
             .catch(error => { throw error; });
