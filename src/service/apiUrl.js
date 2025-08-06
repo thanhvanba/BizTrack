@@ -33,6 +33,9 @@ export const INVENTORY_URL = `${API_URL}/inventories`;
 // CUSTOMER URL
 export const CUSTOMERS_URL = `${API_URL}/customers`;
 
+// IMPORT URL
+export const IMPORT_URL = `${API_URL}/import`;
+
 // ORDER URL
 export const ORDERS_URL = `${API_URL}/orders`;
 
