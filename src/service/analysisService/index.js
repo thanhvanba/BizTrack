@@ -36,24 +36,46 @@ const analysisService = {
     },
 
     // Lấy danh sách đơn hàng phải thu
-    // getReceivableOrders: async () => {
-    //     return axiosService()({
-    //         url: `${ANALYSIS_URL}/finance/receivable_orders`,
-    //         method: 'GET',
-    //     })
-    //         .then(res => res.data)
-    //         .catch(error => { throw error; });
-    // },
+    getReceivableOrders: async () => {
+        return axiosService()({
+            url: `${ANALYSIS_URL}/finance/receivable_orders`,
+            method: 'GET',
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
 
     // Lấy danh sách đơn nhập hàng phải trả
-    // getPayablePurchaseOrders: async () => {
-    //     return axiosService()({
-    //         url: `${ANALYSIS_URL}/finance/payable_purchase_orders`,
-    //         method: 'GET',
-    //     })
-    //         .then(res => res.data)
-    //         .catch(error => { throw error; });
-    // },
+    getPayablePurchaseOrders: async () => {
+        return axiosService()({
+            url: `${ANALYSIS_URL}/finance/payable_purchase_orders`,
+            method: 'GET',
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
+
+    // Lấy danh sách đơn nhập hàng phải trả
+    getFinancialStatistics: async (params) => {
+        return axiosService()({
+            url: `${ANALYSIS_URL}/finance/management`,
+            method: 'GET',
+            params,
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
+
+    // Lấy top các khách hàng mua hàng nhiều nhất
+    getTopCustomers: async (params) => {
+        return axiosService()({
+            url: `${ANALYSIS_URL}/finance/top-customers`,
+            method: 'GET',
+            params,
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
 };
 
 export default analysisService;

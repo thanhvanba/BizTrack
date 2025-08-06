@@ -18,7 +18,7 @@ const CustomerImport = () => {
             setLoading(true);
             setError(null);
 
-            const response = await axiosService.get(`${CUSTOMERS_URL}/import-template`, {
+            const response = await axiosService().get(`${CUSTOMERS_URL}/import-template`, {
                 responseType: 'text'
             });
 
@@ -62,7 +62,7 @@ const CustomerImport = () => {
 
             console.log('🚀 Sending payload:', payload);
 
-            const response = await axios.post(`${CUSTOMERS_URL}/import-text`, payload, {
+            const response = await axiosService().post(`${CUSTOMERS_URL}/import-text`, payload, {
                 headers: {
                     'Content-Type': 'application/json'
                 },

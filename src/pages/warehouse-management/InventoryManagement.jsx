@@ -18,6 +18,8 @@ import {
 import formatPrice from '../../utils/formatPrice'
 import inventoryService from "../../service/inventoryService";
 import productService from "../../service/productService";
+import { debounce } from "lodash";
+import searchService from "../../service/searchService";
 
 import { fetchWarehouses } from "../../redux/warehouses/warehouses.slice";
 import { useDispatch, useSelector } from "react-redux";
@@ -38,6 +40,12 @@ const InventoryManagement = () => {
     total: 0,
   });
   const [selectedWarehouseId, setSelectedWarehouseId] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchPagination, setSearchPagination] = useState({
+    current: 1,
+    pageSize: 5,
+    total: 0,
+  });
   console.log("🚀 ~ InventoryManagement ~ inventories:", inventories)
 
   const navigate = useNavigate()
@@ -97,10 +105,60 @@ const InventoryManagement = () => {
     setPagination((prev) => ({ ...prev, current: 1 })); // reset về trang 1 khi đổi kho
   };
 
+  // Debounced search handler
+  const handleSearch = debounce(async (value, page = 1, pageSize = 5) => {
+    if (!value) {
+      setIsSearching(false);
+      setSearchText("");
+      fetchInventories(selectedWarehouseId, 1, pagination.pageSize);
+      return;
+    }
+    setIsSearching(true);
+    setSearchText(value);
+    setLoading(true);
+    try {
+      const response = await searchService.searchInventory(value, page, pageSize);
+      const enrichedData = response.data.map((item) => {
+        const available_stock = item.product?.available_stock;
+        let status = "Sắp hết";
+        if (available_stock > 5) status = "Đủ hàng";
+        else if (available_stock <= 0) status = "Hết hàng";
+        return {
+          ...item,
+          key: item.inventory_id,
+          name: item.product?.product_name || "Không rõ",
+          category: item.product?.category?.category_name || "Không rõ",
+          location: item.warehouse?.warehouse_name || "Không rõ",
+          status,
+          available_stock: item.product?.available_stock || item?.product?.available_quantity,
+          reserved_stock: item.product?.reserved_stock || item?.product?.reserved_quantity,
+          quantity: item.product?.quantity || item?.product?.total_quantity,
+        };
+      });
+      setInventories(enrichedData);
+      if (response.pagination) {
+        setSearchPagination({
+          current: response.pagination.currentPage || response.pagination.page,
+          pageSize: response.pagination.pageSize,
+          total: response.pagination.total,
+        });
+      }
+    } catch (error) {
+      setInventories([]);
+    } finally {
+      setLoading(false);
+    }
+  }, 500);
+
   const handleTableChange = (paginationInfo) => {
     const { current, pageSize } = paginationInfo;
-    setPagination((prev) => ({ ...prev, current, pageSize }));
-    fetchInventories(selectedWarehouseId, current, pageSize);
+    if (isSearching) {
+      handleSearch(searchText, current, pageSize);
+      setSearchPagination((prev) => ({ ...prev, current, pageSize }));
+    } else {
+      setPagination((prev) => ({ ...prev, current, pageSize }));
+      fetchInventories(selectedWarehouseId, current, pageSize);
+    }
   };
 
   useEffect(() => {
@@ -260,9 +318,9 @@ const InventoryManagement = () => {
         <div className="mb-4 grid grid-cols-3 gap-3 bg-white rounded-lg">
           {/* Ô tìm kiếm */}
           <Input
-            placeholder="Tìm kiếm sản phẩm, danh mục, vị trí..."
+            placeholder="Tìm kiếm theo tên sản phẩm"
             prefix={<SearchOutlined />}
-            onChange={(e) => setSearchText(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             allowClear
             className="rounded-lg border-gray-300 focus:border-blue-500 col-span-2"
           />
@@ -288,11 +346,11 @@ const InventoryManagement = () => {
         <Table
           loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
           columns={columns}
-          dataSource={filteredData}
+          dataSource={inventories}
           pagination={{
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            total: pagination.total,
+            current: isSearching ? searchPagination.current : pagination.current,
+            pageSize: isSearching ? searchPagination.pageSize : pagination.pageSize,
+            total: isSearching ? searchPagination.total : pagination.total,
             showSizeChanger: true,
             showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} sản phẩm`,
             pageSizeOptions: ['5', '10', '20', '50'],
