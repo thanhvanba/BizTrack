@@ -1,4 +1,4 @@
-npimport { IMPORT_URL } from "../apiUrl";
+import { IMPORT_URL } from "../apiUrl";
 import axiosService from "../axiosService";
 
 const importService = {
