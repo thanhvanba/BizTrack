@@ -42,12 +42,22 @@ const configMap = {
         valueField: "net_purchase_amount",
         chartLabel: "Tổng giá trị nhập (tr)",
         color: { bg: "rgba(34, 197, 94, 0.8)", border: "rgba(34, 197, 94, 1)" }
+    },
+    revenue: {
+        title: "Doanh thu thuần",
+        api: analysisService.getFinancialStatistics, // API bạn dùng để lấy dữ liệu doanh thu theo ngày
+        labelField: "day", // hoặc trường tương ứng trong API trả về
+        valueField: "net_revenue",
+        chartLabel: "Doanh thu (tr)",
+        color: { bg: "rgba(0, 123, 255, 0.8)", border: "rgba(0, 123, 255, 1)" },
+        vertical: true // mình thêm cờ này để phân biệt loại biểu đồ
     }
 };
 
 const TopEntityReport = ({ type }) => {
     const [dataList, setDataList] = useState([]);
     console.log("🚀 ~ TopEntityReport ~ dataList:", dataList)
+    const [rawRevenueData, setRawRevenueData] = useState(null); // giữ nguyên dữ liệu gốc từ API khi type === 'revenue'
     const [revenueByCategory, setRevenueByCategory] = useState([]);
     const [viewType, setViewType] = useState("chart");
     const [filters, setFilters] = useState({ dateFrom: null, dateTo: null });
@@ -143,7 +153,28 @@ const TopEntityReport = ({ type }) => {
         const fetchData = async () => {
             try {
                 const res = await config.api({ ...filters });
-                if (res?.data) setDataList(res.data);
+
+                // --- CHỈ SỬA Ở ĐÂY CHO CASE revenue ---
+                if (res?.data) {
+                    if (type === "revenue" && res.data && res.data.title && Array.isArray(res.data.title)) {
+                        // giữ dữ liệu gốc để dùng cho chartDataRevenue
+                        setRawRevenueData(res.data);
+
+                        // chuyển đổi sang mảng giống các type khác để chartData cũ vẫn hoạt động
+                        // Lưu ý: dataList của chart cũ sẽ chứa giá trị ở đơn vị VND (nên nhân *1_000_000)
+                        const converted = (res.data.title || []).map((label, idx) => {
+                            return {
+                                [config.labelField]: label,
+                                [config.valueField]: (res.data.revenue && res.data.revenue[idx] != null) ? res.data.revenue[idx] * 1000000 : 0
+                            };
+                        });
+                        setDataList(converted);
+                    } else {
+                        // giữ nguyên behavior cũ cho các type khác
+                        setDataList(res.data);
+                    }
+                }
+                // --- KẾT THÚC SỬA ---
 
                 if (type === "product") {
                     const ress = await analysisService.getRevenueByCategory({ ...filters });
@@ -172,6 +203,7 @@ const TopEntityReport = ({ type }) => {
 
     if (!config) return <div>Loại báo cáo không hợp lệ</div>;
 
+    // chartData (giữ nguyên như cũ)
     const chartData = {
         labels: dataList.map(item =>
             typeof config.labelField === "function"
@@ -190,8 +222,37 @@ const TopEntityReport = ({ type }) => {
         ],
     };
 
+    // chartDataRevenue (mới) — dùng rawRevenueData (không thay đổi raw data gốc)
+    const chartDataRevenue = rawRevenueData
+        ? {
+            labels: rawRevenueData.title || [],
+            datasets: [
+                {
+                    label: "Doanh thu (tr)",
+                    // rawRevenueData.revenue ở ví dụ là giá trị theo 'tr', nên giữ nguyên (không nhân/chia)
+                    data: rawRevenueData.revenue || [],
+                    backgroundColor: config.color.bg,
+                    borderColor: config.color.border,
+                    borderWidth: 1,
+                    borderRadius: 4,
+                },
+                {
+                    label: "Chi phí (tr)",
+                    data: rawRevenueData.expense || [],
+                    backgroundColor: "rgba(220, 53, 69, 0.8)",
+                    borderColor: "rgba(220, 53, 69, 1)",
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }
+            ],
+        }
+        : {
+            labels: [],
+            datasets: [],
+        };
+
     const options = {
-        indexAxis: "y",
+        indexAxis: config.vertical ? "x" : "y",
         maintainAspectRatio: false,
         responsive: true,
         plugins: {
@@ -199,35 +260,46 @@ const TopEntityReport = ({ type }) => {
             title: { display: true, text: config.title },
         },
         scales: {
-            x: {
-                beginAtZero: true,
-                grid: {
-                    color: "rgba(0, 0, 0, 0.05)",
-                    drawBorder: false,
-                },
-                ticks: {
-                    font: {
-                        family: "'Inter', sans-serif",
-                        size: 11,
+            x: config.vertical
+                ? { // Trục ngày/tháng khi cột đứng
+                    grid: {
+                        color: "rgba(0, 0, 0, 0.05)",
+                        drawBorder: false,
                     },
-                    color: "#6b7280",
-                    callback: function (value) {
-                        return value + ' tr';
-                    }
-                },
-            },
-            y: {
-                grid: {
-                    display: false,
-                },
-                ticks: {
-                    font: {
-                        family: "'Inter', sans-serif",
-                        size: 11,
+                    ticks: {
+                        font: { family: "'Inter', sans-serif", size: 11 },
+                        color: "#6b7280",
                     },
-                    color: "#6b7280",
+                }
+                : { // Trục giá trị khi cột ngang
+                    beginAtZero: true,
+                    grid: {
+                        color: "rgba(0, 0, 0, 0.05)",
+                        drawBorder: false,
+                    },
+                    ticks: {
+                        font: { family: "'Inter', sans-serif", size: 11 },
+                        color: "#6b7280",
+                        callback: (value) => value + ' tr',
+                    },
                 },
-            },
+            y: config.vertical
+                ? { // Trục giá trị khi cột đứng
+                    beginAtZero: true,
+                    grid: { display: false },
+                    ticks: {
+                        font: { family: "'Inter', sans-serif", size: 11 },
+                        color: "#6b7280",
+                        callback: (value) => value + ' tr',
+                    },
+                }
+                : { // Trục tên khi cột ngang
+                    grid: { display: false },
+                    ticks: {
+                        font: { family: "'Inter', sans-serif", size: 11 },
+                        color: "#6b7280",
+                    },
+                },
         },
     };
 
@@ -353,7 +425,8 @@ const TopEntityReport = ({ type }) => {
                                 bodyStyle={{ padding: "24px" }}
                             >
                                 <div style={{ height: "456px" }}>
-                                    <Bar data={chartData} options={options} />
+                                    {/* nếu là revenue -> dùng chartDataRevenue (giữ raw data), else dùng chartData cũ */}
+                                    <Bar data={type === "revenue" ? chartDataRevenue : chartData} options={options} />
                                 </div>
                             </Card>
                         </Col>
@@ -379,8 +452,6 @@ const TopEntityReport = ({ type }) => {
                                 </Card>
                             </Col>
                         )}
-
-
                     </Row>
                 ) : (
                     <div>Báo cáo</div>

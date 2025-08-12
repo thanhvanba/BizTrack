@@ -43,5 +43,7 @@ export const privateRoutes = [
   { path: 'product-report', element: <TopEntityReport type="product" /> },
   { path: 'customer-report', element: <TopEntityReport type="customer" /> },
   { path: 'supplier-report', element: <TopEntityReport type="supplier" /> },
+  { path: 'revenue-report', element: <TopEntityReport type="revenue" /> },
+  { path: 'finance-report', element: <TopEntityReport type="finance" /> },
 
 ];
