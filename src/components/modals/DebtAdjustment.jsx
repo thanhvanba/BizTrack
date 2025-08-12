@@ -3,8 +3,7 @@ import { Modal, Form, Input, Button, DatePicker, Select, InputNumber } from "ant
 import dayjs from "dayjs";
 import customerService from "../../service/customerService";
 
-const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt, modalType = 'payment' }) => {
-  console.log("🚀 ~ DebtAdjustmentModal ~ initialDebt:", initialDebt)
+const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt, modalType = 'payment', context }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +24,7 @@ const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt, modalType 
           adjustmentValue: values.adjustmentValue,
           description: values.description,
           paymentMethod: values.paymentMethod,
-          category: values.category,
+          type: values.type,
         });
         form.resetFields();
       }, 500);
@@ -40,16 +39,25 @@ const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt, modalType 
     { label: "Thẻ", value: "card" },
   ];
 
+  // const getCategories = () => {
+  //   if (modalType === 'receipt') {
+  //     return [
+  //       { label: "Thu tiền khách hàng", value: "customer_payment" },
+  //       { label: "Thu tiền khác", value: "other_receipt" },
+  //     ];
+  //   } else {
+  //     return [
+  //       { label: "Chi trả nhà cung cấp", value: "supplier_payment" },
+  //       { label: "Chi phí khác", value: "other_payment" },
+  //     ];
+  //   }
+  // };
+
   const getCategories = () => {
-    if (modalType === 'receipt') {
+    if (context === 'customer') {
       return [
-        { label: "Thu tiền khách hàng", value: "customer_payment" },
-        { label: "Thu tiền khác", value: "other_receipt" },
-      ];
-    } else {
-      return [
-        { label: "Chi trả nhà cung cấp", value: "supplier_payment" },
-        { label: "Chi phí khác", value: "other_payment" },
+        { label: "Tạo phiếu chi khách hàng", value: "adj_increase" },
+        { label: "Tạo phiếu thu khách hàng", value: "adj_decrease" },
       ];
     }
   };
@@ -95,15 +103,17 @@ const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt, modalType 
           <Form.Item label="Phương thức" name="paymentMethod" initialValue="cash" rules={[{ required: true, message: "Chọn phương thức!" }]}>
             <Select options={paymentMethods} />
           </Form.Item>
-          <Form.Item label="Danh mục" name="category" initialValue={modalType === 'receipt' ? 'customer_payment' : 'supplier_payment'} rules={[{ required: true, message: "Chọn danh mục!" }]}>
-            <Select options={getCategories()} />
-          </Form.Item>
+          {context === 'customer' &&
+            < Form.Item label="Loại giao dịch" name="type" rules={[{ required: true, message: "Chọn loại giao dịch!" }]}>
+              <Select options={getCategories()} />
+            </Form.Item>
+          }
           <Form.Item label="Mô tả" name="description">
             <Input.TextArea rows={3} placeholder="Nhập mô tả" />
           </Form.Item>
         </Form>
       </div>
-    </Modal>
+    </Modal >
   );
 };
 

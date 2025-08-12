@@ -74,7 +74,7 @@ const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
             const body = {
                 amount: Number(values.adjustmentValue),
                 type: values.type || 'payment',
-                category: values.category || 'supplier_refund',
+                // category: values.category || 'supplier_refund',
                 payment_method: values.paymentMethod || 'cash',
                 supplier_id: supplierData?.supplier_id,
                 description: values.description || '',

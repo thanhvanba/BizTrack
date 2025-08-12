@@ -119,7 +119,7 @@ export default function CashBookPage() {
     const body = {
       amount: Number(values.adjustmentValue),
       type: modalType, // 'receipt' hoặc 'payment'
-      category: values.category || (modalType === 'receipt' ? 'customer_payment' : 'supplier_payment'),
+      // category: values.category || (modalType === 'receipt' ? 'customer_payment' : 'supplier_payment'),
       payment_method: values.paymentMethod || 'cash',
       description: values.description || '',
     };
