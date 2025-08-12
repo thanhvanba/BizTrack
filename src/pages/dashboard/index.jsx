@@ -7,7 +7,7 @@ import {
     ArrowUpOutlined,
     ArrowDownOutlined,
 } from "@ant-design/icons"
-import { Line, Bar } from "react-chartjs-2"
+import { Line } from "react-chartjs-2"
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -21,8 +21,6 @@ import {
 } from "chart.js"
 import analysisService from "../../service/analysisService"
 import { useEffect, useState } from "react"
-import customerService from "../../service/customerService"
-import productService from "../../service/productService"
 import orderService from "../../service/orderService"
 import formatPrice from '../../utils/formatPrice'
 import { useNavigate } from "react-router-dom"
@@ -46,9 +44,6 @@ const Dashboard = () => {
     });
 
     const [financialStatistics, setFinancialStatistics] = useState()
-    const [topCustomers, setTopCustomers] = useState([])
-    const [selectedTimeFilter, setSelectedTimeFilter] = useState("month")
-    console.log("🚀 ~ Dashboard ~ financialStatistics:", financialStatistics)
 
     const navigate = useNavigate();
 
@@ -65,24 +60,23 @@ const Dashboard = () => {
                     resCurrentRevenue,
                     resPreviousRevenue,
                     resRevenue,
-                    resCustomer,
+                    resTotalCustomer,
                     resCustomersByMonth,
-                    resProduct,
+                    resTotalProduct,
                     resProductsByMonth,
                     resOrdersByMonth,
                     resOrder,
-                    resTopCustomers
                 ] = await Promise.all([
                     analysisService.getRevenueByTimePeriod({ startDate: currentMonthFormatted, period: 'month' }),
                     analysisService.getRevenueByTimePeriod({ startDate: previousMonthFormatted, period: 'month' }),
                     analysisService.getRevenueByTimePeriod(),
-                    customerService.getAllCustomers(),
-                    customerService.getAllCustomers({ year: currentYear, month: currentMonth }),
-                    productService.getAllProducts(),
-                    productService.getAllProducts({ year: currentYear, month: currentMonth }),
+                    analysisService.getTotalCustomers(),
+                    analysisService.getNewCustomersInMonth(),
+                    analysisService.getTotalProducts(),
+                    analysisService.getNewProductsInMonth({ year: currentYear, month: currentMonth }),
                     orderService.getAllOrder({ year: currentYear, month: currentMonth }),
                     orderService.getAllOrder({ page: 1, limit: 6 }),
-                    analysisService.getTopCustomers({startDate, endDate, limit: 5 }),
+                    analysisService.getTopCustomers({ startDate: dayjs().date(), limit: 5 }),
                 ]);
 
                 const formatCustomerInitials = (data) => {
@@ -110,21 +104,17 @@ const Dashboard = () => {
 
                 setAnalysisData({
                     revenue: resRevenue?.data[0],
-                    totalCustomer: resCustomer?.pagination?.total || 0,
-                    totalProduct: resProduct?.pagination?.total || 0,
+                    totalCustomer: resTotalCustomer?.data?.total || 0,
+                    totalProduct: resTotalProduct?.data?.total || 0,
                     orderData: {
                         ...resOrder,
                         data: formatCustomerInitials(resOrder.data),
                     },
                     revenueMoM,
-                    totalCustomersThisMonth: resCustomersByMonth?.pagination?.total ?? 0,
-                    totalProductsThisMonth: resProductsByMonth?.pagination?.total ?? 0,
+                    totalCustomersThisMonth: resCustomersByMonth?.data?.newCustomersCount ?? 0,
+                    totalProductsThisMonth: resProductsByMonth?.data?.newProductsCount ?? 0,
                     totalOrdersThisMonth: resOrdersByMonth?.pagination?.total ?? 0,
                 });
-
-                if (resTopCustomers && resTopCustomers.data) {
-                    setTopCustomers(resTopCustomers.data);
-                }
             } catch (error) {
                 console.error("Error fetching analysis data:", error);
             }
@@ -141,7 +131,7 @@ const Dashboard = () => {
             }
         }
         handelGetDataRevenue()
-    }, [selectedTimeFilter]);
+    }, []);
 
     const renderRevenueMoM = (value) => {
         if (value === null) {
@@ -265,91 +255,6 @@ const Dashboard = () => {
             },
             line: {
                 borderWidth: 3,
-            },
-        },
-    }
-
-    // Top customers bar chart data
-    const topCustomersData = {
-        labels: topCustomers.map(customer => customer.customer_name || customer.name || "Khách hàng"),
-        datasets: [
-            {
-                label: "Tổng mua hàng (tr)",
-                data: topCustomers.map(customer => customer.total_amount || customer.amount || 0),
-                backgroundColor: "rgba(59, 130, 246, 0.8)",
-                borderColor: "rgba(59, 130, 246, 1)",
-                borderWidth: 1,
-                borderRadius: 4,
-            },
-        ],
-    }
-
-    const topCustomersChartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        indexAxis: 'y', // This makes it horizontal
-        plugins: {
-            legend: {
-                display: false,
-            },
-            tooltip: {
-                backgroundColor: "white",
-                titleColor: "#1f2937",
-                bodyColor: "#374151",
-                borderColor: "#e5e7eb",
-                borderWidth: 1,
-                padding: 12,
-                boxPadding: 6,
-                titleFont: {
-                    family: "'Inter', sans-serif",
-                    size: 14,
-                    weight: "bold",
-                },
-                bodyFont: {
-                    family: "'Inter', sans-serif",
-                    size: 13,
-                },
-                callbacks: {
-                    label: function (context) {
-                        return `Tổng mua: ${context.parsed.x} tr`;
-                    }
-                },
-            },
-        },
-        scales: {
-            x: {
-                beginAtZero: true,
-                grid: {
-                    color: "rgba(0, 0, 0, 0.05)",
-                    drawBorder: false,
-                },
-                ticks: {
-                    font: {
-                        family: "'Inter', sans-serif",
-                        size: 11,
-                    },
-                    color: "#6b7280",
-                    callback: function (value) {
-                        return value + ' tr';
-                    }
-                },
-            },
-            y: {
-                grid: {
-                    display: false,
-                },
-                ticks: {
-                    font: {
-                        family: "'Inter', sans-serif",
-                        size: 11,
-                    },
-                    color: "#6b7280",
-                },
-            },
-        },
-        elements: {
-            bar: {
-                borderRadius: 4,
             },
         },
     }
@@ -552,39 +457,6 @@ const Dashboard = () => {
                                 className="custom-table"
                                 scroll={{ x: "max-content" }}
                             />
-                        </Card>
-                    </Col>
-                </Row>
-
-                <Row gutter={[16, 16]} className="mt-6">
-                    <Col xs={24}>
-                        <Card
-                            title={
-                                <div className="flex justify-between items-center">
-                                    <span className="text-gray-800 font-bold">Top 10 khách mua nhiều nhất</span>
-                                    <Select
-                                        value={selectedTimeFilter}
-                                        onChange={setSelectedTimeFilter}
-                                        style={{ width: 120 }}
-                                        size="small"
-                                    >
-                                        <Option value="week">Tuần này</Option>
-                                        <Option value="month">Tháng này</Option>
-                                        <Option value="quarter">Quý này</Option>
-                                        <Option value="year">Năm này</Option>
-                                    </Select>
-                                </div>
-                            }
-                            className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-                            headStyle={{
-                                borderBottom: "1px solid #f0f0f0",
-                                padding: "16px 24px",
-                            }}
-                            bodyStyle={{ padding: "24px" }}
-                        >
-                            <div style={{ height: "400px" }}>
-                                <Bar data={topCustomersData} options={topCustomersChartOptions} />
-                            </div>
                         </Card>
                     </Col>
                 </Row>

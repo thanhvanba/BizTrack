@@ -44,13 +44,16 @@ const columns = [
 ];
 
 const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
-    console.log("🚀 ~ SupplierPayablesTab ~ supplierData:", supplierData)
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [supplierPayables, setSupplierPayables] = useState()
-    console.log("🚀 ~ SupplierPayablesTab ~ supplierPayables:", supplierPayables)
     const [supplierTransactions, setSupplierTransactions] = useState()
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 5,
+        total: 0,
+    })
 
     const handleRecordBulkPayment = async (invoiceData) => {
         try {
@@ -116,10 +119,17 @@ const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
     }
 
     // Danh sách các giao dịch liên quan đến nhà cung cấp
-    const fetchSupplierTransactions = async () => {
+    const fetchSupplierTransactions = async (page = pagination.current, limit = pagination.pageSize) => {
         setLoading(true)
         try {
-            const res = await supplierService.getSupplierTransactionLedger(supplierData?.supplier_id)
+            const res = await supplierService.getSupplierTransactionLedger(supplierData?.supplier_id, { page, limit })
+            if (res.pagination) {
+                setPagination({
+                    current: res.pagination.currentPage,
+                    pageSize: res.pagination.pageSize,
+                    total: res.pagination.total,
+                });
+            }
             if (res && res.data) {
                 setSupplierTransactions(res.data)
             }
@@ -129,6 +139,10 @@ const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
         setLoading(false)
     }
 
+    const handleTableChange = (paginationInfo) => {
+        const { current, pageSize } = paginationInfo;
+        fetchSupplierTransactions(current, pageSize);
+    };
     useEffect(() => {
         if (supplierData?.supplier_id) {
             fetchSupplierPayables()
@@ -142,8 +156,16 @@ const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
                 loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
                 columns={columns}
                 dataSource={supplierTransactions}
-                pagination={false}
+                pagination={{
+                    current: pagination.current,
+                    pageSize: pagination.pageSize,
+                    total: pagination.total,
+                    showSizeChanger: true,
+                    showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} giao dịch`,
+                    pageSizeOptions: ['5', '10', '20', '50'],
+                }}
                 size="small"
+                onChange={handleTableChange}
             />
             <div className="flex justify-between mt-4">
                 <div className="flex gap-2">

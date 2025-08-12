@@ -11,6 +11,7 @@ import {
   PieChartOutlined,
   ShoppingCartOutlined,
   ShoppingOutlined,
+  BookOutlined,
 } from '@ant-design/icons';
 import ListNotification from '../ListNotification';
 import { useNavigate } from 'react-router-dom';
@@ -77,9 +78,16 @@ const menuItems = [
     icon: <DollarOutlined />,
   },
   {
-    key: 'revenue',
-    label: 'Doanh Thu',
-    icon: <DollarOutlined />,
+    key: 'statictis',
+    icon: <BookOutlined />,
+    label: 'Báo cáo',
+    children: [
+      { label: 'Doanh thu', key: 'revenue-report' },
+      { label: 'Sản phẩm', key: 'product-report' },
+      { label: 'Khách hàng', key: 'customer-report' },
+      { label: 'Nhà cung cấp', key: 'supplier-report' },
+      { label: 'Tài chính', key: 'finance-report' },
+    ],
   },
 ];
 

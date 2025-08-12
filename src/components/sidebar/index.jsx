@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   AppstoreOutlined,
+  BookOutlined,
   ContainerOutlined,
   DollarOutlined,
   LogoutOutlined,
@@ -72,15 +73,17 @@ const menuItems = [
       },
     ],
   },
-
   {
-    key: 'revenue',
-    label: 'Doanh Thu',
-    icon: <DollarOutlined />,
-    // children: [
-    //   { key: 'revenue-monthly', label: 'Tháng này' },
-    //   { key: 'revenue-quarterly', label: 'Theo quý' },
-    // ],
+    key: 'statictis',
+    icon: <BookOutlined />,
+    label: 'Báo cáo',
+    children: [
+      { label: 'Doanh thu', key: 'revenue-report' },
+      { label: 'Sản phẩm', key: 'product-report' },
+      { label: 'Khách hàng', key: 'customer-report' },
+      { label: 'Nhà cung cấp', key: 'supplier-report' },
+      { label: 'Tài chính', key: 'finance-report' },
+    ],
   },
 ];
 const { Sider } = Layout

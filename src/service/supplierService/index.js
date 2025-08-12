@@ -61,10 +61,11 @@ const supplierService = {
   },
 
   // Lấy lịch sử nhập hàng từ nhà cung cấp
-  getSupplierHistory: async (supplierId) => {
+  getSupplierHistory: async (supplierId, params) => {
     return axiosService()({
       url: `${PURCHASE_ORDERS_URL}/supplier/${supplierId}/history`,
       method: "GET",
+      params
     })
       .then((res) => res.data)
       .catch((error) => { throw error; });

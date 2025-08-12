@@ -49,7 +49,11 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [customerReceivables, setCustomerReceivables] = useState()
     const [customerTransactions, setCustomerTransactions] = useState()
-
+    const [pagination, setPagination] = useState({
+        current: 1,
+        pageSize: 5,
+        total: 0,
+    })
     const handleRecordBulkPayment = async (invoiceData) => {
         await customerService.recordBulkPayment(invoiceData);
         fetchCustomerReceivables()
@@ -84,15 +88,29 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
     }
 
     // Danh sách các giao dịch liên quan đến khách hàng
-    const fetchCustomerTransactions = async () => {
+    const fetchCustomerTransactions = async (page = pagination.current, limit = pagination.pageSize) => {
         setLoading(true)
-        const res = await customerService.getCustomerTransactionLedger(customerData?.customer_id)
+        const res = await customerService.getCustomerTransactionLedger(
+            customerData?.customer_id,
+            { page, limit }
+        )
+        if (res.pagination) {
+            setPagination({
+                current: res.pagination.currentPage,
+                pageSize: res.pagination.pageSize,
+                total: res.pagination.total,
+            });
+        }
         if (res && res.data) {
             setCustomerTransactions(res.data)
         }
 
         setLoading(false)
     }
+    const handleTableChange = (paginationInfo) => {
+        const { current, pageSize } = paginationInfo;
+        fetchCustomerTransactions(current, pageSize);
+    };
     useEffect(() => {
         fetchCustomerReceivables()
         fetchCustomerTransactions()
@@ -103,8 +121,16 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
                 loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
                 columns={columns}
                 dataSource={customerTransactions}
-                pagination={false}
+                pagination={{
+                    current: pagination.current,
+                    pageSize: pagination.pageSize,
+                    total: pagination.total,
+                    showSizeChanger: true,
+                    showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} giao dịch`,
+                    pageSizeOptions: ['5', '10', '20', '50'],
+                }}
                 size="small"
+                onChange={handleTableChange}
             />
             <div className="flex justify-between mt-4">
                 <div className="flex gap-2">

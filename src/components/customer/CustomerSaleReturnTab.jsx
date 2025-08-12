@@ -55,16 +55,24 @@ const columns = [
 //   return <Table columns={columns} dataSource={data} pagination={false} size="middle" scroll={{ x: 800 }} />;
 // };
 
-const CustomerSaleReturnTab = ({ dataSource, loading }) => {
+const CustomerSaleReturnTab = ({ dataSource, loading, page, pageSize, total, onChangePage }) => {
   return (
     <Table
       loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
       columns={columns}
       dataSource={dataSource}
-      pagination={false} // Tùy chọn: bạn có thể bật phân trang nếu muốn
+      pagination={{
+        current: page,
+        pageSize,
+        total,
+        showSizeChanger: true,
+        showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} hóa đơn`,
+        pageSizeOptions: ['5', '10', '20', '50'],
+      }}
       size="middle"
       scroll={{ x: 800 }} // Cho phép cuộn ngang nếu bảng quá rộng
       locale={{ emptyText: "Không có dữ liệu lịch sử bán/trả hàng." }} // Tin nhắn khi không có dữ liệu
+      onChange={onChangePage}
     />
   );
 };

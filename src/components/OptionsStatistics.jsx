@@ -21,7 +21,9 @@ const OptionsStatistics = ({
   onSelectOptions,
   onDateChange,
   onStatistic,
+  isStatistic
 }) => {
+  console.log("🚀 ~ OptionsStatistics ~ isStatistic:", isStatistic)
   const getDateValue = () => {
     if (!selectedDate) return null;
     return selectedOptions === "range"
@@ -32,8 +34,11 @@ const OptionsStatistics = ({
   const { picker, format } = pickerFormatMap[selectedOptions] || {};
 
   return (
-    <Row gutter={[16, 16]} className="justify-end">
-      <Col xs={24} sm={8}>
+    <Row
+      gutter={[16, 16]}
+      className={`justify-end ${isStatistic ? 'flex flex-col' : ''}`}
+    >
+      <Col xs={24} sm={isStatistic ? 24 : 8}>
         <Select
           value={selectedOptions}
           onChange={onSelectOptions}
@@ -49,7 +54,7 @@ const OptionsStatistics = ({
         </Select>
       </Col>
       {selectedOptions !== "init" && (
-        <Col xs={24} sm={10} >
+        <Col xs={24} sm={isStatistic ? 24 : 10}>
           {selectedOptions === "range" ? (
             <RangePicker
               onChange={onDateChange}
@@ -70,13 +75,12 @@ const OptionsStatistics = ({
         </Col>
       )}
 
-
-        < Col xs={24} sm={6} md={6} lg={6}>
-      <Button type="primary" onClick={onStatistic} block>
-        Áp dụng
-      </Button>
-    </Col>
-    </Row >
+      <Col xs={24} sm={isStatistic ? 24 : 6} md={isStatistic ? 24 : 6} lg={isStatistic ? 24 : 6}>
+        <Button type="primary" onClick={onStatistic} block>
+          Áp dụng
+        </Button>
+      </Col>
+    </Row>
   );
 };
 

@@ -16,6 +16,7 @@ export default function CustomerImport() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [templateText, setTemplateText] = useState('');
+  console.log("🚀 ~ CustomerImport ~ templateText:", templateText)
   const [templateLoading, setTemplateLoading] = useState(false);
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export default function CustomerImport() {
     setSelectedEntity(found || null);
     // Reset template khi đổi entity type
     setTemplateText('');
+    setTextData('')
   }, [selectedType, entityTypes]);
 
   // Fetch template khi chọn entity type
@@ -75,14 +77,14 @@ export default function CustomerImport() {
   // Tạo columns động cho Table từ validData
   const validDataColumns = result?.data?.validData && Array.isArray(result.data.validData) && result.data.validData.length > 0
     ? Object.keys(result.data.validData[0]).map(key => ({
-        title: key,
-        dataIndex: key,
-        key,
-      }))
+      title: key,
+      dataIndex: key,
+      key,
+    }))
     : [];
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded shadow">
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded shadow">
       <h2 className="text-xl font-bold mb-4">Import Dữ Liệu</h2>
       <div className="mb-4">
         <label className="block mb-1 font-medium">Loại dữ liệu</label>
@@ -117,9 +119,9 @@ export default function CustomerImport() {
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
             <label className="font-medium">Template mẫu:</label>
-            <Button 
-              size="small" 
-              onClick={fetchTemplate} 
+            <Button
+              size="small"
+              onClick={fetchTemplate}
               loading={templateLoading}
               disabled={templateLoading}
             >

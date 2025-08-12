@@ -15,6 +15,8 @@ import HomePage from '../pages/home-page';
 import CashBookPage from '../pages/cash-book';
 import AdjustInventory from '../pages/warehouse-management/AdjustInventory';
 import CustomerImport from '../pages/CustomerImport';
+import ProductReport from '../pages/report-page';
+import TopEntityReport from '../pages/report-page';
 
 export const homeRoute = { path: '', element: <HomePage /> };
 
@@ -38,4 +40,8 @@ export const privateRoutes = [
   { path: 'suppliers', element: <SupplierManagement /> },
   { path: 'cash-book', element: <CashBookPage />, },
   { path: 'customer-import', element: <CustomerImport />, },
+  { path: 'product-report', element: <TopEntityReport type="product" /> },
+  { path: 'customer-report', element: <TopEntityReport type="customer" /> },
+  { path: 'supplier-report', element: <TopEntityReport type="supplier" /> },
+
 ];

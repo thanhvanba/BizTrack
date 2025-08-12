@@ -76,7 +76,6 @@ const OrderFormData = ({
   onSave,
   onChange,
 }) => {
-  console.log("🚀 ~ OrderFormData ~ orderProp:", orderProp)
   const { orderId } = useParams();
 
   // State quản lý dữ liệu khách hàng và sản phẩm
@@ -115,15 +114,12 @@ const OrderFormData = ({
   const [selectedProducts, setSelectedProducts] = useState(
     selectedProductsProps || []
   );
-  console.log("🚀 ~ OrderFormData ~ selectedProducts:", selectedProducts)
   const [shippingFee, setShippingFee] = useState(0);
   const [orderDiscount, setOrderDiscount] = useState(0);
 
   const [transferAmount, setTransferAmount] = useState(orderProp?.amount_paid || 0);
   const [transferAmountByInput, setTransferAmountByInput] = useState(orderProp?.amount_paid || 0);
-  console.log("🚀 ~ OrderFormData ~ transferAmountByInput:", transferAmountByInput)
 
-  console.log("🚀 ~ OrderFormData ~ transferAmount:", transferAmount)
   const [refundAmount, setRefundAmount] = useState(0);
   const [orderDetailSummary, setOrderDetailSummary] = useState(null);
   // Utility function để format tiền tệ
@@ -183,7 +179,7 @@ const OrderFormData = ({
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const res = await customerService.getAllCustomers();
+      const res = await customerService.getAllCustomers({ page: 1, limit: 1000 });
       if (res && res.data) {
         setCustomers(res.data);
       }
@@ -251,7 +247,6 @@ const OrderFormData = ({
       }
       const orderRes = await orderDetailService.getOrderDetailById(orderId);
       // const orderDetailSummary = await orderDetailService.getOrderDetailSummaryById(orderId);
-      // console.log("🚀 ~ fetchOrderDetails ~ orderDetailSummary:", orderDetailSummary)
       if (orderRes) {
         setOrder(orderRes);
 
@@ -297,7 +292,6 @@ const OrderFormData = ({
       }
       const orderReturn = await orderService.getReturns({ order_id: orderId });
       setOrderDetailSummary(orderReturn);
-      console.log("🚀 ~ fetchOrderDetails ~ orderReturn:", orderReturn);
     } catch (error) {
       // useToastNotify("Không thể tải thông tin đơn hàng", "error");
     } finally {
@@ -401,7 +395,6 @@ const OrderFormData = ({
     try {
       setFormLoading(true);
       const values = await form.validateFields();
-      console.log("🚀 ~ handleSubmitOrder ~ values:", values)
       const formattedOrderDate = dayjs(values.order_date).format("YYYY-MM-DD");
 
       const orderDetails = selectedProducts.map((item) => ({
@@ -526,7 +519,6 @@ const OrderFormData = ({
    */
   useEffect(() => {
     setTransferAmount(finalAmount);
-    console.log("🚀 ~ OrderFormData ~ finalAmount:", finalAmount)
     // form.setFieldsValue({ amount_paid: finalAmount });
     const currentValues = {
       ...form.getFieldsValue(),
@@ -539,7 +531,6 @@ const OrderFormData = ({
  * Callback khi form values thay đổi
  */
   const handleValuesChange = (_, allValues) => {
-    console.log("🚀 ~ handleValuesChange ~ allValues:", allValues)
     const updatedValues = { ...allValues, amount_paid: transferAmount };
     onChange?.(updatedValues, selectedProducts);
   };
@@ -548,8 +539,6 @@ const OrderFormData = ({
    * Đồng bộ dữ liệu với parent component khi selectedProducts thay đổi
    */
   useEffect(() => {
-    console.log("🚀 ~ OrderFormData ~ transferAmount 1:", transferAmount)
-    console.log("🚀 ~ O000000000transferAmountByInput:", transferAmountByInput)
     if (selectedProducts.length !== 0) {
       const currentValues = {
         ...form.getFieldsValue(),

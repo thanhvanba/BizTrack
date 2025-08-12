@@ -76,6 +76,76 @@ const analysisService = {
             .then(res => res.data)
             .catch(error => { throw error; });
     },
+
+    getTopSelling: async (params) => {
+        return axiosService()({
+            url: `${ANALYSIS_URL}/products/top-selling`,
+            method: 'GET',
+            params,
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
+
+    getTopPurchasing: async (params) => {
+        return axiosService()({
+            url: `${ANALYSIS_URL}/suppliers/top-purchasing`,
+            method: 'GET',
+            params,
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
+
+    getRevenueByCategory: async (params) => {
+        return axiosService()({
+            url: `${ANALYSIS_URL}/category/revenue`,
+            method: 'GET',
+            params,
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
+
+    // Lấy số khách hàng mới trong tháng hiện tại
+    getNewCustomersInMonth: async () => {
+        return axiosService()({
+            url: `${ANALYSIS_URL}/dashboard/customers-new-in-month`,
+            method: 'GET',
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
+
+    // Lấy số sản phẩm mới trong tháng hiện tại
+    getNewProductsInMonth: async () => {
+        return axiosService()({
+            url: `${ANALYSIS_URL}/dashboard/products-new-in-month`,
+            method: 'GET',
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
+
+    // Lấy tổng số khách hàng
+    getTotalCustomers: async () => {
+        return axiosService()({
+            url: `${ANALYSIS_URL}/dashboard/total-customers`,
+            method: 'GET',
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
+
+    // Lấy tổng số sản phẩm
+    getTotalProducts: async () => {
+        return axiosService()({
+            url: `${ANALYSIS_URL}/dashboard/total-products`,
+            method: 'GET',
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
 };
 
 export default analysisService;

@@ -93,10 +93,11 @@ const customerService = {
   },
 
   // Lịch sử đơn hàng
-  getCustomerOrderHistory: async (customerId) => {
+  getCustomerOrderHistory: async (customerId, params) => {
     return axiosService()({
       url: `${CUSTOMER_REPORT_URL}/${customerId}/order-history`,
       method: 'GET',
+      params
     })
       .then(res => res.data)
       .catch(error => { throw error; });
@@ -150,10 +151,11 @@ const customerService = {
       .catch(error => { throw error; });
   },
 
-  getCustomerTransactionLedger: async (customerId) => {
+  getCustomerTransactionLedger: async (customerId, params) => {
     return axiosService()({
       url: `${CUSTOMER_REPORT_URL}/${customerId}/transaction-ledger`,
       method: 'GET',
+      params
     })
       .then(res => res.data)
       .catch(error => { throw error; });
