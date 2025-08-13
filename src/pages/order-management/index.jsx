@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Card,
   Input,
@@ -19,6 +19,7 @@ import {
   PrinterOutlined,
   DownloadOutlined,
   EditOutlined,
+  ClearOutlined,
 } from "@ant-design/icons";
 import OrderDetailDrawer from "../../components/drawers/OrderDetailDrawer";
 import { useNavigate } from "react-router-dom";
@@ -39,14 +40,12 @@ const { Title } = Typography;
 
 const OrderManagement = () => {
   const [loading, setLoading] = useState(false);
-  console.log("🚀 ~ OrderManagement ~ loading:", loading)
   const [orderStatus, setOrderStatus] = useState("-1");
   const [expandedRowKeys, setExpandedRowKeys] = useState([])
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
 
   const navigate = useNavigate();
   const [ordersData, setOrdersData] = useState([]);
-  console.log("🚀 ~ OrderManagement ~ ordersData:", ordersData)
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 5,
@@ -63,6 +62,9 @@ const OrderManagement = () => {
   const currentDate = dayjs();
   const [selectedOptions, setSelectedOptions] = useState('init');
   const [selectedDate, setSelectedDate] = useState();
+
+  // State để lưu trữ tất cả filters hiện tại
+  const [filters, setFilters] = useState({});
 
   const handleSelectOptions = (value) => {
     if (value !== selectedOptions) {
@@ -98,14 +100,16 @@ const OrderManagement = () => {
   const handleStatistic = () => {
     console.log("Thống kê theo:", selectedOptions);
 
-    let params = {};
+    let newFilters = {};
 
     if (selectedOptions === "range") {
       const [start, end] = selectedDate || [];
       if (start && end) {
-        params.startDate = start.format("YYYY-MM-DD");
-        params.endDate = end.format("YYYY-MM-DD");
-        console.log("Từ ngày:", params.startDate, "đến ngày:", params.endDate);
+        newFilters = {
+          startDate: start.format("YYYY-MM-DD"),
+          endDate: end.format("YYYY-MM-DD")
+        };
+        console.log("Từ ngày:", newFilters.startDate, "đến ngày:", newFilters.endDate);
       }
     } else if (selectedDate) {
       const date = selectedDate;
@@ -115,40 +119,58 @@ const OrderManagement = () => {
       const year = date.year();
 
       if (selectedOptions === "day") {
-        params.day = day;
-        params.month = month;
-        params.year = year;
+        newFilters = { day, month, year };
         console.log("Ngày:", day, "Tháng:", month, "Năm:", year);
       } else if (selectedOptions === "month") {
-        params.month = month;
-        params.year = year;
+        newFilters = { month, year };
         console.log("Tháng:", month, "Năm:", year);
       } else if (selectedOptions === "quarter") {
         const quarter = Math.ceil((month) / 3);
-        params.quarter = quarter;
-        params.year = year;
+        newFilters = { quarter, year };
         console.log("Quý:", quarter, "Năm:", year);
       } else if (selectedOptions === "year") {
-        params.year = year;
+        newFilters = { year };
         console.log("Năm:", year);
       }
     }
 
-    // Gọi API
-    fetchOrders({ page: 1, limit: pagination.pageSize, params });
+    // Reset search và order_status khi chọn date filters
+    setIsSearching(false);
+    setSearchText("");
+    setOrderStatus("-1");
+
+    // Cập nhật filters và gọi API
+    setFilters(newFilters);
+    fetchOrders({ page: 1, limit: pagination.pageSize, params: newFilters });
   };
 
   const handleChangeTabs = async (order_status) => {
-    setOrderStatus(order_status)
-    const params = {};
+    setOrderStatus(order_status);
+
+    // Reset search và date filters khi thay đổi order status
+    setIsSearching(false);
+    setSearchText("");
+    setSelectedOptions('init');
+    setSelectedDate(null);
+
     if (Number(order_status) !== -1) {
-      params.order_status = order_status;
+      // Chỉ giữ lại order_status, reset tất cả filters khác
+      const newFilters = { order_status };
+      setFilters(newFilters);
+      fetchOrders({
+        page: 1,
+        limit: pagination.pageSize,
+        params: newFilters,
+      });
+    } else {
+      // Nếu chọn "Tất cả" thì reset tất cả
+      setFilters({});
+      fetchOrders({
+        page: 1,
+        limit: pagination.pageSize,
+        params: {},
+      });
     }
-    fetchOrders({
-      page: 1,
-      limit: pagination.pageSize,
-      params,
-    });
   };
 
   const fetchOrders = async ({ page = pagination.current, limit = pagination.pageSize, params = {} } = {}) => {
@@ -179,12 +201,17 @@ const OrderManagement = () => {
   //HÀM XỬ LÝ CHUYỂN TRANG
   const handleTableChange = (newPagination) => {
     if (isSearching) {
-      handleSearch(searchText, newPagination.current, newPagination.pageSize);
+      // Khi đang tìm kiếm, chỉ thay đổi trang
+      fetchSearch(searchText, newPagination.current, newPagination.pageSize);
     } else {
-      const params = {};
+      // Khi không tìm kiếm, sử dụng filters hiện tại
+      let params = { ...filters };
+
+      // Thêm order_status nếu có
       if (Number(orderStatus) !== -1) {
         params.order_status = orderStatus;
       }
+
       fetchOrders({
         page: newPagination.current,
         limit: newPagination.pageSize,
@@ -192,15 +219,52 @@ const OrderManagement = () => {
       });
     }
   };
-  const handleSearch = debounce(async (value, page = 1, pageSize = 5) => {
+  // const handleSearch = debounce(async (value, page = 1, pageSize = 5) => {
+  //   if (!value) {
+  //     setIsSearching(false);
+  //     setSearchText("");
+  //     // Khi xóa search, reset về trạng thái ban đầu (không có filters nào)
+  //     setFilters({});
+  //     setOrderStatus("-1");
+  //     setSelectedOptions('init');
+  //     setSelectedDate(null);
+  //     fetchOrders({ page: 1, limit: pagination.pageSize, params: {} });
+  //     return;
+  //   }
+
+  //   // Reset order status và date filters khi tìm kiếm
+  //   setOrderStatus("-1");
+  //   setSelectedOptions('init');
+  //   setSelectedDate(null);
+  //   setFilters({});
+
+  //   setIsSearching(true);
+  //   setSearchText(value);
+  //   try {
+  //     const response = await searchService.searchOrders(value, page, pageSize);
+  //     const data = response.data || [];
+  //     setOrdersData(data.map(order => ({ ...order, key: order.order_id })));
+  //     if (response.pagination) {
+  //       setSearchPagination({
+  //         current: response.pagination.currentPage,
+  //         pageSize: response.pagination.pageSize,
+  //         total: response.pagination.total,
+  //       });
+  //     }
+  //   } catch (error) {
+  //     useToastNotify("Không thể tìm đơn hàng theo số điện thoại.", 'error');
+  //   }
+  // }, 500);
+
+  const fetchSearch = useMemo(() => debounce(async (value, page = 1, pageSize = 5) => {
     if (!value) {
       setIsSearching(false);
-      setSearchText("");
-      fetchOrders(); // gọi lại toàn bộ đơn hàng
+      setFilters({});
+      fetchOrders({ page: 1, limit: pagination.pageSize, params: {} });
       return;
     }
+
     setIsSearching(true);
-    setSearchText(value);
     try {
       const response = await searchService.searchOrders(value, page, pageSize);
       const data = response.data || [];
@@ -212,10 +276,20 @@ const OrderManagement = () => {
           total: response.pagination.total,
         });
       }
-    } catch (error) {
-      useToastNotify("Không thể tìm đơn hàng theo số điện thoại.", 'error');
+    } catch {
+      useToastNotify("Không thể tìm đơn hàng theo số điện thoại.", "error");
     }
-  }, 500);
+  }, 500), [pagination.pageSize]);
+
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setSearchText(value); // luôn cập nhật input ngay
+    fetchSearch(value);   // debounce chỉ áp dụng khi gọi API
+
+    setOrderStatus("-1");
+    setSelectedOptions("init");
+    setSelectedDate(null);
+  };
 
   const handleUpdateOrderStatus = async (orderId, order_status) => {
     const data = { order_status };
@@ -227,14 +301,19 @@ const OrderManagement = () => {
     try {
       await orderService.updateOrder(orderId, data);
       useToastNotify("Cập nhật trạng thái đơn hàng thành công!", "success");
-      fetchOrders(); // reload lại danh sách
+      // Reload lại danh sách với filters hiện tại
+      let params = { ...filters };
+      if (Number(orderStatus) !== -1) {
+        params.order_status = orderStatus;
+      }
+      fetchOrders({ page: 1, limit: pagination.pageSize, params });
     } catch (error) {
       useToastNotify("Không thể cập nhật trạng thái đơn hàng.", "error");
     }
   };
 
   useEffect(() => {
-    fetchOrders();
+    fetchOrders({ page: 1, limit: pagination.pageSize, params: {} });
   }, []);
 
   const toggleExpand = (key) => {
@@ -400,8 +479,9 @@ const OrderManagement = () => {
           <div className="relative w-full">
             <Input
               placeholder="Tìm kiếm theo số điện thoại khách hàng / tên khách hàng"
+              value={searchText}
               prefix={<SearchOutlined className="text-gray-400" />}
-              onChange={(e) => handleSearch(e.target.value)}
+              onChange={handleChange}
               allowClear
               className="md:max-w-md"
             />
@@ -415,8 +495,25 @@ const OrderManagement = () => {
               onStatistic={handleStatistic}
             />
           </div>
+          {/* Nút xóa tất cả bộ lọc */}
+          {(Object.keys(filters).length > 0 || orderStatus !== "-1" || selectedOptions !== 'init') && (
+            <Button
+              type="default"
+              icon={<ClearOutlined />}
+              onClick={() => {
+                setFilters({});
+                setOrderStatus("-1");
+                setSelectedOptions('init');
+                setSelectedDate(null);
+                fetchOrders({ page: 1, limit: pagination.pageSize, params: {} });
+              }}
+              className="self-end bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-600"
+            >
+              Xóa bộ lọc
+            </Button>
+          )}
         </div>
-        <OrderStatusTabs onChange={handleChangeTabs} />
+        <OrderStatusTabs activeKey={orderStatus} onChange={handleChangeTabs} />
         <Table
           loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
           columns={columns}

@@ -159,6 +159,14 @@ const SupplierManagement = () => {
       dataIndex: "address",
       key: "address",
     },
+    {
+      title: "Tổng công nợ",
+      dataIndex: "payable",
+      key: "payable",
+      render: (value) =>
+        new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(value),
+      align: "right",
+    },
   ]
 
   return (

@@ -32,7 +32,7 @@ const columns = [
     {
         title: "Giá trị", dataIndex: "gia_tri", key: "gia_tri", align: "right",
         render: (val, record) => {
-            const isNegative = ["partial_paid", "return", "receipt"].includes(record.loai);
+            const isNegative = ["partial_paid", "return", "receipt", "adj_decrease"].includes(record.loai);
             return `${isNegative ? "-" : ""}${formatPrice(val)}`;
         },
     },

@@ -28,8 +28,8 @@ const columns = [
     key: 'type',
     width: 120,
     render: (type) => {
-      if (type === 'payment') return <span className="text-red-500 font-medium">Chi</span>;
-      if (type === 'receipt') return <span className="text-green-600 font-medium">Thu</span>;
+      if (type === 'payment' || type === 'adj_increase') return <span className="text-red-500 font-medium">Chi</span>;
+      if (type === 'receipt' || type === 'adj_decrease') return <span className="text-green-600 font-medium">Thu</span>;
       return type;
     },
   },
@@ -46,12 +46,12 @@ const columns = [
     key: 'payment_method',
     width: 120,
   },
-  {
-    title: 'Danh mục',
-    dataIndex: 'category',
-    key: 'category',
-    width: 140,
-  },
+  // {
+  //   title: 'Danh mục',
+  //   dataIndex: 'category',
+  //   key: 'category',
+  //   width: 140,
+  // },
   {
     title: 'Số tiền',
     dataIndex: 'amount',
@@ -61,7 +61,7 @@ const columns = [
     render: (value, record) => {
       const num = Number(value);
       return (
-        <span style={{ color: record.type === 'payment' ? 'red' : 'green', fontWeight: 500 }}>
+        <span style={{ color: record.type === 'payment' || record.type === 'adj_increase' ? 'red' : 'green', fontWeight: 500 }}>
           {num.toLocaleString('vi-VN')}
         </span>
       );

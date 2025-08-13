@@ -13,7 +13,7 @@ const DEFAULT_STATUS_LIST = [
   { key: "6", label: "Huỷ điều chỉnh", count: 0 },
 ];
 
-const OrderStatusTabs = ({ onChange }) => {
+const OrderStatusTabs = ({ onChange, activeKey = "-1" }) => {
   const [statusList, setStatusList] = useState(DEFAULT_STATUS_LIST);
   console.log("🚀 ~ OrderStatusTabs ~ statusList:", statusList)
 
@@ -63,6 +63,7 @@ const OrderStatusTabs = ({ onChange }) => {
   return (
     <Tabs
       className="equal-width-tabs"
+      activeKey={activeKey}
       defaultActiveKey="-1"
       items={items}
       onChange={onChange}
