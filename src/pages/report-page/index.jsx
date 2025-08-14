@@ -13,6 +13,7 @@ import {
 import analysisService from "../../service/analysisService";
 import OptionsStatistics from "../../components/OptionsStatistics";
 import dayjs from "dayjs";
+import SalesReport from "../SalesReport";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -20,26 +21,32 @@ const { RangePicker } = DatePicker;
 
 const configMap = {
     product: {
-        title: "Top 10 sản phẩm doanh thu cao nhất (đã trừ trả hàng)",
+        title: "Top sản phẩm doanh thu cao nhất (đã trừ trả hàng)",
         api: analysisService.getTopSelling,
         labelField: "product_name",
         valueField: "net_revenue",
+        valueRevenueField: "total_revenue",
+        valueRefundField: "total_refund",
         chartLabel: "Doanh thu (tr)",
         color: { bg: "rgba(249, 115, 22, 0.8)", border: "rgba(249, 115, 22, 1)" }
     },
     customer: {
-        title: "Top 10 khách hàng mua hàng nhiều nhất (đã trừ trả hàng)",
+        title: "Top khách hàng mua hàng nhiều nhất (đã trừ trả hàng)",
         api: analysisService.getTopCustomers,
-        labelField: row => row.customer_name || row.name || "Khách hàng",
+        labelField: row => row.customer_name || row.name || row.customer || row.full_name || row.customer_full_name || "Khách hàng",
         valueField: "net_spent",
+        valueRevenueField: "total_revenue",
+        valueRefundField: "total_refund",
         chartLabel: "Tổng mua hàng (tr)",
         color: { bg: "rgba(59, 130, 246, 0.8)", border: "rgba(59, 130, 246, 1)" }
     },
     supplier: {
-        title: "Top 10 nhà cung cấp nhập hàng nhiều nhất (đã trừ trả hàng)",
+        title: "Top nhà cung cấp nhập hàng nhiều nhất (đã trừ trả hàng)",
         api: analysisService.getTopPurchasing,
         labelField: "supplier_name",
         valueField: "net_purchase_amount",
+        valueRevenueField: "total_purchase_amount",
+        valueRefundField: "total_refund_amount",
         chartLabel: "Tổng giá trị nhập (tr)",
         color: { bg: "rgba(34, 197, 94, 0.8)", border: "rgba(34, 197, 94, 1)" }
     },
@@ -66,10 +73,8 @@ const TopEntityReport = ({ type }) => {
 
     // select date
     const currentDate = dayjs();
-    const [selectedOptions, setSelectedOptions] = useState("day");
-    const [selectedDate, setSelectedDate] = useState(
-        selectedOptions === "range" ? null : currentDate
-    );
+    const [selectedOptions, setSelectedOptions] = useState("init");
+    const [selectedDate, setSelectedDate] = useState();
 
 
     const [limit, setLimit] = useState(5);
@@ -80,6 +85,11 @@ const TopEntityReport = ({ type }) => {
             setSelectedDate(value === "range" ? null : currentDate);
         }
     };
+
+    // Reset view to chart whenever switching report type
+    useEffect(() => {
+        setViewType("chart");
+    }, [type]);
 
     const handleDateChange = (date, dateString) => {
         setSelectedDate(date);
@@ -370,18 +380,20 @@ const TopEntityReport = ({ type }) => {
                 </div>
 
                 {/* Select giới hạn */}
-                <div style={{ marginBottom: 16 }}>
-                    <strong>Giới hạn hiển thị</strong>
-                    <Select
-                        value={limit}
-                        onChange={(value) => setLimit(value)}
-                        style={{ width: "100%", marginTop: 8 }}
-                    >
-                        <Select.Option value={5}>Top 5</Select.Option>
-                        <Select.Option value={10}>Top 10</Select.Option>
-                        <Select.Option value={20}>Top 20</Select.Option>
-                    </Select>
-                </div>
+                {type !== 'revenue' &&
+                    <div style={{ marginBottom: 16 }}>
+                        <strong>Giới hạn hiển thị</strong>
+                        <Select
+                            value={limit}
+                            onChange={(value) => setLimit(value)}
+                            style={{ width: "100%", marginTop: 8 }}
+                        >
+                            <Select.Option value={5}>Top 5</Select.Option>
+                            <Select.Option value={10}>Top 10</Select.Option>
+                            <Select.Option value={20}>Top 20</Select.Option>
+                        </Select>
+                    </div>
+                }
 
                 <div style={{ marginBottom: 16 }}>
                     <strong>Thời gian</strong>
@@ -454,7 +466,72 @@ const TopEntityReport = ({ type }) => {
                         )}
                     </Row>
                 ) : (
-                    <div>Báo cáo</div>
+                    (() => {
+                        const commonHeaders = {
+                            revenue: "Doanh thu",
+                            refund: "Giá trị trả",
+                            net: "Doanh thu thuần",
+                        };
+
+                        if (type === "revenue") {
+                            const rows = rawRevenueData && Array.isArray(rawRevenueData.title)
+                                ? rawRevenueData.title.map((label, idx) => {
+                                    const revenueTr = (rawRevenueData.revenue && rawRevenueData.revenue[idx]) || 0;
+                                    const expenseTr = (rawRevenueData.expense && rawRevenueData.expense[idx]) || 0;
+                                    const revenue = revenueTr * 1000000;
+                                    const refund = expenseTr * 1000000;
+                                    const netRevenue = revenue - refund;
+                                    return { date: label, revenue, refund, netRevenue };
+                                })
+                                : [];
+
+                            return (
+                                <SalesReport
+                                    rows={rows}
+                                    reportTitle={"BÁO CÁO DOANH THU THUẦN"}
+                                    headers={{ label: "Thời gian", ...commonHeaders }}
+                                />
+                            );
+                        }
+
+                        // product, customer, supplier
+                        const labelHeaderMap = {
+                            product: "Sản phẩm",
+                            customer: "Khách hàng",
+                            supplier: "Nhà cung cấp",
+                        };
+
+                        const rows = (dataList || []).map((item) => {
+                            const label = typeof config.labelField === "function" ? config.labelField(item) : (item[config.labelField] || "");
+                            const netKey = (config.valueField || "").trim();
+                            const revenueKey = (config.valueRevenueField || "").trim();
+                            const refundKey = (config.valueRefundField || "").trim();
+                            const value = Number(item[netKey] ?? 0);
+                            const valueRevenue = Number(item[revenueKey] ?? 0);
+                            const valueRefund = Number(item[refundKey] ?? 0);
+                            return { date: label, revenue: valueRevenue, refund: valueRefund, netRevenue: value };
+                        });
+
+                        const titleMap = {
+                            product: "BÁO CÁO TOP SẢN PHẨM",
+                            customer: "BÁO CÁO TOP KHÁCH HÀNG",
+                            supplier: "BÁO CÁO TOP NHÀ CUNG CẤP",
+                        };
+
+                        const headersByType = {
+                            product: { label: labelHeaderMap.product, revenue: "Doanh thu", refund: "Giá trị trả", net: "Doanh thu thuần" },
+                            customer: { label: labelHeaderMap.customer, revenue: "Doanh thu", refund: "Giá trị trả", net: "Doanh thu thuần" },
+                            supplier: { label: labelHeaderMap.supplier, revenue: "Giá trị nhập", refund: "Giá trị trả", net: "Giá trị thuần" },
+                        };
+
+                        return (
+                            <SalesReport
+                                rows={rows}
+                                reportTitle={titleMap[type] || "BÁO CÁO"}
+                                headers={headersByType[type] || { label: labelHeaderMap[type] || "Tên", ...commonHeaders }}
+                            />
+                        );
+                    })()
                 )}
             </Card>
 
