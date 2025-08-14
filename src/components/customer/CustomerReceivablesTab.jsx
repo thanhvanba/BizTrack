@@ -141,7 +141,7 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
                 </div>
                 <div className="flex gap-2">
                     <Button type="primary" icon={<span>✏️</span>} onClick={() => setIsModalOpen(true)}>
-                        Điều chỉnh
+                        Hoàn tiền
                     </Button>
                     <Button icon={<span>💳</span>} onClick={() => setIsPaymentModalOpen(true)}>
                         Thanh toán

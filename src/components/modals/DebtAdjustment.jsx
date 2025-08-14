@@ -56,8 +56,8 @@ const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt, modalType 
   const getCategories = () => {
     if (context === 'customer') {
       return [
-        { label: "Tạo phiếu chi khách hàng", value: "adj_increase" },
-        { label: "Tạo phiếu thu khách hàng", value: "adj_decrease" },
+        { label: "Tạo phiếu chi khách hàng", value: "payment" },
+        // { label: "Tạo phiếu thu khách hàng", value: "adj_decrease" },
       ];
     }
   };
