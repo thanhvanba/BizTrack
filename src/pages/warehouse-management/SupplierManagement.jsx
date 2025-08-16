@@ -214,7 +214,7 @@ const SupplierManagement = () => {
           }}
           expandable={{
             expandedRowRender: (record) => (
-              <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
+              <div className="border-x-2 border-b-2 -m-4 border-blue-300 rounded-b-md bg-white shadow-sm">
                 <ExpandedSupplierTabs setEditModalVisible={setEditModalVisible} setDeleteModalVisible={setDeleteModalVisible} setSelectedSupplier={setSelectedSupplier} record={record} fetchSuppliers={fetchSuppliers} />
               </div>
             ),
@@ -229,7 +229,7 @@ const SupplierManagement = () => {
           })}
           rowClassName={(record) =>
             expandedRowKeys.includes(record.supplier_id)
-              ? "border-x-2 border-t-2 border-blue-500 !border-collapse z-10 bg-blue-50 rounded-md shadow-sm"
+              ? "z-10 bg-blue-400 rounded-md shadow-sm"
               : "hover:bg-gray-50 transition-colors"
           }
           scroll={{ x: "max-content" }}

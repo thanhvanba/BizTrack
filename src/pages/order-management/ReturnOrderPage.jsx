@@ -218,7 +218,7 @@ const ReturnOrderPage = () => {
                     }}
                     expandable={{
                         expandedRowRender: (record) => (
-                            <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
+                            <div className="border-x-2 border-b-2 -m-4 border-blue-300 rounded-b-md bg-white shadow-sm">
                                 <ExpandedOrderTabs record={record} />
                             </div>
                         ),
@@ -233,7 +233,7 @@ const ReturnOrderPage = () => {
                     })}
                     rowClassName={(record) =>
                         expandedRowKeys.includes(record.return_id)
-                            ? "border-x-2 border-t-2 border-blue-500 !border-collapse z-10 bg-blue-50 rounded-md shadow-sm"
+                            ? "z-10 bg-blue-100 rounded-md shadow-sm"
                             : "hover:bg-gray-50 transition-colors"
                     }
                     onChange={handleTableChange}

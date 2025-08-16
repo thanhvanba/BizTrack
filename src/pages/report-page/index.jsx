@@ -14,6 +14,7 @@ import analysisService from "../../service/analysisService";
 import OptionsStatistics from "../../components/OptionsStatistics";
 import dayjs from "dayjs";
 import SalesReport from "../SalesReport";
+import FinanceReport from "../FinanceReport";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -52,18 +53,27 @@ const configMap = {
     },
     revenue: {
         title: "Doanh thu thuần",
-        api: analysisService.getFinancialStatistics, // API bạn dùng để lấy dữ liệu doanh thu theo ngày
+        api: analysisService.getFinancialStatistics, // API để lấy dữ liệu doanh thu theo ngày
         labelField: "day", // hoặc trường tương ứng trong API trả về
         valueField: "net_revenue",
         chartLabel: "Doanh thu (tr)",
         color: { bg: "rgba(0, 123, 255, 0.8)", border: "rgba(0, 123, 255, 1)" },
         vertical: true // mình thêm cờ này để phân biệt loại biểu đồ
+    },
+    finance: {
+        title: "Báo cáo kết quả hoạt động kinh doanh",
+        api: analysisService.getFinancialDetailedStatistics, // API để lấy dữ liệu tài chính chi tiết
+        labelField: "day",
+        valueField: "net_revenue",
+        chartLabel: "Doanh thu (tr)",
+        color: { bg: "rgba(0, 123, 255, 0.8)", border: "rgba(0, 123, 255, 1)" },
+        vertical: true
     }
 };
 
 const TopEntityReport = ({ type }) => {
     const [dataList, setDataList] = useState([]);
-    console.log("🚀 ~ TopEntityReport ~ dataList:", dataList)
+    console.log("🚀 ~ TopEntityReport ~ dataList:", dataList, "Type:", typeof dataList, "IsArray:", Array.isArray(dataList))
     const [rawRevenueData, setRawRevenueData] = useState(null); // giữ nguyên dữ liệu gốc từ API khi type === 'revenue'
     const [revenueByCategory, setRevenueByCategory] = useState([]);
     const [viewType, setViewType] = useState("chart");
@@ -164,7 +174,7 @@ const TopEntityReport = ({ type }) => {
             try {
                 const res = await config.api({ ...filters });
 
-                // --- CHỈ SỬA Ở ĐÂY CHO CASE revenue ---
+                // --- CHỈ SỬA Ở ĐÂY CHO CASE revenue và finance ---
                 if (res?.data) {
                     if (type === "revenue" && res.data && res.data.title && Array.isArray(res.data.title)) {
                         // giữ dữ liệu gốc để dùng cho chartDataRevenue
@@ -179,10 +189,26 @@ const TopEntityReport = ({ type }) => {
                             };
                         });
                         setDataList(converted);
+                    } else if (type === "finance" && res.data && res.data.time_periods && Array.isArray(res.data.time_periods)) {
+                        // Xử lý riêng cho finance type với cấu trúc dữ liệu khác
+                        setRawRevenueData(res.data);
+
+                        // Tạo dữ liệu cho chart từ finance data
+                        const converted = (res.data.time_periods || []).map((period, idx) => {
+                            return {
+                                [config.labelField]: period, // Sử dụng trực tiếp dữ liệu từ API
+                                [config.valueField]: (res.data.metrics && res.data.metrics.net_revenue && res.data.metrics.net_revenue[idx] != null)
+                                    ? res.data.metrics.net_revenue[idx] : 0
+                            };
+                        });
+                        setDataList(converted);
                     } else {
                         // giữ nguyên behavior cũ cho các type khác
-                        setDataList(res.data);
+                        setDataList(Array.isArray(res.data) ? res.data : []);
                     }
+                } else {
+                    // Nếu không có data, set về array rỗng
+                    setDataList([]);
                 }
                 // --- KẾT THÚC SỬA ---
 
@@ -209,13 +235,19 @@ const TopEntityReport = ({ type }) => {
     }
 
     // Tạo mảng màu random theo số lượng danh mục
-    const backgroundColors = revenueByCategory.map(() => getRandomColor(0.8));
+    const backgroundColors = (revenueByCategory || []).map(() => getRandomColor(0.8));
 
     if (!config) return <div>Loại báo cáo không hợp lệ</div>;
 
+    // Safety check for dataList
+    if (!Array.isArray(dataList)) {
+        console.error("dataList is not an array:", dataList);
+        return <div>Đang tải dữ liệu...</div>;
+    }
+
     // chartData (giữ nguyên như cũ)
     const chartData = {
-        labels: dataList.map(item =>
+        labels: (Array.isArray(dataList) ? dataList : []).map(item =>
             typeof config.labelField === "function"
                 ? config.labelField(item)
                 : item[config.labelField] || "Không rõ"
@@ -223,7 +255,7 @@ const TopEntityReport = ({ type }) => {
         datasets: [
             {
                 label: config.chartLabel,
-                data: dataList.map(item => (item[config.valueField] / 1000000) || 0),
+                data: (Array.isArray(dataList) ? dataList : []).map(item => (item[config.valueField] / 1000000) || 0),
                 backgroundColor: config.color.bg,
                 borderColor: config.color.border,
                 borderWidth: 1,
@@ -235,25 +267,29 @@ const TopEntityReport = ({ type }) => {
     // chartDataRevenue (mới) — dùng rawRevenueData (không thay đổi raw data gốc)
     const chartDataRevenue = rawRevenueData
         ? {
-            labels: rawRevenueData.title || [],
+            labels: type === "finance"
+                ? (rawRevenueData.time_periods || []) // Sử dụng trực tiếp dữ liệu từ API
+                : (rawRevenueData.title || []),
             datasets: [
                 {
                     label: "Doanh thu (tr)",
                     // rawRevenueData.revenue ở ví dụ là giá trị theo 'tr', nên giữ nguyên (không nhân/chia)
-                    data: rawRevenueData.revenue || [],
+                    data: type === "finance"
+                        ? (rawRevenueData.metrics?.net_revenue || [])
+                        : (rawRevenueData.revenue || []),
                     backgroundColor: config.color.bg,
                     borderColor: config.color.border,
                     borderWidth: 1,
                     borderRadius: 4,
                 },
-                {
+                ...(type === "finance" ? [] : [{
                     label: "Chi phí (tr)",
                     data: rawRevenueData.expense || [],
                     backgroundColor: "rgba(220, 53, 69, 0.8)",
                     borderColor: "rgba(220, 53, 69, 1)",
                     borderWidth: 1,
                     borderRadius: 4,
-                }
+                }])
             ],
         }
         : {
@@ -315,10 +351,10 @@ const TopEntityReport = ({ type }) => {
 
     // Pie chart data
     const pieData = {
-        labels: revenueByCategory.map(category => category.category_name || "Danh mục"),
+        labels: (revenueByCategory || []).map(category => category.category_name || "Danh mục"),
         datasets: [
             {
-                data: revenueByCategory.map(category => category.net_revenue),
+                data: (revenueByCategory || []).map(category => category.net_revenue),
                 backgroundColor: backgroundColors,
                 borderColor: backgroundColors.map(color => color.replace(/0\.8\)$/, '1)')),
                 borderWidth: 2,
@@ -366,21 +402,23 @@ const TopEntityReport = ({ type }) => {
     return (
         <div style={{ display: "flex", gap: "16px", padding: "16px" }}>
             {/* Sidebar */}
-            <Card style={{ flexBasis: "250px    ", flexShrink: 0 }}>
-                <div style={{ marginBottom: 16 }}>
-                    <strong>Kiểu hiển thị</strong>
-                    <Radio.Group
-                        value={viewType}
-                        onChange={(e) => setViewType(e.target.value)}
-                        style={{ display: "flex", marginTop: 8 }}
-                    >
-                        <Radio.Button value="chart">Biểu đồ</Radio.Button>
-                        <Radio.Button value="report">Báo cáo</Radio.Button>
-                    </Radio.Group>
-                </div>
+            <Card style={{ flexBasis: "250px", flexShrink: 0 }}>
+                {type !== "finance" && (
+                    <div style={{ marginBottom: 16 }}>
+                        <strong>Kiểu hiển thị</strong>
+                        <Radio.Group
+                            value={viewType}
+                            onChange={(e) => setViewType(e.target.value)}
+                            style={{ display: "flex", marginTop: 8 }}
+                        >
+                            <Radio.Button value="chart">Biểu đồ</Radio.Button>
+                            <Radio.Button value="report">Báo cáo</Radio.Button>
+                        </Radio.Group>
+                    </div>
+                )}
 
                 {/* Select giới hạn */}
-                {type !== 'revenue' &&
+                {type !== 'revenue' && type !== 'finance' &&
                     <div style={{ marginBottom: 16 }}>
                         <strong>Giới hạn hiển thị</strong>
                         <Select
@@ -424,8 +462,15 @@ const TopEntityReport = ({ type }) => {
             </Card>
 
             {/* Main content */}
-            <Card style={{ flex: 1 }}>
-                {viewType === "chart" ? (
+            <Card style={{ flex: 1, minWidth: 0 }}>
+                {type === "finance" ? (
+                    // Finance Report - luôn hiển thị báo cáo chi tiết
+                    <FinanceReport
+                        data={rawRevenueData}
+                        reportTitle="Báo cáo kết quả hoạt động kinh doanh"
+                    />
+                ) : viewType === "chart" ? (
+                    // Chart view cho các type khác (không phải finance)
                     <Row gutter={[16, 16]}>
                         <Col xs={24} lg={type === "product" ? 12 : 24}>
                             <Card
@@ -466,6 +511,7 @@ const TopEntityReport = ({ type }) => {
                         )}
                     </Row>
                 ) : (
+                    // Report view cho các type khác (không phải finance)
                     (() => {
                         const commonHeaders = {
                             revenue: "Doanh thu",
@@ -501,7 +547,7 @@ const TopEntityReport = ({ type }) => {
                             supplier: "Nhà cung cấp",
                         };
 
-                        const rows = (dataList || []).map((item) => {
+                        const rows = (Array.isArray(dataList) ? dataList : []).map((item) => {
                             const label = typeof config.labelField === "function" ? config.labelField(item) : (item[config.labelField] || "");
                             const netKey = (config.valueField || "").trim();
                             const revenueKey = (config.valueRevenueField || "").trim();
@@ -534,7 +580,6 @@ const TopEntityReport = ({ type }) => {
                     })()
                 )}
             </Card>
-
         </div>
     );
 };

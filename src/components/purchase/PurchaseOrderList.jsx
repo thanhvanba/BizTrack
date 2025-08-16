@@ -144,6 +144,11 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
           },
           className: "cursor-pointer",
         })}
+        rowClassName={(record) =>
+          expandedRowKeys.includes(isReturnPage ? record.return_id : record.po_id)
+            ? "z-10 bg-gray-200 rounded-md shadow-sm"
+            : "hover:bg-gray-50 transition-colors"
+        }
         pagination={pagination}
         onChange={onChange}
         scroll={{ x: "max-content" }}

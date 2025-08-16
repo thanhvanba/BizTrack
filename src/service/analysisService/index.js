@@ -66,6 +66,17 @@ const analysisService = {
             .catch(error => { throw error; });
     },
 
+    // Lấy danh sách đơn nhập hàng phải trả
+    getFinancialDetailedStatistics: async (params) => {
+        return axiosService()({
+            url: `${ANALYSIS_URL}/finance/management/detailed`,
+            method: 'GET',
+            params,
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
+
     // Lấy top các khách hàng mua hàng nhiều nhất
     getTopCustomers: async (params) => {
         return axiosService()({

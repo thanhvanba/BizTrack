@@ -224,7 +224,7 @@ const CustomerManagement = () => {
           }}
           expandable={{
             expandedRowRender: (record) => (
-              <div className="border-x-2 border-b-2 -m-4 border-blue-500 rounded-b-md bg-white shadow-sm">
+              <div className="border-x-2 border-b-2 -m-4 border-blue-300 rounded-b-md bg-white shadow-sm">
                 <ExpandedCustomerTabs setEditModalVisible={setEditModalVisible} setDeleteModalVisible={setDeleteModalVisible} setSelectedCustomer={setSelectedCustomer} record={record} fetchCustomers={fetchCustomers} />
               </div>
             ),
@@ -239,8 +239,8 @@ const CustomerManagement = () => {
           })}
           rowClassName={(record) =>
             expandedRowKeys.includes(record.customer_id)
-              ? "border-x-2 border-t-2 border-blue-500 !border-collapse z-10 bg-blue-50 rounded-md shadow-sm"
-              : "hover:bg-gray-50 transition-colors"
+              ? "z-10 bg-blue-400 rounded-md shadow-sm"
+              : "transition-colors"
           }
           scroll={{ x: "max-content" }}
           locale={{ emptyText: "Không có khách hàng nào" }}
