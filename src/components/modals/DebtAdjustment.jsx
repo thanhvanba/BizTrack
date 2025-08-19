@@ -1,9 +1,24 @@
 import { useEffect, useState } from "react";
-import { Modal, Form, Input, Button, DatePicker, Select, InputNumber } from "antd";
+import {
+  Modal,
+  Form,
+  Input,
+  Button,
+  DatePicker,
+  Select,
+  InputNumber,
+} from "antd";
 import dayjs from "dayjs";
 import customerService from "../../service/customerService";
 
-const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt, modalType = 'payment', context }) => {
+const DebtAdjustmentModal = ({
+  open,
+  onCancel,
+  onSubmit,
+  initialDebt,
+  modalType = "payment",
+  context,
+}) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -54,16 +69,18 @@ const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt, modalType 
   // };
 
   const getCategories = () => {
-    if (context === 'customer') {
+    if (context === "customer") {
       return [
         { label: "Tạo phiếu chi khách hàng", value: "payment" },
         // { label: "Tạo phiếu thu khách hàng", value: "adj_decrease" },
       ];
+    } else if (context === "supplier") {
+      return [{ label: "Tạo phiếu thu nhà cung cấp", value: "receipt" }];
     }
   };
 
   const getTitle = () => {
-    return modalType === 'receipt' ? 'Phiếu thu' : 'Phiếu chi';
+    return modalType === "receipt" ? "Phiếu thu" : "Phiếu chi";
   };
 
   return (
@@ -74,15 +91,24 @@ const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt, modalType 
       width={650}
       destroyOnClose
       footer={[
-        <Button key="cancel" onClick={onCancel}>Hủy</Button>,
-        <Button key="submit" type="primary" onClick={handleSubmit} loading={loading}>
+        <Button key="cancel" onClick={onCancel}>
+          Hủy
+        </Button>,
+        <Button
+          key="submit"
+          type="primary"
+          onClick={handleSubmit}
+          loading={loading}
+        >
           Tạo giao dịch
         </Button>,
       ]}
     >
       <div className="">
         {initialDebt !== undefined && (
-          <h2 className="mb-4">Nợ cần trả hiện tại: {initialDebt?.toLocaleString()}₫</h2>
+          <h2 className="mb-4">
+            Nợ cần trả hiện tại: {initialDebt?.toLocaleString()}₫
+          </h2>
         )}
         <Form
           form={form}
@@ -90,30 +116,45 @@ const DebtAdjustmentModal = ({ open, onCancel, onSubmit, initialDebt, modalType 
           wrapperCol={{ span: 18 }}
           labelAlign="left"
         >
-          <Form.Item label="Số tiền" name="adjustmentValue" rules={[{ required: true, message: "Nhập số tiền!" }]}>
+          <Form.Item
+            label="Số tiền"
+            name="adjustmentValue"
+            rules={[{ required: true, message: "Nhập số tiền!" }]}
+          >
             <InputNumber
               min={0}
               step={1000}
               placeholder="Nhập số tiền"
-              style={{ width: '100%' }}
-              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-              parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
+              style={{ width: "100%" }}
+              formatter={(value) =>
+                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+              }
+              parser={(value) => value.replace(/\$\s?|(,*)/g, "")}
             />
           </Form.Item>
-          <Form.Item label="Phương thức" name="paymentMethod" initialValue="cash" rules={[{ required: true, message: "Chọn phương thức!" }]}>
+          <Form.Item
+            label="Phương thức"
+            name="paymentMethod"
+            initialValue="cash"
+            rules={[{ required: true, message: "Chọn phương thức!" }]}
+          >
             <Select options={paymentMethods} />
           </Form.Item>
-          {context === 'customer' &&
-            < Form.Item label="Loại giao dịch" name="type" rules={[{ required: true, message: "Chọn loại giao dịch!" }]}>
+          {context && (
+            <Form.Item
+              label="Loại giao dịch"
+              name="type"
+              rules={[{ required: true, message: "Chọn loại giao dịch!" }]}
+            >
               <Select options={getCategories()} />
             </Form.Item>
-          }
+          )}
           <Form.Item label="Mô tả" name="description">
             <Input.TextArea rows={3} placeholder="Nhập mô tả" />
           </Form.Item>
         </Form>
       </div>
-    </Modal >
+    </Modal>
   );
 };
 

@@ -187,6 +187,8 @@ const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
                 onCancel={() => setIsModalOpen(false)}
                 initialDebt={supplierData?.total_remaining_value}
                 onSubmit={handleDebtAdjustment}
+                modalType="receipt"
+                context={"supplier"}
             />
             <PaymentModal
                 open={isPaymentModalOpen}
