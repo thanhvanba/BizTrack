@@ -80,7 +80,6 @@ const TopEntityReport = ({ type }) => {
     const [filters, setFilters] = useState({ dateFrom: null, dateTo: null });
     const config = configMap[type];
 
-
     // select date
     const currentDate = dayjs();
     const [selectedOptions, setSelectedOptions] = useState("init");
@@ -400,186 +399,187 @@ const TopEntityReport = ({ type }) => {
     }
 
     return (
-        <div style={{ display: "flex", gap: "16px", padding: "16px" }}>
-            {/* Sidebar */}
-            <Card style={{ flexBasis: "250px", flexShrink: 0 }}>
-                {type !== "finance" && (
-                    <div style={{ marginBottom: 16 }}>
-                        <strong>Kiểu hiển thị</strong>
-                        <Radio.Group
-                            value={viewType}
-                            onChange={(e) => setViewType(e.target.value)}
-                            style={{ display: "flex", marginTop: 8 }}
-                        >
-                            <Radio.Button value="chart">Biểu đồ</Radio.Button>
-                            <Radio.Button value="report">Báo cáo</Radio.Button>
-                        </Radio.Group>
-                    </div>
-                )}
-
-                {/* Select giới hạn */}
-                {type !== 'revenue' && type !== 'finance' &&
-                    <div style={{ marginBottom: 16 }}>
-                        <strong>Giới hạn hiển thị</strong>
-                        <Select
-                            value={limit}
-                            onChange={(value) => setLimit(value)}
-                            style={{ width: "100%", marginTop: 8 }}
-                        >
-                            <Select.Option value={5}>Top 5</Select.Option>
-                            <Select.Option value={10}>Top 10</Select.Option>
-                            <Select.Option value={20}>Top 20</Select.Option>
-                        </Select>
-                    </div>
-                }
-
-                <div style={{ marginBottom: 16 }}>
-                    <strong>Thời gian</strong>
-                    <div className="mt-3">
-                        <OptionsStatistics
-                            selectedOptions={selectedOptions}
-                            selectedDate={selectedDate}
-                            onSelectOptions={handleSelectOptions}
-                            onDateChange={handleDateChange}
-                            onStatistic={handleStatistic}
-                            isStatistic={true}
-                        />
-                    </div>
-                </div>
-
-                {/* <div style={{ marginBottom: 16 }}>
-                    <strong>Tìm kiếm</strong>
-                    <Input placeholder="Theo mã, tên" style={{ marginTop: 8 }} />
-                </div>
-
-                <div>
-                    <strong>Loại hàng</strong>
-                    <Select placeholder="Chọn loại hàng" style={{ width: "100%", marginTop: 8 }}>
-                        <Select.Option value="loai1">Loại 1</Select.Option>
-                        <Select.Option value="loai2">Loại 2</Select.Option>
-                    </Select>
-                </div> */}
-            </Card>
-
-            {/* Main content */}
-            <Card style={{ flex: 1, minWidth: 0 }}>
-                {type === "finance" ? (
-                    // Finance Report - luôn hiển thị báo cáo chi tiết
-                    <FinanceReport
-                        data={rawRevenueData}
-                        reportTitle="Báo cáo kết quả hoạt động kinh doanh"
-                    />
-                ) : viewType === "chart" ? (
-                    // Chart view cho các type khác (không phải finance)
-                    <Row gutter={[16, 16]}>
-                        <Col xs={24} lg={type === "product" ? 12 : 24}>
-                            <Card
-                                className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-                                headStyle={{
-                                    borderBottom: "1px solid #f0f0f0",
-                                    padding: "16px 24px",
-                                }}
-                                bodyStyle={{ padding: "24px" }}
-                            >
-                                <div style={{ height: "456px" }}>
-                                    {/* nếu là revenue -> dùng chartDataRevenue (giữ raw data), else dùng chartData cũ */}
-                                    <Bar data={type === "revenue" ? chartDataRevenue : chartData} options={options} />
-                                </div>
-                            </Card>
-                        </Col>
-
-                        {type === "product" && (
-                            <Col xs={24} lg={12}>
-                                <Card
-                                    title={
-                                        <span className="text-[#656565] font-medium text-sm">
-                                            Doanh thu theo danh mục
-                                        </span>
-                                    }
-                                    className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300 mt-4 lg:mt-0"
-                                    headStyle={{
-                                        borderBottom: "1px solid #f0f0f0",
-                                        padding: "12px 16px",
-                                    }}
-                                    bodyStyle={{ padding: "16px" }}
+        <div style={{ padding: "16px" }}>
+            <Row gutter={[16, 16]}>
+                {/* Sidebar - Responsive */}
+                <Col xs={24} lg={6}>
+                    <Card>
+                        {type !== "finance" && (
+                            <div style={{ marginBottom: 16 }}>
+                                <strong>Kiểu hiển thị</strong>
+                                <Radio.Group
+                                    value={viewType}
+                                    onChange={(e) => setViewType(e.target.value)}
+                                    style={{ display: "flex", marginTop: 8, flexWrap: "wrap" }}
                                 >
-                                    <div style={{ height: "418px", minHeight: "418px" }}>
-                                        <Pie data={pieData} options={pieOptions} />
-                                    </div>
-                                </Card>
-                            </Col>
+                                    <Radio.Button value="chart">Biểu đồ</Radio.Button>
+                                    <Radio.Button value="report">Báo cáo</Radio.Button>
+                                </Radio.Group>
+                            </div>
                         )}
-                    </Row>
-                ) : (
-                    // Report view cho các type khác (không phải finance)
-                    (() => {
-                        const commonHeaders = {
-                            revenue: "Doanh thu",
-                            refund: "Giá trị trả",
-                            net: "Doanh thu thuần",
-                        };
 
-                        if (type === "revenue") {
-                            const rows = rawRevenueData && Array.isArray(rawRevenueData.title)
-                                ? rawRevenueData.title.map((label, idx) => {
-                                    const revenueTr = (rawRevenueData.revenue && rawRevenueData.revenue[idx]) || 0;
-                                    const expenseTr = (rawRevenueData.expense && rawRevenueData.expense[idx]) || 0;
-                                    const revenue = revenueTr * 1000000;
-                                    const refund = expenseTr * 1000000;
-                                    const netRevenue = revenue - refund;
-                                    return { date: label, revenue, refund, netRevenue };
-                                })
-                                : [];
-
-                            return (
-                                <SalesReport
-                                    rows={rows}
-                                    reportTitle={"BÁO CÁO DOANH THU THUẦN"}
-                                    headers={{ label: "Thời gian", ...commonHeaders }}
-                                />
-                            );
+                        {/* Select giới hạn */}
+                        {type !== 'revenue' && type !== 'finance' &&
+                            <div style={{ marginBottom: 16 }}>
+                                <strong>Giới hạn hiển thị</strong>
+                                <Select
+                                    value={limit}
+                                    onChange={(value) => setLimit(value)}
+                                    style={{ width: "100%", marginTop: 8 }}
+                                >
+                                    <Select.Option value={5}>Top 5</Select.Option>
+                                    <Select.Option value={10}>Top 10</Select.Option>
+                                    <Select.Option value={20}>Top 20</Select.Option>
+                                </Select>
+                            </div>
                         }
 
-                        // product, customer, supplier
-                        const labelHeaderMap = {
-                            product: "Sản phẩm",
-                            customer: "Khách hàng",
-                            supplier: "Nhà cung cấp",
-                        };
+                        <div style={{ marginBottom: 16 }}>
+                            <strong>Thời gian</strong>
+                            <div className="mt-3">
+                                <OptionsStatistics
+                                    selectedOptions={selectedOptions}
+                                    selectedDate={selectedDate}
+                                    onSelectOptions={handleSelectOptions}
+                                    onDateChange={handleDateChange}
+                                    onStatistic={handleStatistic}
+                                    isStatistic={true}
+                                />
+                            </div>
+                        </div>
+                    </Card>
+                </Col>
 
-                        const rows = (Array.isArray(dataList) ? dataList : []).map((item) => {
-                            const label = typeof config.labelField === "function" ? config.labelField(item) : (item[config.labelField] || "");
-                            const netKey = (config.valueField || "").trim();
-                            const revenueKey = (config.valueRevenueField || "").trim();
-                            const refundKey = (config.valueRefundField || "").trim();
-                            const value = Number(item[netKey] ?? 0);
-                            const valueRevenue = Number(item[revenueKey] ?? 0);
-                            const valueRefund = Number(item[refundKey] ?? 0);
-                            return { date: label, revenue: valueRevenue, refund: valueRefund, netRevenue: value };
-                        });
-
-                        const titleMap = {
-                            product: "BÁO CÁO TOP SẢN PHẨM",
-                            customer: "BÁO CÁO TOP KHÁCH HÀNG",
-                            supplier: "BÁO CÁO TOP NHÀ CUNG CẤP",
-                        };
-
-                        const headersByType = {
-                            product: { label: labelHeaderMap.product, revenue: "Doanh thu", refund: "Giá trị trả", net: "Doanh thu thuần" },
-                            customer: { label: labelHeaderMap.customer, revenue: "Doanh thu", refund: "Giá trị trả", net: "Doanh thu thuần" },
-                            supplier: { label: labelHeaderMap.supplier, revenue: "Giá trị nhập", refund: "Giá trị trả", net: "Giá trị thuần" },
-                        };
-
-                        return (
-                            <SalesReport
-                                rows={rows}
-                                reportTitle={titleMap[type] || "BÁO CÁO"}
-                                headers={headersByType[type] || { label: labelHeaderMap[type] || "Tên", ...commonHeaders }}
+                {/* Main content - Responsive */}
+                <Col xs={24} lg={18}>
+                    <Card>
+                        {type === "finance" ? (
+                            // Finance Report - luôn hiển thị báo cáo chi tiết
+                            <FinanceReport
+                                data={rawRevenueData}
+                                reportTitle="Báo cáo kết quả hoạt động kinh doanh"
                             />
-                        );
-                    })()
-                )}
-            </Card>
+                        ) : viewType === "chart" ? (
+                            // Chart view cho các type khác (không phải finance)
+                            <Row gutter={[16, 16]}>
+                                <Col xs={24} lg={type === "product" ? 12 : 24}>
+                                    <Card
+                                        className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
+                                        headStyle={{
+                                            borderBottom: "1px solid #f0f0f0",
+                                            padding: "16px 24px",
+                                        }}
+                                        bodyStyle={{ padding: "24px" }}
+                                    >
+                                        <div style={{ 
+                                            height: "456px", 
+                                            minHeight: "300px",
+                                            maxHeight: "lg:456px 300px"
+                                        }}>
+                                            {/* nếu là revenue -> dùng chartDataRevenue (giữ raw data), else dùng chartData cũ */}
+                                            <Bar data={type === "revenue" ? chartDataRevenue : chartData} options={options} />
+                                        </div>
+                                    </Card>
+                                </Col>
+
+                                {type === "product" && (
+                                    <Col xs={24} lg={12}>
+                                        <Card
+                                            title={
+                                                <span className="text-[#656565] font-medium text-sm">
+                                                    Doanh thu theo danh mục
+                                                </span>
+                                            }
+                                            className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300 mt-4 lg:mt-0"
+                                            headStyle={{
+                                                borderBottom: "1px solid #f0f0f0",
+                                                padding: "12px 16px",
+                                            }}
+                                            bodyStyle={{ padding: "16px" }}
+                                        >
+                                            <div style={{ 
+                                                height: "418px", 
+                                                minHeight: "300px",
+                                                maxHeight: "418px"
+                                            }}>
+                                                <Pie data={pieData} options={pieOptions} />
+                                            </div>
+                                        </Card>
+                                    </Col>
+                                )}
+                            </Row>
+                        ) : (
+                            // Report view cho các type khác (không phải finance)
+                            (() => {
+                                const commonHeaders = {
+                                    revenue: "Doanh thu",
+                                    refund: "Giá trị trả",
+                                    net: "Doanh thu thuần",
+                                };
+
+                                if (type === "revenue") {
+                                    const rows = rawRevenueData && Array.isArray(rawRevenueData.title)
+                                        ? rawRevenueData.title.map((label, idx) => {
+                                            const revenueTr = (rawRevenueData.revenue && rawRevenueData.revenue[idx]) || 0;
+                                            const expenseTr = (rawRevenueData.expense && rawRevenueData.expense[idx]) || 0;
+                                            const revenue = revenueTr * 1000000;
+                                            const refund = expenseTr * 1000000;
+                                            const netRevenue = revenue - refund;
+                                            return { date: label, revenue, refund, netRevenue };
+                                        })
+                                        : [];
+
+                                    return (
+                                        <SalesReport
+                                            rows={rows}
+                                            reportTitle={"BÁO CÁO DOANH THU THUẦN"}
+                                            headers={{ label: "Thời gian", ...commonHeaders }}
+                                        />
+                                    );
+                                }
+
+                                // product, customer, supplier
+                                const labelHeaderMap = {
+                                    product: "Sản phẩm",
+                                    customer: "Khách hàng",
+                                    supplier: "Nhà cung cấp",
+                                };
+
+                                const rows = (Array.isArray(dataList) ? dataList : []).map((item) => {
+                                    const label = typeof config.labelField === "function" ? config.labelField(item) : (item[config.labelField] || "");
+                                    const netKey = (config.valueField || "").trim();
+                                    const revenueKey = (config.valueRevenueField || "").trim();
+                                    const refundKey = (config.valueRefundField || "").trim();
+                                    const value = Number(item[netKey] ?? 0);
+                                    const valueRevenue = Number(item[revenueKey] ?? 0);
+                                    const valueRefund = Number(item[refundKey] ?? 0);
+                                    return { date: label, revenue: valueRevenue, refund: valueRefund, netRevenue: value };
+                                });
+
+                                const titleMap = {
+                                    product: "BÁO CÁO TOP SẢN PHẨM",
+                                    customer: "BÁO CÁO TOP KHÁCH HÀNG",
+                                    supplier: "BÁO CÁO TOP NHÀ CUNG CẤP",
+                                };
+
+                                const headersByType = {
+                                    product: { label: labelHeaderMap.product, revenue: "Doanh thu", refund: "Giá trị trả", net: "Doanh thu thuần" },
+                                    customer: { label: labelHeaderMap.customer, revenue: "Doanh thu", refund: "Giá trị trả", net: "Doanh thu thuần" },
+                                    supplier: { label: labelHeaderMap.supplier, revenue: "Giá trị nhập", refund: "Giá trị trả", net: "Giá trị thuần" },
+                                };
+
+                                return (
+                                    <SalesReport
+                                        rows={rows}
+                                        reportTitle={titleMap[type] || "BÁO CÁO"}
+                                        headers={headersByType[type] || { label: labelHeaderMap[type] || "Tên", ...commonHeaders }}
+                                    />
+                                );
+                            })()
+                        )}
+                    </Card>
+                </Col>
+            </Row>
         </div>
     );
 };
