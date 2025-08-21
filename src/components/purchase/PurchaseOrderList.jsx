@@ -149,7 +149,12 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
             ? "z-10 bg-gray-200 rounded-md shadow-sm"
             : "hover:bg-gray-50 transition-colors"
         }
-        pagination={pagination}
+        pagination={{
+          ...pagination,
+          showSizeChanger: true,
+          showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} đơn nhập`,
+          pageSizeOptions: ['5', '10', '20', '50'],
+        }}
         onChange={onChange}
         scroll={{ x: "max-content" }}
       />

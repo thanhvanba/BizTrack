@@ -232,6 +232,13 @@ const ProductManagement = () => {
       align: "right",
     },
     {
+      title: "Giá vốn",
+      dataIndex: "cost_price",
+      key: "cost_price",
+      render: (price) => formatPrice(price),
+      align: "right",
+    },
+    {
       title: "Trạng thái",
       dataIndex: "is_active",
       key: "is_active",

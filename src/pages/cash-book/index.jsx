@@ -73,7 +73,6 @@ export default function CashBookPage() {
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
-  console.log("🚀 ~ CashBookPage ~ rows:", rows)
   const [summary, setSummary] = useState({ total_receipt: 0, total_payment: 0, balance: 0 });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('receipt'); // 'receipt' hoặc 'payment'
@@ -119,7 +118,7 @@ export default function CashBookPage() {
     const body = {
       amount: Number(values.adjustmentValue),
       type: modalType, // 'receipt' hoặc 'payment'
-      // category: values.category || (modalType === 'receipt' ? 'customer_payment' : 'supplier_payment'),
+      category: values.category,
       payment_method: values.paymentMethod || 'cash',
       description: values.description || '',
     };
@@ -213,6 +212,7 @@ export default function CashBookPage() {
         onCancel={() => setIsModalOpen(false)}
         onSubmit={handleCreateTransaction}
         modalType={modalType}
+        context="cash-book"
       />
     </div>
   );

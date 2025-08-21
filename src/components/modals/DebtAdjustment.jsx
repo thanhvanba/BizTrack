@@ -39,7 +39,8 @@ const DebtAdjustmentModal = ({
           adjustmentValue: values.adjustmentValue,
           description: values.description,
           paymentMethod: values.paymentMethod,
-          type: values.type,
+          category: values?.category,
+          type: values?.type,
         });
         form.resetFields();
       }, 500);
@@ -54,21 +55,21 @@ const DebtAdjustmentModal = ({
     { label: "Thẻ", value: "card" },
   ];
 
-  // const getCategories = () => {
-  //   if (modalType === 'receipt') {
-  //     return [
-  //       { label: "Thu tiền khách hàng", value: "customer_payment" },
-  //       { label: "Thu tiền khác", value: "other_receipt" },
-  //     ];
-  //   } else {
-  //     return [
-  //       { label: "Chi trả nhà cung cấp", value: "supplier_payment" },
-  //       { label: "Chi phí khác", value: "other_payment" },
-  //     ];
-  //   }
-  // };
-
   const getCategories = () => {
+    if (modalType === 'receipt') {
+      return [
+        // { label: "Thu tiền khách hàng", value: "customer_payment" },
+        { label: "Thu tiền khác", value: "other_receipt" },
+      ];
+    } else {
+      return [
+        // { label: "Chi trả nhà cung cấp", value: "supplier_payment" },
+        { label: "Chi phí khác", value: "other_payment" },
+      ];
+    }
+  };
+
+  const getTypes = () => {
     if (context === "customer") {
       return [
         { label: "Tạo phiếu chi khách hàng", value: "payment" },
@@ -140,13 +141,21 @@ const DebtAdjustmentModal = ({
           >
             <Select options={paymentMethods} />
           </Form.Item>
-          {context && (
+          {context === 'cash-book' ? (
+            <Form.Item
+              label="Danh mục"
+              name="category"
+              rules={[{ required: true, message: "Chọn danh mục!" }]}
+            >
+              <Select options={getCategories()} />
+            </Form.Item>
+          ) : (
             <Form.Item
               label="Loại giao dịch"
               name="type"
               rules={[{ required: true, message: "Chọn loại giao dịch!" }]}
             >
-              <Select options={getCategories()} />
+              <Select options={getTypes()} />
             </Form.Item>
           )}
           <Form.Item label="Mô tả" name="description">

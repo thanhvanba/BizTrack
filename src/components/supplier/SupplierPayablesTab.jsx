@@ -15,7 +15,7 @@ const statusMap = {
     completed: 'Hoàn tất',
     cancelled: 'Hủy bỏ',
     return: 'Trả hàng',
-    receipt: 'Trả hàng'
+    receipt: 'Điều chỉnh'
 };
 
 const columns = [
@@ -33,7 +33,7 @@ const columns = [
     {
         title: "Giá trị", dataIndex: "amount", key: "amount", align: "right",
         render: (val, record) => {
-            const isNegative = ["partial_paid", "payment", "receipt", "return"].includes(record.type);
+            const isNegative = ["partial_paid", "payment", "return"].includes(record.type);
             return `${isNegative ? "-" : ""}${formatPrice(val)}`;
         },
     },
@@ -174,9 +174,11 @@ const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
                     </Button>
                 </div>
                 <div className="flex gap-2">
-                    <Button type="primary" icon={<span>✏️</span>} onClick={() => setIsModalOpen(true)}>
-                        Điều chỉnh
-                    </Button>
+                    {supplierData?.payable < 0 &&
+                        <Button type="primary" icon={<span>✏️</span>} onClick={() => setIsModalOpen(true)}>
+                            Thu tiền
+                        </Button>
+                    }
                     <Button icon={<span>💳</span>} onClick={() => setIsPaymentModalOpen(true)}>
                         Thanh toán
                     </Button>
@@ -198,7 +200,7 @@ const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
                 customerName={supplierData?.supplier_name}
                 onSubmit={handleRecordBulkPayment}
             />
-        </div>
+        </div >
     );
 };
 

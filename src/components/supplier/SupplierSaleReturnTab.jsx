@@ -5,7 +5,11 @@ import LoadingLogo from "../LoadingLogo";
 
 const columns = [
   { title: "Mã hóa đơn", dataIndex: "order_code", key: "order_code" },
-  { title: "Thời gian", dataIndex: "order_date", key: "order_date" },
+  {
+    title: "Thời gian",
+    dataIndex: "order_date", key: "order_date",
+    render: (val) => new Date(val).toLocaleString("vi-VN"),
+  },
   { title: "Người bán", dataIndex: "seller", key: "seller" },
   {
     title: "Tổng cộng",

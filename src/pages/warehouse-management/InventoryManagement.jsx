@@ -232,6 +232,14 @@ const InventoryManagement = () => {
       responsive: ["lg"],
     },
     {
+      title: "Giá vốn",
+      dataIndex: ["product", "cost_price"],
+      key: "cost_price",
+      align: "right",
+      render: (cost_price) => formatPrice(cost_price),
+      responsive: ["lg"],
+    },
+    {
       title: "Số lượng",
       dataIndex: ["quantity"],
       key: "quantity",
