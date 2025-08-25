@@ -47,7 +47,11 @@ const WarehouseModal = ({ open, mode, warehouse, onCancel, onSubmit }) => {
           <Input placeholder="Nhập tên kho" />
         </Form.Item>
 
-        <Form.Item label="Địa chỉ kho" name="warehouse_location">
+        <Form.Item
+          label="Địa chỉ kho"
+          name="warehouse_location"
+          rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}
+        >
           <Input placeholder="Nhập địa chỉ kho (nếu có)" />
         </Form.Item>
 

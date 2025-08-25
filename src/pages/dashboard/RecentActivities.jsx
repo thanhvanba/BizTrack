@@ -105,7 +105,7 @@ export default function RecentActivities({ warning }) {
                 const formattedActivities = response.data.map(transaction => ({
                     id: transaction.transaction_code,
                     type: getActivityType(transaction.transaction_type),
-                    user: transaction.customer_name || transaction.supplier_name || "Hệ thống",
+                    user: "Hệ thống",
                     value: transaction.amount,
                     time: dayjs(transaction.created_at).fromNow(),
                     desc: transaction.notification,

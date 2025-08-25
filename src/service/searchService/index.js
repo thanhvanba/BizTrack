@@ -13,6 +13,17 @@ const searchService = {
             .catch(error => { throw error; });
     },
 
+    // Tìm nhà cung cấp theo số điện thoại/ tên
+    searchSupplier: async (q, page = 1, limit = 10) => {
+        return axiosService()({
+            url: `${SEARCH_URL}/suppliers-search`,
+            method: 'GET',
+            params: { q, page, limit },
+        })
+            .then(res => res.data)
+            .catch(error => { throw error; });
+    },
+
     // Tìm đơn hàng theo số điện thoại
     searchOrdersByPhone: async (phone) => {
         return axiosService()({

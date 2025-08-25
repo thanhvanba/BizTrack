@@ -158,7 +158,11 @@ const DebtAdjustmentModal = ({
               <Select options={getTypes()} />
             </Form.Item>
           )}
-          <Form.Item label="Mô tả" name="description">
+          <Form.Item
+            label="Mô tả"
+            name="description"
+            rules={[{ required: true, message: "Nhập mô tả!" }]}
+          >
             <Input.TextArea rows={3} placeholder="Nhập mô tả" />
           </Form.Item>
         </Form>

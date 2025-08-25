@@ -52,7 +52,7 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
 
   useEffect(() => {
     const fetchSuppliers = async () => {
-      const res = await supplierService.getAllSuppliers()
+      const res = await supplierService.getAllSuppliers({ page: 1, limit: 10000 })
       if (res && res.data) {
         setSuppliers(res.data)
       }
@@ -392,7 +392,7 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
               <Col style={{ width: 40 }}></Col> {/* Cột nút xoá */}
             </Row>
           )}
-          
+
           {details.map((detail, index) => (
             <Row gutter={12} align="middle" key={detail.product_id} className="mb-2 bg-gray-50 p-2 rounded">
               <Col flex="2 1 200px">

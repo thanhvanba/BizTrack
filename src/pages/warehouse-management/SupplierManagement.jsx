@@ -53,7 +53,7 @@ const SupplierManagement = () => {
       return;
     }
     try {
-      const response = await searchService.searchCustomer(value);
+      const response = await searchService.searchSupplier(value);
       const data = response.data || [];
       setSuppliers(data.map(supplier => ({ ...supplier, key: supplier?.supplier_id, })));
     } catch (error) {

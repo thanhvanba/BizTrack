@@ -67,7 +67,7 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
         const body = {
             amount: Number(values.adjustmentValue),
             type: values.type || 'payment',
-            // category: values.category || 'customer_refund',
+            category: 'customer_refund',
             payment_method: values.paymentMethod || 'cash',
             customer_id: customerData?.customer_id,
             description: values.description || '',
