@@ -154,10 +154,7 @@ const ProductCategory = () => {
         </Button>
       </div>
 
-      <Card
-        className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-        bodyStyle={{ padding: "16px" }}
-      >
+      <Card>
         <Table
           loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
           dataSource={categories}

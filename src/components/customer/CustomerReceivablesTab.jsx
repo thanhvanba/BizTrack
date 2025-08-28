@@ -14,7 +14,8 @@ const statusMap = {
     completed: 'Hoàn tất',
     cancelled: 'Hủy bỏ',
     return: 'Trả hàng',
-    receipt: 'Thanh toán đơn hàng'
+    receipt: 'Thanh toán đơn hàng',
+    adjustment: 'Công nợ thủ công lần đầu'
 };
 
 const columns = [

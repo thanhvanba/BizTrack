@@ -51,21 +51,33 @@ const columns = [
 const ProductWarehouseTab = ({ productId, warehouseId, reloadKey }) => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
 
-    const fetchHistory = async () => {
+    const fetchHistory = async (page = 1, limit = pagination.pageSize) => {
         setLoading(true);
         try {
-            const res = await productReportService.getProductHistoryByProductAndWarehouse(
+            const response = await productReportService.getProductHistoryByProductAndWarehouse(
                 productId,
-                warehouseId
+                warehouseId,
+                { page, limit }
             );
-            console.log("🚀 ~ fetchHistory ~ res:", res)
-            setData(res.data || []);
+            setData(response?.data || []);
+            if (response?.pagination) {
+                setPagination({
+                    current: response.pagination.currentPage,
+                    pageSize: response.pagination.pageSize,
+                    total: response.pagination.total,
+                });
+            }
         } catch (err) {
             console.error("Error fetching product history:", err);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleTableChange = (newPagination) => {
+        fetchHistory(newPagination.current, newPagination.pageSize);
     };
 
     useEffect(() => {
@@ -79,10 +91,18 @@ const ProductWarehouseTab = ({ productId, warehouseId, reloadKey }) => {
             <Table
                 columns={columns}
                 dataSource={data}
-                rowKey="chung_tu"
+                rowKey={(record, index) => `${record.chung_tu || 'ct'}-${record.thoi_gian || 'tg'}-${index}`}
                 size="small"
                 loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
-                pagination={false}
+                pagination={{
+                    current: pagination.current,
+                    pageSize: pagination.pageSize,
+                    total: pagination.total,
+                    showSizeChanger: true,
+                    pageSizeOptions: ["5", "10", "20", "50"],
+                    showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} giao dịch`,
+                }}
+                onChange={handleTableChange}
             />
         </div>
     );

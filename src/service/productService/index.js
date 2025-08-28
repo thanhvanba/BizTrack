@@ -64,10 +64,11 @@ const productService = {
     },
 
     // Lấy lịch sử sản phẩm theo ID sản phẩm + ID kho
-    getProductHistoryByProductAndWarehouse: async (productId, warehouseId) => {
+    getProductHistoryByProductAndWarehouse: async (productId, warehouseId, params) => {
         return axiosService()({
             url: `${PRODUCT_REPORT_URL}/${productId}/${warehouseId}/history`,
             method: "GET",
+            params,
         })
             .then((res) => res.data)
             .catch((error) => {

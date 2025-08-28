@@ -282,15 +282,17 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
                     Xác nhận
                   </Button>
                 }
-                <Button
-                  icon={<DeleteOutlined />}
-                  color="danger"
-                  variant="filled"
-                  style={{ marginRight: 8 }}
-                  onClick={() => onUpdateOrderStatus(order_id, "Huỷ đơn")}
-                >
-                  Hủy
-                </Button>
+                {(order_status !== "Hoàn tất" && order_status !== "Huỷ đơn") &&
+                  <Button
+                    icon={<DeleteOutlined />}
+                    color="danger"
+                    variant="filled"
+                    style={{ marginRight: 8 }}
+                    onClick={() => onUpdateOrderStatus(order_id, "Huỷ đơn")}
+                  >
+                    Hủy
+                  </Button>
+                }
                 <Button>Xuất file</Button>
               </Col>
 

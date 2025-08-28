@@ -198,10 +198,7 @@ const ReturnOrderPage = () => {
                 />
             </div>
             <ReturnInvoiceModal visible={open} onClose={() => setOpen(false)} onSelect={handleSelectInvoice} />
-            <Card
-                className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-                bodyStyle={{ padding: "16px" }}
-            >
+            <Card>
                 <Search placeholder="Tìm theo mã phiếu trả" className='mb-4 md:w-1/6 w-full' />
                 <Table
                     rowKey="return_id"

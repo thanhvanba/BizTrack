@@ -76,7 +76,6 @@ const Dashboard = () => {
                     analysisService.getNewProductsInMonth({ year: currentYear, month: currentMonth }),
                     orderService.getAllOrder({ year: currentYear, month: currentMonth }),
                     orderService.getAllOrder({ page: 1, limit: 6 }),
-                    analysisService.getTopCustomers({ startDate: dayjs().date(), limit: 5 }),
                 ]);
 
                 const formatCustomerInitials = (data) => {

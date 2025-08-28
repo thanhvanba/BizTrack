@@ -63,7 +63,7 @@ const ProductInfoTab = ({ productData }) => {
                     </div>
                     <div>
                         <div className="text-gray-600 text-xs mb-1">Giá vốn</div>
-                        <div className="font-medium">100,000</div>
+                        <div className="font-medium">{formatPrice(productData?.cost_price)}</div>
                     </div>
                     <div>
                         <div className="text-gray-600 text-xs mb-1">Giá bán</div>

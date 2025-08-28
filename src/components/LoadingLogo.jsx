@@ -4,7 +4,7 @@ import logo from "../../public/logo-biztrack.svg";
 export default function LoadingLogo({ size = 48 }) {
     return (
 
-        <div className="absolute inset-0 flex items-center justify-center min-h-[180px] bg-white bg-opacity-60 z-10">
+        <div className="absolute inset-0 flex items-center justify-center min-h-[180px] bg-opacity-60 z-10">
             <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
                 {/* Logo ở giữa */}
                 <img

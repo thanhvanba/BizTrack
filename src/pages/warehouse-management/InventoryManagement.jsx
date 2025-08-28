@@ -322,7 +322,7 @@ const InventoryManagement = () => {
         </Button>
       </div>
 
-      <Card className="rounded-xl shadow-md" bodyStyle={{ padding: "16px" }}>
+      <Card>
         <div className="mb-4 grid grid-cols-3 gap-3 bg-white rounded-lg">
           {/* Ô tìm kiếm */}
           <Input

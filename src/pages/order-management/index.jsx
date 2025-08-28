@@ -471,10 +471,7 @@ const OrderManagement = () => {
         </Button>
       </div>
 
-      <Card
-        className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-        bodyStyle={{ padding: "16px" }}
-      >
+      <Card>
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative w-full">
             <Input

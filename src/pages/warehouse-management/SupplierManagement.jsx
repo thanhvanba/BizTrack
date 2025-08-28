@@ -185,10 +185,7 @@ const SupplierManagement = () => {
         </Button>
       </div>
 
-      <Card
-        className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
-        bodyStyle={{ padding: "16px" }}
-      >
+      <Card>
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <Input
             placeholder="Tìm kiếm theo số điện thoại / tên nhà cung cấp"
@@ -229,7 +226,7 @@ const SupplierManagement = () => {
           })}
           rowClassName={(record) =>
             expandedRowKeys.includes(record.supplier_id)
-              ? "z-10 bg-blue-400 rounded-md shadow-sm"
+              ? "z-10 bg-blue-100 rounded-md shadow-sm"
               : "hover:bg-gray-50 transition-colors"
           }
           scroll={{ x: "max-content" }}
