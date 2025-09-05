@@ -74,6 +74,11 @@ const menuItems = [
     ],
   },
   {
+    key: 'cash-book',
+    label: 'Sổ quỹ',
+    icon: <DollarOutlined />,
+  },
+  {
     key: 'statictis',
     icon: <BookOutlined />,
     label: 'Báo cáo',

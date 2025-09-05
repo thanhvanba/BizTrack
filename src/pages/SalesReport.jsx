@@ -8,7 +8,7 @@ const { RangePicker } = DatePicker;
 
 import openSansBase64 from "../utils/OpenSansBase64"; // lưu base64 vào file riêng
 
-export default function SalesReport({ rows = [], reportTitle = "BÁO CÁO", headers = { label: "Thời gian", revenue: "Doanh thu", refund: "Giá trị trả", net: "Doanh thu thuần" } }) {
+export default function SalesReport({ rows = [], reportTitle = "BÁO CÁO", headers = { label: "Thời gian", revenue: "Doanh thu bán hàng", refund: "Chi phí nhập hàng", net: "Doanh thu thuần" } }) {
   const [dataSource, setDataSource] = useState(rows);
   console.log("🚀 ~ SalesReport ~ dataSource:", dataSource)
 
@@ -24,8 +24,8 @@ export default function SalesReport({ rows = [], reportTitle = "BÁO CÁO", head
 
   const columns = [
     { title: headers.label || "Thời gian", dataIndex: "date", key: "date" },
-    { title: headers.revenue || "Doanh thu", dataIndex: "revenue", key: "revenue", align: "right", render: (v) => formatNumber(v) },
-    { title: headers.refund || "Giá trị trả", dataIndex: "refund", key: "refund", align: "right", render: (v) => formatNumber(v) },
+    { title: headers.revenue || "Doanh thu bán hàng", dataIndex: "revenue", key: "revenue", align: "right", render: (v) => formatNumber(v) },
+    { title: headers.refund || "Chi phí nhập hàng", dataIndex: "refund", key: "refund", align: "right", render: (v) => formatNumber(v) },
     { title: headers.net || "Doanh thu thuần", dataIndex: "netRevenue", key: "netRevenue", align: "right", render: (v) => formatNumber(v) },
   ];
 
@@ -44,7 +44,7 @@ export default function SalesReport({ rows = [], reportTitle = "BÁO CÁO", head
     doc.text(`Ngày xuất: ${dayjs().format("DD/MM/YYYY")}`, 14, 28);
     autoTable(doc, {
       startY: 40,
-      head: [[headers.label || "Thời gian", headers.revenue || "Doanh thu", headers.refund || "Giá trị trả", headers.net || "Doanh thu thuần"]],
+      head: [[headers.label || "Thời gian", headers.revenue || "Doanh thu bán hàng", headers.refund || "Chi phí nhập hàng", headers.net || "Doanh thu thuần"]],
       body: [
         ...dataSource.map((row) => [
           row.date,

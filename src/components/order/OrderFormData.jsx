@@ -77,17 +77,21 @@ const OrderFormData = ({
   onChange,
 }) => {
   const { orderId } = useParams();
+  const [form] = Form.useForm();
 
   // State quản lý dữ liệu khách hàng và sản phẩm
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
   const [order, setOrder] = useState(null);
   const [orderEligibility, setOrderEligibility] = useState(null);
+  console.log("🚀 ~ OrderFormData ~ orderEligibility:", orderEligibility?.products)
 
   // Form instance và state quản lý trả hàng
-  const [form] = Form.useForm();
+
   const [returnOrderData, setReturnOrderData] = useState({
     customer_id: "",
+    customer_name: "",
+    phone: "",
     order_id: "",
     type: "customer_return",
     shipping_fee: "",
@@ -99,15 +103,10 @@ const OrderFormData = ({
   // State quản lý loading và trạng thái form
   const [loading, setLoading] = useState(mode === "edit");
   const [formLoading, setFormLoading] = useState(false);
+  const [modalCreateCustomer, setModalCreateCustomer] = useState(false);
 
-  // Redux store và warehouses
-  const dispatch = useDispatch();
-  const warehouses = useSelector(
-    (state) => state.warehouse.warehouses.data || []
-  );
 
   // State quản lý modal và loại giảm giá
-  const [createModalVisible, setCreateModalVisible] = useState(false);
   const [discountTypes, setDiscountTypes] = useState({});
 
   // State quản lý sản phẩm đã chọn và các giá trị tính toán
@@ -126,6 +125,14 @@ const OrderFormData = ({
 
   const [refundAmount, setRefundAmount] = useState(0);
   const [orderDetailSummary, setOrderDetailSummary] = useState(null);
+  console.log("🚀 ~ OrderFormData ~ orderDetailSummary:", orderDetailSummary)
+
+  // Redux store và warehouses
+  const dispatch = useDispatch();
+  const warehouses = useSelector(
+    (state) => state.warehouse.warehouses.data || []
+  );
+
   // Utility function để format tiền tệ
   const formatCurrency = (value) =>
     new Intl.NumberFormat("vi-VN", {
@@ -169,7 +176,7 @@ const OrderFormData = ({
    * - Fetch chi tiết đơn hàng nếu là edit/return mode
    */
   useEffect(() => {
-    fetchCustomers();
+    mode !== "return" && fetchCustomers();
     dispatch(fetchWarehouses());
 
     if (mode !== "create" && orderId) {
@@ -221,7 +228,7 @@ const OrderFormData = ({
       const res = await customerService.createCustomer(data);
       const newCustomer = res?.data || data;
       setCustomers([...customers, newCustomer]);
-      setCreateModalVisible(false);
+      setModalCreateCustomer(false);
       form.setFieldsValue({ customer_id: newCustomer.customer_id });
       setSelectedCustomerId(newCustomer.customer_id);
       await form.validateFields(["customer_id"]); // Force re-render và validate
@@ -248,6 +255,7 @@ const OrderFormData = ({
       const resOrderEligibility = await orderService.checkOrderEligibility(
         orderId
       );
+      console.log("🚀 ~ fetchOrderDetails ~ resOrderEligibility:", resOrderEligibility)
 
       if (resOrderEligibility && resOrderEligibility.data) {
         setOrderEligibility(resOrderEligibility.data);
@@ -272,6 +280,8 @@ const OrderFormData = ({
             setReturnOrderData({
               ...returnOrderData,
               customer_id: orderRes.customer.customer_id,
+              customer_name: orderRes.customer.customer_name,
+              phone: orderRes.customer.phone,
               order_id: orderId,
               type: "customer_return",
               order_amount: Number(form?.getFieldValue("order_amount")) || 0,
@@ -317,16 +327,24 @@ const OrderFormData = ({
       note: returnOrderData.note?.trim() || "Không có ghi chú",
       return_details: orderEligibility?.products
         .filter((item) => item.quantity_return > 0)
-        .map((item) => ({
-          product_id: item.product_id,
-          quantity: item.quantity_return,
-          discount: item.discount,
-          refund_amount: item.product_return_price ?? item.product_retail_price,
-          cost_price: item.cost_price
-        })),
+        .map((item) => {
+          // Lấy unit_price từ kết quả calculateRefund
+          const itemRefund = refundAmount?.itemRefunds?.find(
+            (refund) => refund.product_id === item.product_id
+          );
+
+          return {
+            product_id: item.product_id,
+            quantity: item.quantity_return,
+            discount: item.discount,
+            refund_amount: itemRefund?.unit_price ?? item.product_return_price ?? item.product_retail_price,
+            cost_price: item.cost_price
+          };
+        }),
     };
     try {
       await orderService.createReturn(data);
+      console.log("🚀 ~ handleCreateOrderReturn ~ data:", data)
       navigate("/return-order");
     } catch (error) {
       console.error("Lỗi tạo đơn trả hàng:", error);
@@ -380,12 +398,14 @@ const OrderFormData = ({
       orderDetailSummary?.data
         ?.filter((r) => r.status === "completed")
         .reduce((sum, r) => sum + r.total_refund, 0) || 0;
+    console.log("🚀 ~ OrderFormData ~ totalRefundedSoFar:", totalRefundedSoFar)
 
     const refund = calculateRefund(
       order,
       orderEligibility.products,
       totalRefundedSoFar
     );
+    console.log("🚀 ~ OrderFormData ~ refund:", refund)
     setRefundAmount(refund);
   }, [order, orderEligibility?.products, orderDetailSummary]);
 
@@ -651,54 +671,29 @@ const OrderFormData = ({
   };
 
   const updateDiscount = (productId, discount, type) => {
-    mode === "return"
-      ? setOrderEligibility((prev) => ({
-        ...prev,
-        products: prev.products.map((item) => {
-          if (item.product_id !== productId) return item;
+    setSelectedProducts((prev) =>
+      prev.map((item) => {
+        if (item.product_id !== productId) return item;
 
-          const discountType = type || discountTypes[productId] || "đ";
-          const price = item.product_retail_price || 0;
-          const quantity = item.quantity || 1;
+        const discountType = type || discountTypes[productId] || "đ";
+        const price = item.product_retail_price || 0;
+        const quantity = item.quantity || 1;
 
-          let discountAmount = 0;
-          if (discountType === "%") {
-            discountAmount = Math.round(
-              (discount / 100) * (price * quantity)
-            );
-          } else {
-            discountAmount = discount;
-          }
-          return {
-            ...item,
-            discount,
-            discountAmount,
-          };
-        }),
-      }))
-      : setSelectedProducts((prev) =>
-        prev.map((item) => {
-          if (item.product_id !== productId) return item;
-
-          const discountType = type || discountTypes[productId] || "đ";
-          const price = item.product_retail_price || 0;
-          const quantity = item.quantity || 1;
-
-          let discountAmount = 0;
-          if (discountType === "%") {
-            discountAmount = Math.round(
-              (discount / 100) * (price * quantity)
-            );
-          } else {
-            discountAmount = discount;
-          }
-          return {
-            ...item,
-            discount,
-            discountAmount,
-          };
-        })
-      );
+        let discountAmount = 0;
+        if (discountType === "%") {
+          discountAmount = Math.round(
+            (discount / 100) * (price * quantity)
+          );
+        } else {
+          discountAmount = discount;
+        }
+        return {
+          ...item,
+          discount,
+          discountAmount,
+        };
+      })
+    );
 
     if (type) {
       setDiscountTypes((prev) => ({
@@ -1187,58 +1182,66 @@ const OrderFormData = ({
             <div className="font-medium mb-2">Khách hàng</div>
             <div>
               <div className="flex gap-2">
-                <Form.Item
-                  name="customer_id"
-                  className="w-full"
-                  rules={[
-                    { required: true, message: "Vui lòng chọn khách hàng" },
-                  ]}
-                >
-                  <Select
-                    className="w-full"
-                    placeholder="Chọn khách hàng"
-                    variant="filled"
-                    showSearch
-                    optionFilterProp="label"
-                    filterOption={(input, option) =>
-                      option?.label?.toLowerCase().includes(input.toLowerCase())
-                    }
-                    disabled={mode === "return"}
-                    key={customers.length}
-                    value={selectedCustomerId}
-                    onChange={(value) => {
-                      setSelectedCustomerId(value);
-                      form.setFieldsValue({ customer_id: value });
-                    }}
-                  >
-                    {customers?.map((customer) => (
-                      <Option
-                        key={customer.customer_id}
-                        value={customer.customer_id}
-                        label={`${customer.customer_name}${customer.phone ? " - " + customer.phone : ""
-                          }`}
-                      >
-                        {customer.customer_name}
-                        {customer.phone ? " - " + customer.phone : ""}
-                      </Option>
-                    ))}
-                  </Select>
-                  {mode !== "return" && (
-                    <div className="absolute -top-8 right-0">
-                      <Text
-                        type="link"
-                        className="text-sm cursor-pointer !text-blue-600"
-                        onClick={() => setCreateModalVisible(true)}
-                      >
-                        + Thêm khách hàng
-                      </Text>
-                    </div>
-                  )}
-                </Form.Item>
 
+                {mode === "return"
+                  ?
+                  <div className="mb-5 w-full">
+                    <Input
+                      disabled
+                      value={`${returnOrderData.customer_name}${returnOrderData.phone ? " - " + returnOrderData.phone : ""}`}
+                    />
+                  </div>
+                  : (
+                    <Form.Item
+                      name="customer_id"
+                      className="w-full"
+                      rules={[
+                        { required: true, message: "Vui lòng chọn khách hàng" },
+                      ]}
+                    >
+                      <Select
+                        className="w-full"
+                        placeholder="Chọn khách hàng"
+                        variant="filled"
+                        showSearch
+                        optionFilterProp="label"
+                        filterOption={(input, option) =>
+                          option?.label?.toLowerCase().includes(input.toLowerCase())
+                        }
+                        disabled={mode === "return"}
+                        key={customers.length}
+                        value={selectedCustomerId}
+                        onChange={(value) => {
+                          setSelectedCustomerId(value);
+                          form.setFieldsValue({ customer_id: value });
+                        }}
+                      >
+                        {customers?.map((customer) => (
+                          <Option
+                            key={customer.customer_id}
+                            value={customer.customer_id}
+                            label={`${customer.customer_name}${customer.phone ? " - " + customer.phone : ""
+                              }`}
+                          >
+                            {customer.customer_name}
+                            {customer.phone ? " - " + customer.phone : ""}
+                          </Option>
+                        ))}
+                      </Select>
+                      <div className="absolute -top-8 right-0">
+                        <Text
+                          type="link"
+                          className="text-sm cursor-pointer !text-blue-600"
+                          onClick={() => setModalCreateCustomer(true)}
+                        >
+                          + Thêm khách hàng
+                        </Text>
+                      </div>
+                    </Form.Item>
+                  )}
                 <CustomerModal
-                  open={createModalVisible}
-                  onCancel={() => setCreateModalVisible(false)}
+                  open={modalCreateCustomer}
+                  onCancel={() => setModalCreateCustomer(false)}
                   onSubmit={handleCreateCustomer}
                   mode="create"
                 />

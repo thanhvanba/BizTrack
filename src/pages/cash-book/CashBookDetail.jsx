@@ -26,29 +26,29 @@ export default function CashBookDetail({ record }) {
   return (
     <Card bordered className="mb-2">
       <Row gutter={[16, 8]}>
-        <Col xs={24} md={8}>
+        <Col xs={8} md={8}>
           <Text type="secondary">Mã giao dịch</Text>
           <div className="font-medium">{record.transaction_code}</div>
         </Col>
-        <Col xs={24} md={8}>
+        <Col xs={8} md={8}>
           <Text type="secondary">Thời gian</Text>
           <div className="font-medium">{record.created_at ? new Date(record.created_at).toLocaleString('vi-VN') : ''}</div>
         </Col>
-        <Col xs={24} md={8}>
+        <Col xs={8} md={8}>
           <Text type="secondary">Loại giao dịch</Text>
           <div className="font-medium" style={{ color: record.type === 'payment' ? 'red' : 'green' }}>
             {record.type === 'payment' ? 'Chi' : record.type === 'receipt' ? 'Thu' : record.type}
           </div>
         </Col>
-        <Col xs={24} md={8}>
+        <Col xs={8} md={8}>
           <Text type="secondary">Phương thức</Text>
           <div className="font-medium">{record.payment_method}</div>
         </Col>
-        <Col xs={24} md={8}>
+        <Col xs={8} md={8}>
           <Text type="secondary">Danh mục</Text>
           <div className="font-medium">{record.category}</div>
         </Col>
-        <Col xs={24} md={8}>
+        <Col xs={8} md={8}>
           <Text type="secondary">Số tiền</Text>
           <div className="font-medium" style={{ color: record.type === 'payment' ? 'red' : 'green' }}>{Number(record.amount).toLocaleString('vi-VN')}</div>
         </Col>

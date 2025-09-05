@@ -512,8 +512,8 @@ const TopEntityReport = ({ type }) => {
                             // Report view cho các type khác (không phải finance)
                             (() => {
                                 const commonHeaders = {
-                                    revenue: "Doanh thu",
-                                    refund: "Giá trị trả",
+                                    revenue: "Tổng doanh thu",
+                                    refund: "Chi phí nhập hàng",
                                     net: "Doanh thu thuần",
                                 };
 
@@ -563,8 +563,8 @@ const TopEntityReport = ({ type }) => {
                                 };
 
                                 const headersByType = {
-                                    product: { label: labelHeaderMap.product, revenue: "Doanh thu", refund: "Giá trị trả", net: "Doanh thu thuần" },
-                                    customer: { label: labelHeaderMap.customer, revenue: "Doanh thu", refund: "Giá trị trả", net: "Doanh thu thuần" },
+                                    product: { label: labelHeaderMap.product, revenue: "Doanh thu bán hàng", refund: "Giá trị trả", net: "Doanh thu thuần" },
+                                    customer: { label: labelHeaderMap.customer, revenue: "Tổng tiền mua hàng", refund: "Giá trị trả", net: "Giá trị thuần" },
                                     supplier: { label: labelHeaderMap.supplier, revenue: "Giá trị nhập", refund: "Giá trị trả", net: "Giá trị thuần" },
                                 };
 

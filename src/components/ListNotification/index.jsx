@@ -174,13 +174,13 @@ function ListNotification() {
 
   return (
     <div className=''>
-      <div type="" className='hover:bg-transparent active:text-none active:bg-none' onClick={showLoading}>
+      {/* <div type="" className='hover:bg-transparent active:text-none active:bg-none' onClick={showLoading}>
         <div className={`hover:opacity-70 opacity-100 flex flex-col relative px-4 cursor-pointer`}>
           <BellOutlined className='text-lg justify-center' />
           <h2 className='text-xs'>Thông báo</h2>
           {readCount !== 0 && <span className='absolute text-center -top-3 right-6 rounded-full bg-red-600 text-white h-5 w-5 text-[12px] leading-5'>{readCount ||10}</span>}
         </div>
-      </div>
+      </div> */}
       {/* <Drawer
         closable={false}
         destroyOnClose

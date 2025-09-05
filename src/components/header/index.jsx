@@ -13,7 +13,6 @@ import {
   ShoppingOutlined,
   BookOutlined,
 } from '@ant-design/icons';
-import ListNotification from '../ListNotification';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProfile } from '../../redux/user/user.slice';
@@ -224,7 +223,6 @@ export default function Header({ onToggleMobileDrawer, isMobile, setActiveTab, a
         )}
         {/* Notification & Account */}
         <div className="flex items-center gap-4">
-          {!isMobile && <ListNotification />}
           {Object.keys(profileInfo).length ? (
             <div className="flex items-center gap-2">
               {/* <span className="text-sm text-gray-600">Xin chào</span>

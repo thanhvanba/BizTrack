@@ -111,10 +111,7 @@ const ReturnInvoiceModal = ({ visible, onClose, onSelect }) => {
       open={visible}
       onCancel={onClose}
       footer={
-        <div className="flex justify-end">
-          <Button type="primary" className="bg-blue-500" onClick={onClose}>
-            Trả nhanh
-          </Button>
+        <div className="flex justify-end">  
         </div>
       }
       width={1100}

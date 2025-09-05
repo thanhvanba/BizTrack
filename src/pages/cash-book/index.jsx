@@ -20,6 +20,7 @@ const columns = [
     dataIndex: 'created_at',
     key: 'created_at',
     width: 150,
+    responsive: ['sm'],
     render: (value) => value ? new Date(value).toLocaleString('vi-VN') : '',
   },
   {
@@ -45,13 +46,8 @@ const columns = [
     dataIndex: 'payment_method',
     key: 'payment_method',
     width: 120,
+    responsive: ['sm'],
   },
-  // {
-  //   title: 'Danh mục',
-  //   dataIndex: 'category',
-  //   key: 'category',
-  //   width: 140,
-  // },
   {
     title: 'Số tiền',
     dataIndex: 'amount',
@@ -140,71 +136,101 @@ export default function CashBookPage() {
   };
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow">
+    <div className="p-2 sm:p-4 bg-white rounded-lg shadow">
       {/* Thanh công cụ */}
-      <div className="flex justify-between items-center mb-4">
-        <Search placeholder="Theo mã phiếu" style={{ width: 300 }} />
-        <Space>
-          <Button type="primary" icon={<PlusOutlined />} onClick={openReceiptModal}>Phiếu thu</Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={openPaymentModal}>Phiếu chi</Button>
-          <Button icon={<FileExcelOutlined />}>Xuất file</Button>
-          <Button icon={<SettingOutlined />} />
-        </Space>
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-4">
+        <div className="w-full lg:w-auto">
+          <Search 
+            placeholder="Theo mã phiếu" 
+            className="w-full lg:w-80" 
+          />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />} 
+            onClick={openReceiptModal}
+            className="flex-1 sm:flex-none"
+          >
+            <span className="hidden sm:inline">Phiếu thu</span>
+            <span className="sm:hidden">Thu</span>
+          </Button>
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />} 
+            onClick={openPaymentModal}
+            className="flex-1 sm:flex-none"
+          >
+            <span className="hidden sm:inline">Phiếu chi</span>
+            <span className="sm:hidden">Chi</span>
+          </Button>
+          <Button 
+            icon={<FileExcelOutlined />}
+            className="hidden sm:inline-flex"
+          >
+            Xuất file
+          </Button>
+        </div>
       </div>
       {/* Thống kê */}
-      <div className="flex justify-end gap-8 mb-2">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:justify-end gap-4 sm:gap-8 mb-4">
+        <div className="flex justify-between sm:block">
           <div className="text-xs text-gray-500">Tổng thu</div>
-          <div className="font-bold text-lg text-green-500">{summary.total_receipt?.toLocaleString()}</div>
+          <div className="font-bold text-base sm:text-lg text-green-500">{summary.total_receipt?.toLocaleString()}</div>
         </div>
-        <div>
+        <div className="flex justify-between sm:block">
           <div className="text-xs text-gray-500">Tổng chi</div>
           {summary.total_payment !== 0 ? (
-            <div className="font-bold text-lg text-red-500">-{summary.total_payment?.toLocaleString()}</div>
+            <div className="font-bold text-base sm:text-lg text-red-500">-{summary.total_payment?.toLocaleString()}</div>
           ) : (
-            <div className="font-bold text-lg text-red-500">{summary.total_payment?.toLocaleString()}</div>
+            <div className="font-bold text-base sm:text-lg text-red-500">{summary.total_payment?.toLocaleString()}</div>
           )}
         </div>
-        <div>
+        <div className="flex justify-between sm:block">
           <div className="text-xs text-gray-500">Tồn quỹ</div>
-          <div className="font-bold text-lg text-blue-600">{summary.balance?.toLocaleString()}</div>
+          <div className="font-bold text-base sm:text-lg text-blue-600">{summary.balance?.toLocaleString()}</div>
         </div>
       </div>
       {/* Bảng dữ liệu */}
-      <Table
-        dataSource={rows}
-        columns={columns}
-        loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
-        pagination={{
-          current: pagination.current,
-          pageSize: pagination.pageSize,
-          total: pagination.total,
-          showSizeChanger: true,
-          showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} giao dịch`,
-          pageSizeOptions: ['5', '10', '20', '50', '100'],
-        }}
-        onChange={handleTableChange}
-        rowKey="transaction_code"
-        size="middle"
-        expandable={{
-          expandedRowRender: (record) => <CashBookExpandedTabs record={record} />,
-          expandedRowKeys,
-          onExpand: (expanded, record) => {
-            setExpandedRowKeys(expanded ? [record.transaction_code] : []);
-          },
-        }}
-        rowClassName={(record) =>
-          expandedRowKeys.includes(record.transaction_code)
-            ? "!border-collapse z-10 bg-blue-50 rounded-md shadow-sm"
-            : "hover:bg-gray-50 transition-colors"
-        }
-        onRow={(record) => ({
-          onClick: () => {
-            setExpandedRowKeys(expandedRowKeys.includes(record.transaction_code) ? [] : [record.transaction_code]);
-          },
-          className: "cursor-pointer",
-        })}
-      />
+      <div className="overflow-x-auto">
+        <Table
+          dataSource={rows}
+          columns={columns}
+          loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
+          pagination={{
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
+            showSizeChanger: true,
+            showTotal: (total, range) => `${range[0]}-${range[1]} của ${total} giao dịch`,
+            pageSizeOptions: ['5', '10', '20', '50', '100'],
+            responsive: true,
+            showQuickJumper: false,
+          }}
+          onChange={handleTableChange}
+          rowKey="transaction_code"
+          size="middle"
+          scroll={{ x: 800 }}
+          expandable={{
+            expandedRowRender: (record) => <CashBookExpandedTabs record={record} />,
+            expandedRowKeys,
+            onExpand: (expanded, record) => {
+              setExpandedRowKeys(expanded ? [record.transaction_code] : []);
+            },
+          }}
+          rowClassName={(record) =>
+            expandedRowKeys.includes(record.transaction_code)
+              ? "!border-collapse z-10 bg-blue-50 rounded-md shadow-sm"
+              : "hover:bg-gray-50 transition-colors"
+          }
+          onRow={(record) => ({
+            onClick: () => {
+              setExpandedRowKeys(expandedRowKeys.includes(record.transaction_code) ? [] : [record.transaction_code]);
+            },
+            className: "cursor-pointer",
+          })}
+        />
+      </div>
 
       {/* Modal tạo giao dịch */}
       <DebtAdjustmentModal
