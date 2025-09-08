@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f3f4f6"/>
+      <stop offset="100%" stop-color="#e5e7eb"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="12" fill="url(#g)" stroke="#d1d5db" stroke-width="2"/>
+  <g opacity="0.5">
+    <path d="M176 168H80c-4.418 0-8-3.582-8-8v-64c0-4.418 3.582-8 8-8h96c4.418 0 8 3.582 8 8v64c0 4.418-3.582 8-8 8z" stroke="#9ca3af" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M88 152l32-32 24 24 16-16 24 24" stroke="#9ca3af" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <circle cx="112" cy="116" r="10" fill="#9ca3af"/>
+  </g>
+  <text x="128" y="214" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" fill="#9ca3af">No Image</text>
+</svg>
+
+
+

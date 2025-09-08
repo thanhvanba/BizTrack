@@ -11,7 +11,17 @@ export default function PurchaseOrderDetail({ order }) {
   console.log("🚀 ~ PurchaseOrderDetail ~ order:", order)
   const [printInvoiceVisible, setPrintInvoiceVisible] = useState(false);
 
-  const totalAmount = order?.details?.reduce((sum, detail) => sum + detail.quantity * (detail.price ?? detail.item_return_price), 0);
+  const totalAmount = order?.details?.reduce((sum, detail) => {
+    const subtotal = detail.quantity * (detail.price ?? detail.item_return_price);
+    const vatAmount = subtotal * (detail.vat_rate || 0) / 100;
+    return sum + subtotal + vatAmount;
+  }, 0);
+
+  const subtotalAmount = order?.details?.reduce((sum, detail) => sum + detail.quantity * (detail.price ?? detail.item_return_price), 0);
+  const totalVatAmount = order?.details?.reduce((sum, detail) => {
+    const subtotal = detail.quantity * (detail.price ?? detail.item_return_price);
+    return sum + (subtotal * (detail.vat_rate || 0) / 100);
+  }, 0);
 
   // Chuẩn hóa dữ liệu hóa đơn nhập hàng cho PrintInvoice
   const purchaseInvoiceData = order ? {
@@ -26,12 +36,20 @@ export default function PurchaseOrderDetail({ order }) {
       phone: '',
       address: order.warehouse_name ? `${order.warehouse_name}` : '',
     },
-    items: (order.details || []).map(detail => ({
-      name: detail.product_name,
-      unitPrice: detail.price ?? detail.refund_amount,
-      quantity: detail.quantity,
-      amount: (detail.quantity || 0) * (detail.price ?? detail.refund_amount),
-    })),
+    items: (order.details || []).map(detail => {
+      const subtotal = (detail.quantity || 0) * (detail.price ?? detail.refund_amount);
+      const vatAmount = subtotal * (detail.vat_rate || 0) / 100;
+      return {
+        name: detail.product_name,
+        unitPrice: detail.price ?? detail.refund_amount,
+        quantity: detail.quantity,
+        vatRate: detail.vat_rate || 0,
+        vatAmount: vatAmount,
+        amount: subtotal + vatAmount,
+      };
+    }),
+    subtotal: subtotalAmount,
+    totalVat: totalVatAmount,
     total: totalAmount,
     discount: order.discount || 0,
     shippingFee: order.shipping_fee || 0,
@@ -66,10 +84,29 @@ export default function PurchaseOrderDetail({ order }) {
       render: (_, detail) => formatPrice(detail.price ?? detail.item_return_price),
     },
     {
+      title: "VAT",
+      key: "vat",
+      align: "center",
+      render: (_, detail) => {
+        const subtotal = (detail.quantity || 0) * (detail.price ?? detail.item_return_price);
+        const vatAmount = subtotal * (detail.vat_rate || 0) / 100;
+        return (
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '12px', color: '#666' }}>{detail.vat_rate || 0}%</div>
+            <div style={{ fontSize: '13px', fontWeight: '500' }}>{formatPrice(vatAmount)}</div>
+          </div>
+        );
+      },
+    },
+    {
       title: "Thành tiền",
       key: "total",
       align: "right",
-      render: (_, detail) => formatPrice((detail.quantity || 0) * (detail.price ?? detail.item_return_price)),
+      render: (_, detail) => {
+        const subtotal = (detail.quantity || 0) * (detail.price ?? detail.item_return_price);
+        const vatAmount = subtotal * (detail.vat_rate || 0) / 100;
+        return formatPrice(subtotal + vatAmount);
+      },
     },
   ];
 
@@ -125,20 +162,40 @@ export default function PurchaseOrderDetail({ order }) {
         pagination={false}
         size="small"
         summary={() => (
-          <Table.Summary.Row>
-            <Table.Summary.Cell colSpan={4} align="right">
-              <Text strong>Tổng giá trị:</Text>
-            </Table.Summary.Cell>
-            <Table.Summary.Cell align="right">
-              <Text strong className="text-xl">{formatPrice(totalAmount)}</Text>
-            </Table.Summary.Cell>
-          </Table.Summary.Row>
+          <>
+            <Table.Summary.Row>
+              <Table.Summary.Cell colSpan={5} align="right" style={{ paddingTop: '12px' }}>
+                <Text strong>Tạm tính:</Text>
+              </Table.Summary.Cell>
+              <Table.Summary.Cell align="right" style={{ paddingTop: '12px' }}>
+                <Text strong>{formatPrice(subtotalAmount)}</Text>
+              </Table.Summary.Cell>
+            </Table.Summary.Row>
+            <Table.Summary.Row>
+              <Table.Summary.Cell colSpan={5} align="right">
+                <Text strong>VAT:</Text>
+              </Table.Summary.Cell>
+              <Table.Summary.Cell align="right">
+                <Text strong>{formatPrice(totalVatAmount)}</Text>
+              </Table.Summary.Cell>
+            </Table.Summary.Row>
+            <Table.Summary.Row>
+              <Table.Summary.Cell colSpan={5} align="right" style={{ paddingBottom: '12px' }}>
+                <Text strong>Tổng giá trị:</Text>
+              </Table.Summary.Cell>
+              <Table.Summary.Cell align="right" style={{ paddingBottom: '12px' }}>
+                <Text strong className="text-xl">{formatPrice(totalAmount)}</Text>
+              </Table.Summary.Cell>
+            </Table.Summary.Row>
+          </>
         )}
       />
 
-      <Button type="primary" className="mb-4" onClick={() => setPrintInvoiceVisible(true)}>
-        In hóa đơn
-      </Button>
+      <div className="mt-4">
+        <Button type="primary" onClick={() => setPrintInvoiceVisible(true)}>
+          In hóa đơn
+        </Button>
+      </div>
 
       <PrintInvoice
         visible={printInvoiceVisible}

@@ -32,7 +32,9 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
     warehouse_id: "",
     note: "",
   })
+  console.log("🚀 ~ PurchaseOrderForm ~ formData:", formData)
   const [details, setDetails] = useState([])
+  console.log("🚀 ~ PurchaseOrderForm ~ details:", details)
   const [errors, setErrors] = useState({})
 
   // Thêm state cho select sản phẩm
@@ -86,26 +88,26 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
     }
   }
 
-  const handleAddDetail = () => {
-    setDetails([...details, { product_id: "", quantity: 1, price: 0 }])
-  }
+  // const handleAddDetail = () => {
+  //   setDetails([...details, { product_id: "", quantity: 1, price: 0 }])
+  // }
 
   const handleRemoveDetail = (indexToRemove) => {
     setDetails(details.filter((_, index) => index !== indexToRemove))
   }
 
-  const handleProductChange = (productId, index) => {
-    const product = products.find(p => p.product_id === productId)
-    if (product) {
-      const newDetails = [...details]
-      newDetails[index] = {
-        ...newDetails[index],
-        product_id: productId,
-        price: product.product_retail_price || 0,
-      }
-      setDetails(newDetails)
-    }
-  }
+  // const handleProductChange = (productId, index) => {
+  //   const product = products.find(p => p.product_id === productId)
+  //   if (product) {
+  //     const newDetails = [...details]
+  //     newDetails[index] = {
+  //       ...newDetails[index],
+  //       product_id: productId,
+  //       price: product.product_retail_price || 0,
+  //     }
+  //     setDetails(newDetails)
+  //   }
+  // }
 
   const fetchCategories = async () => {
     try {
@@ -167,7 +169,18 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
       warehouse_id: formData.warehouse_id,
       note: formData.note,
       status: "draft",
-      details,
+      details: details.map(detail => {
+        const subtotal = detail.quantity * detail.price;
+        const vatAmount = subtotal * (detail.vat || 0) / 100;
+        return {
+          product_id: detail.product_id,
+          quantity: detail.quantity,
+          price: detail.price,
+          vat_rate: detail.vat || 0,
+          vat_amount: vatAmount,
+          product_name: detail.product_name
+        };
+      }),
     }
 
     onSubmit(order)
@@ -175,7 +188,10 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
     setDetails([])
   }
 
-  const totalAmount = details.reduce((sum, d) => sum + d.quantity * d.price, 0)
+  const totalAmount = details.reduce((sum, d) => {
+    const priceWithVat = d.price * (1 + (d.vat || 0) / 100);
+    return sum + (d.quantity * priceWithVat);
+  }, 0)
 
   // Hàm search sản phẩm động
   const handleSearchProduct = debounce(async (value) => {
@@ -203,6 +219,7 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
         product_id: productId,
         quantity: 1,
         price: product?.product_retail_price || 0,
+        vat: 0,
         product_name: product?.product_name || ""
       }
     ]);
@@ -386,6 +403,9 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
               <Col flex="1 1 120px">
                 <Text>Đơn giá</Text>
               </Col>
+              <Col flex="1 1 100px">
+                <Text>VAT (%)</Text>
+              </Col>
               <Col flex="1 1 120px">
                 <Text>Thành tiền</Text>
               </Col>
@@ -393,43 +413,59 @@ export default function PurchaseOrderForm({ onSubmit, initialValues, onCancel })
             </Row>
           )}
 
-          {details.map((detail, index) => (
-            <Row gutter={12} align="middle" key={detail.product_id} className="mb-2 bg-gray-50 p-2 rounded">
-              <Col flex="2 1 200px">
-                <Text>{detail.product_name}</Text>
-              </Col>
-              <Col flex="1 1 100px">
-                <InputNumber
-                  min={1}
-                  value={detail.quantity}
-                  onChange={val => handleDetailChange(val, "quantity", index)}
-                  style={{ width: '100%' }}
-                />
-              </Col>
-              <Col flex="1 1 120px">
-                <InputNumber
-                  min={0}
-                  step={1000}
-                  value={detail.price}
-                  style={{ width: '100%' }}
-                  formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                  parser={value => value.replace(/,/g, "")}
-                  onChange={val => handleDetailChange(val, "price", index)}
-                />
-              </Col>
-              <Col flex="1 1 120px">
-                <Text strong>{(detail.quantity * detail.price).toLocaleString()} VNĐ</Text>
-              </Col>
-              <Col>
-                <Button
-                  type="text"
-                  icon={<DeleteOutlined />}
-                  danger
-                  onClick={() => handleRemoveDetail(index)}
-                />
-              </Col>
-            </Row>
-          ))}
+          {details.map((detail, index) => {
+            const subtotal = detail.quantity * detail.price;
+            const vatAmount = subtotal * (detail.vat || 0) / 100;
+            const total = subtotal + vatAmount;
+            
+            return (
+              <Row gutter={12} align="middle" key={detail.product_id} className="mb-2 bg-gray-50 p-2 rounded">
+                <Col flex="2 1 200px">
+                  <Text>{detail.product_name}</Text>
+                </Col>
+                <Col flex="1 1 100px">
+                  <InputNumber
+                    min={1}
+                    value={detail.quantity}
+                    onChange={val => handleDetailChange(val, "quantity", index)}
+                    style={{ width: '100%' }}
+                  />
+                </Col>
+                <Col flex="1 1 120px">
+                  <InputNumber
+                    min={0}
+                    step={1000}
+                    value={detail.price}
+                    style={{ width: '100%' }}
+                    formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                    parser={value => value.replace(/,/g, "")}
+                    onChange={val => handleDetailChange(val, "price", index)}
+                  />
+                </Col>
+                <Col flex="1 1 100px">
+                  <InputNumber
+                    min={0}
+                    max={100}
+                    value={detail.vat || 0}
+                    style={{ width: '100%' }}
+                    onChange={val => handleDetailChange(val, "vat", index)}
+                    addonAfter="%"
+                  />
+                </Col>
+                <Col flex="1 1 120px">
+                  <Text strong>{total.toLocaleString()} VNĐ</Text>
+                </Col>
+                <Col>
+                  <Button
+                    type="text"
+                    icon={<DeleteOutlined />}
+                    danger
+                    onClick={() => handleRemoveDetail(index)}
+                  />
+                </Col>
+              </Row>
+            );
+          })}
         </div>
 
         <div className="text-right mt-6">

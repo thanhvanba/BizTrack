@@ -227,6 +227,7 @@ const PrintInvoice = ({ visible, onClose, invoiceData, type = 'sale' }) => {
               <th>Tên sản phẩm</th>
               <th class="text-right">Đơn giá</th>
               <th class="text-right">SL</th>
+              ${(type === 'purchase' || type === 'purchase_return') ? '<th class="text-right">VAT (%)</th><th class="text-right">Tiền VAT</th>' : ''}
               <th class="text-right">Thành tiền</th>
             </tr>
           </thead>
@@ -236,6 +237,10 @@ const PrintInvoice = ({ visible, onClose, invoiceData, type = 'sale' }) => {
                 <td>${item.name || ''}</td>
                 <td class="text-right">${formatCurrency(item.unitPrice || 0)}</td>
                 <td class="text-right">${item.quantity || 0}</td>
+                ${(type === 'purchase' || type === 'purchase_return') ? `
+                  <td class="text-right">${item.vatRate || 0}%</td>
+                  <td class="text-right">${formatCurrency(item.vatAmount || 0)}</td>
+                ` : ''}
                 <td class="text-right">${formatCurrency(item.amount || 0)}</td>
               </tr>
             `).join('') || ''}
@@ -243,10 +248,21 @@ const PrintInvoice = ({ visible, onClose, invoiceData, type = 'sale' }) => {
         </table>
 
         <div class="summary">
+          ${(type === 'purchase' || type === 'purchase_return') ? `
+          <div class="summary-row">
+            <span>Tạm tính:</span>
+            <span>${formatCurrency(invoiceData.subtotal || 0)}</span>
+          </div>
+          <div class="summary-row">
+            <span>VAT:</span>
+            <span>${formatCurrency(invoiceData.totalVat || 0)}</span>
+          </div>
+          ` : `
           <div class="summary-row">
             <span>Tổng tiền hàng:</span>
             <span>${formatCurrency(total || 0)}</span>
           </div>
+          `}
           ${shouldShowPaymentInfo(type) ? `
           <div class="summary-row">
             <span>Chiết khấu:</span>
