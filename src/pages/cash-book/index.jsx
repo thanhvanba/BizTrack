@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Table, Input, Button, Typography, Space } from 'antd';
+import { Table, Input, Button, Typography, message } from 'antd';
 import { PlusOutlined, FileExcelOutlined, SettingOutlined, StarOutlined } from '@ant-design/icons';
 import CashBookExpandedTabs from './CashBookExpandedTabs';
 import cashbookService from '../../service/cashbookService';
@@ -72,6 +72,7 @@ export default function CashBookPage() {
   const [summary, setSummary] = useState({ total_receipt: 0, total_payment: 0, balance: 0 });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalType, setModalType] = useState('receipt'); // 'receipt' hoặc 'payment'
+  const [editingTransaction, setEditingTransaction] = useState(null);
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 5,
@@ -125,14 +126,72 @@ export default function CashBookPage() {
     setIsModalOpen(false);
   };
 
+  const handleEditTransaction = async (transaction) => {
+    try {
+      const id = transaction?.transaction_id || transaction?.id;
+      let detail = null;
+      if (id) {
+        const res = await cashbookService.getTransactionById(id);
+        // API có thể trả về ở res.data hoặc res
+        detail = res?.data || res;
+      }
+
+      const recordToEdit = detail || transaction;
+      setEditingTransaction(recordToEdit);
+      setModalType(recordToEdit.type);
+      setIsModalOpen(true);
+    } catch (error) {
+      message.error('Không lấy được thông tin giao dịch.');
+    }
+  };
+
+  const handleUpdateTransaction = async (values) => {
+    if (!editingTransaction) return;
+
+    const body = {
+      amount: Number(values.adjustmentValue),
+      type: modalType,
+      category: values.category,
+      payment_method: values.paymentMethod || 'cash',
+      description: values.description || '',
+    };
+
+    try {
+      await cashbookService.updateTransaction(editingTransaction.transaction_id, body);
+      message.success('Cập nhật giao dịch thành công!');
+      fetchData(pagination.current, pagination.pageSize);
+      setIsModalOpen(false);
+      setEditingTransaction(null);
+    } catch (error) {
+      message.error('Cập nhật giao dịch thất bại!');
+    }
+  };
+
+  const handleDeleteTransaction = async (transactionId) => {
+    try {
+      await cashbookService.deleteTransaction(transactionId);
+      message.success('Xóa giao dịch thành công!');
+      fetchData(pagination.current, pagination.pageSize);
+    } catch (error) {
+      message.error('Xóa giao dịch thất bại!');
+    }
+  };
+
   const openReceiptModal = () => {
+    setEditingTransaction(null);
     setModalType('receipt');
     setIsModalOpen(true);
   };
 
   const openPaymentModal = () => {
+    setEditingTransaction(null);
     setModalType('payment');
     setIsModalOpen(true);
+  };
+
+  const handleModalCancel = () => {
+    setIsModalOpen(false);
+    setEditingTransaction(null);
   };
 
   return (
@@ -212,7 +271,14 @@ export default function CashBookPage() {
           size="middle"
           scroll={{ x: 800 }}
           expandable={{
-            expandedRowRender: (record) => <CashBookExpandedTabs record={record} />,
+            expandedRowRender: (record) => (
+              <CashBookExpandedTabs 
+                record={record} 
+                onEdit={handleEditTransaction}
+                onDelete={handleDeleteTransaction}
+                onRefresh={() => fetchData(pagination.current, pagination.pageSize)}
+              />
+            ),
             expandedRowKeys,
             onExpand: (expanded, record) => {
               setExpandedRowKeys(expanded ? [record.transaction_code] : []);
@@ -232,13 +298,20 @@ export default function CashBookPage() {
         />
       </div>
 
-      {/* Modal tạo giao dịch */}
+      {/* Modal tạo/sửa giao dịch */}
       <DebtAdjustmentModal
         open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
-        onSubmit={handleCreateTransaction}
+        onCancel={handleModalCancel}
+        onSubmit={editingTransaction ? handleUpdateTransaction : handleCreateTransaction}
         modalType={modalType}
         context="cash-book"
+        initialValues={editingTransaction ? {
+          adjustmentValue: editingTransaction.amount,
+          category: editingTransaction.category,
+          paymentMethod: editingTransaction.payment_method,
+          description: editingTransaction.description,
+        } : undefined}
+        title={editingTransaction ? 'Chỉnh sửa giao dịch' : undefined}
       />
     </div>
   );

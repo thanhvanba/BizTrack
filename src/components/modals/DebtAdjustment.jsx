@@ -18,6 +18,7 @@ const DebtAdjustmentModal = ({
   initialDebt,
   modalType = "payment",
   context,
+  initialValues,
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -25,8 +26,18 @@ const DebtAdjustmentModal = ({
   useEffect(() => {
     if (open) {
       form.resetFields();
+      if (initialValues) {
+        // Prefill fields when editing
+        form.setFieldsValue({
+          adjustmentValue: initialValues.adjustmentValue,
+          paymentMethod: initialValues.paymentMethod || 'cash',
+          category: initialValues.category,
+          type: initialValues.type,
+          description: initialValues.description,
+        });
+      }
     }
-  }, [open, form]);
+  }, [open, form, initialValues]);
 
   const handleSubmit = async () => {
     try {
@@ -101,7 +112,7 @@ const DebtAdjustmentModal = ({
           onClick={handleSubmit}
           loading={loading}
         >
-          Tạo giao dịch
+          {initialValues ? 'Cập nhật' : 'Tạo giao dịch'}
         </Button>,
       ]}
     >

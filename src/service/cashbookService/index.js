@@ -45,6 +45,37 @@ const cashbookService = {
       .then(res => res.data)
       .catch(error => { throw error; });
   },
+
+  // Lấy giao dịch theo ID
+  getTransactionById: async (id) => {
+    return axiosService()({
+      url: `${CASHBOOK_URL}/transaction/${id}`,
+      method: 'GET',
+    })
+      .then(res => res.data)
+      .catch(error => { throw error; });
+  },
+
+  // Cập nhật giao dịch
+  updateTransaction: async (id, data) => {
+    return axiosService()({
+      url: `${CASHBOOK_URL}/transaction/${id}`,
+      method: 'PUT',
+      data,
+    })
+      .then(res => res.data)
+      .catch(error => { throw error; });
+  },
+
+  // Xóa giao dịch
+  deleteTransaction: async (id) => {
+    return axiosService()({
+      url: `${CASHBOOK_URL}/transaction/${id}`,
+      method: 'DELETE',
+    })
+      .then(res => res.data)
+      .catch(error => { throw error; });
+  },
 };
 
 export default cashbookService; 

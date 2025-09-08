@@ -1,12 +1,12 @@
 import { Tabs } from 'antd';
 import CashBookDetail from './CashBookDetail';
 
-export default function CashBookExpandedTabs({ record }) {
+export default function CashBookExpandedTabs({ record, onEdit, onDelete, onRefresh }) {
   const tabItems = [
     {
       key: 'info',
       label: 'Thông tin',
-      children: <CashBookDetail record={record} />,
+      children: <CashBookDetail record={record} onEdit={onEdit} onDelete={onDelete} onRefresh={onRefresh} />,
     },
     // Có thể thêm các tab khác nếu cần
   ];

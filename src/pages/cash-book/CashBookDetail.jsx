@@ -1,8 +1,9 @@
-import { Card, Row, Col, Typography, Divider, Table } from 'antd';
+import { Card, Row, Col, Typography, Divider, Table, Button, Popconfirm } from 'antd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
-export default function CashBookDetail({ record }) {
+export default function CashBookDetail({ record, onEdit, onDelete, onRefresh }) {
   if (!record) return null;
 
   // Chi tiết giao dịch (có thể mở rộng nếu API trả về nhiều dòng)
@@ -55,6 +56,38 @@ export default function CashBookDetail({ record }) {
       </Row>
       <Divider />
       <Table columns={columns} dataSource={details} pagination={false} rowKey="id" size="small" />
+
+      {/* Nút hành động cho other_payment và other_receipt */}
+      {(record.category === 'other_payment' || record.category === 'other_receipt') && (
+        <>
+          <Divider />
+          <div className="flex justify-end gap-2">
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              size="small"
+              onClick={() => onEdit && onEdit(record)}
+            >
+              Sửa
+            </Button>
+            <Popconfirm
+              title="Xóa giao dịch"
+              description="Bạn có chắc chắn muốn xóa giao dịch này?"
+              onConfirm={() => onDelete(record.transaction_id)}
+              okText="Xóa"
+              cancelText="Hủy"
+            >
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                size="small"
+              >
+                Xóa
+              </Button>
+            </Popconfirm>
+          </div>
+        </>
+      )}
     </Card>
   );
 } 
