@@ -35,7 +35,7 @@ const CustomerManagement = () => {
   const fetchCustomers = async (page = pagination.current, limit = pagination.pageSize) => {
     setLoading(true);
     try {
-      const res = await customerService.getAllCustomers({ page, limit })
+      const res = await customerService.getCustomerListSimple({ page, limit })
       setCustomers(res.data)
       if (res.pagination) {
         setPagination({

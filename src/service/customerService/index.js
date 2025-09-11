@@ -14,6 +14,19 @@ const customerService = {
       });
   },
 
+  // Danh sách khách hàng rút gọn (sử dụng cho dropdown, phân trang nhỏ)
+  getCustomerListSimple: async (params) => {
+    return axiosService()({
+      url: `${CUSTOMERS_URL}/list`,
+      method: "GET",
+      params,
+    })
+      .then((res) => res.data)
+      .catch((error) => {
+        throw error;
+      });
+  },
+
   getCustomerById: async (id) => {
     return axiosService()({
       url: `${CUSTOMERS_URL}/${id}`,

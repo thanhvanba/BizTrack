@@ -103,6 +103,8 @@ const OrderFormData = ({
   // State quản lý loading và trạng thái form
   const [loading, setLoading] = useState(mode === "edit");
   const [formLoading, setFormLoading] = useState(false);
+  const [creatingLoading, setCreatingLoading] = useState(false);
+  const [completeLoading, setCompleteLoading] = useState(false);
   const [modalCreateCustomer, setModalCreateCustomer] = useState(false);
 
 
@@ -190,7 +192,7 @@ const OrderFormData = ({
   const fetchCustomers = async () => {
     try {
       // setLoading(true);
-      const res = await customerService.getAllCustomers({
+      const res = await customerService.getCustomerListSimple({
         page: 1,
         limit: 1000,
       });
@@ -418,35 +420,39 @@ const OrderFormData = ({
    * - Hiển thị thông báo
    * - Navigate hoặc callback onSave
    */
+  const buildOrderRequestPayload = (values) => {
+    const formattedOrderDate = dayjs(values.order_date).format("YYYY-MM-DD");
+
+    const orderDetails = selectedProducts.map((item) => ({
+      product_id: item?.product_id,
+      quantity: item.quantity,
+      price: Number(item?.product_retail_price),
+      cost_price: Number(item?.cost_price),
+      discount: item?.discountAmount || item?.discount || 0,
+    }));
+
+    return {
+      order: {
+        customer_id: values.customer_id,
+        order_date: formattedOrderDate,
+        order_amount:
+          (getOrderDiscountAmount() || orderProp?.order_amount || 0) ?? 0,
+        shipping_address: values.shipping_address,
+        shipping_fee: values.shipping_fee ?? 0,
+        amount_paid: values.amount_paid ?? 0,
+        payment_method: values.payment_method,
+        note: values.note,
+        warehouse_id: values.warehouse_id,
+      },
+      orderDetails: orderDetails,
+    };
+  };
+
   const handleSubmitOrder = async () => {
     try {
-      setFormLoading(true);
+      setCreatingLoading(true);
       const values = await form.validateFields();
-      const formattedOrderDate = dayjs(values.order_date).format("YYYY-MM-DD");
-
-      const orderDetails = selectedProducts.map((item) => ({
-        product_id: item?.product_id,
-        quantity: item.quantity,
-        price: Number(item?.product_retail_price),
-        cost_price: Number(item?.cost_price),
-        discount: item?.discountAmount || item?.discount || 0,
-      }));
-
-      const rqOrder = {
-        order: {
-          customer_id: values.customer_id,
-          order_date: formattedOrderDate,
-          order_amount:
-            (getOrderDiscountAmount() || orderProp?.order_amount || 0) ?? 0,
-          shipping_address: values.shipping_address,
-          shipping_fee: values.shipping_fee ?? 0,
-          amount_paid: values.amount_paid ?? 0,
-          payment_method: values.payment_method,
-          note: values.note,
-          warehouse_id: values.warehouse_id,
-        },
-        orderDetails: orderDetails,
-      };
+      const rqOrder = buildOrderRequestPayload(values);
 
       let res;
       if (mode === "create") {
@@ -483,7 +489,33 @@ const OrderFormData = ({
         );
       }
     } finally {
-      setFormLoading(false);
+      setCreatingLoading(false);
+    }
+  };
+
+  const handleSubmitAndComplete = async () => {
+    try {
+      setCompleteLoading(true);
+      const values = await form.validateFields();
+      const rqOrder = buildOrderRequestPayload(values);
+
+      const created = await orderService.createOrderWithDetails(rqOrder);
+      const createdOrderId = created?.data?.order_id || created?.order_id;
+      if (createdOrderId) {
+        await orderService.updateOrder(createdOrderId, { order_status: "Hoàn tất" });
+      }
+      // Clear any persisted draft tabs so next visit starts fresh
+      try {
+        localStorage.removeItem("orderTabs");
+        localStorage.removeItem("activeOrderTab");
+        localStorage.removeItem("orderTabCount");
+      } catch {}
+      useToastNotify("Đơn hàng đã được tạo và hoàn tất!", "success");
+      navigate("/orders");
+    } catch (error) {
+      useToastNotify("Không thể tạo và hoàn tất đơn hàng.", "error");
+    } finally {
+      setCompleteLoading(false);
     }
   };
 
@@ -1291,6 +1323,26 @@ const OrderFormData = ({
             <Divider />
             <div className="font-medium mb-2">Thanh toán</div>
             <div>
+              <Form.Item
+                name="payment_method"
+                label="Phương thức thanh toán"
+                rules={[
+                  {
+                    required: true,
+                    message: "Vui lòng chọn phương thức thành toán",
+                  },
+                ]}
+              >
+                <Select
+                  placeholder="Chọn phương thức"
+                  variant="filled"
+                  disabled={mode === "return"}
+                >
+                  <Option value="Tiền mặt">Tiền mặt</Option>
+                  <Option value="Chuyển khoản">Chuyển khoản</Option>
+                </Select>
+              </Form.Item>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Form.Item name="shipping_fee" label="Phí vận chuyển">
                   <InputNumber
@@ -1343,25 +1395,7 @@ const OrderFormData = ({
                   />
                 </div>
               </div>
-              <Form.Item
-                name="payment_method"
-                label="Phương thức thanh toán"
-                rules={[
-                  {
-                    required: true,
-                    message: "Vui lòng chọn phương thức thành toán",
-                  },
-                ]}
-              >
-                <Select
-                  placeholder="Chọn phương thức"
-                  variant="filled"
-                  disabled={mode === "return"}
-                >
-                  <Option value="Tiền mặt">Tiền mặt</Option>
-                  <Option value="Chuyển khoản">Chuyển khoản</Option>
-                </Select>
-              </Form.Item>
+
               <Form.Item name="amount_paid" label="Khách thanh toán">
                 <InputNumber
                   min={0}
@@ -1533,16 +1567,29 @@ const OrderFormData = ({
               <Button size="small" onClick={() => navigate("/orders")}>
                 Hủy
               </Button>
-              <Button
-                type="primary"
-                icon={<SaveOutlined />}
-                size="small"
-                onClick={handleSubmitOrder}
-                disabled={selectedProducts.length === 0}
-                loading={formLoading}
-              >
-                {mode === "create" ? "Tạo đơn hàng" : "Cập nhật đơn hàng"}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="default"
+                  size="small"
+                  onClick={handleSubmitOrder}
+                  disabled={selectedProducts.length === 0}
+                  loading={creatingLoading}
+                >
+                  {mode === "create" ? "Tạo đơn hàng" : "Cập nhật đơn hàng"}
+                </Button>
+                {mode === "create" && (
+                  <Button
+                    type="primary"
+                    icon={<SaveOutlined />}
+                    size="small"
+                    onClick={handleSubmitAndComplete}
+                    disabled={selectedProducts.length === 0}
+                    loading={completeLoading}
+                  >
+                    Tạo & Hoàn tất
+                  </Button>
+                )}
+              </div>
             </div>
           </>
         ) : (
