@@ -136,9 +136,9 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
             />
             <div className="flex justify-between mt-4">
                 <div className="flex gap-2">
-                    <Button type="primary" icon={<span>📥</span>}>
+                    {/* <Button type="primary" icon={<span>📥</span>}>
                         Xuất file
-                    </Button>
+                    </Button> */}
                 </div>
                 <div className="flex gap-2">
                     <Button type="primary" icon={<span>✏️</span>} onClick={() => setIsModalOpen(true)}>

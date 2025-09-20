@@ -8,7 +8,8 @@ const { RangePicker } = DatePicker;
 
 import openSansBase64 from "../utils/OpenSansBase64"; // lưu base64 vào file riêng
 
-export default function SalesReport({ rows = [], reportTitle = "BÁO CÁO", headers = { label: "Thời gian", revenue: "Doanh thu bán hàng", refund: "Chi phí nhập hàng", net: "Doanh thu thuần" } }) {
+export default function SalesReport({ rows = [], reportTitle = "BÁO CÁO",
+  headers = { label: "Thời gian", revenue: "Doanh thu bán hàng", refund: "Chi phí nhập hàng", net: "Doanh thu thuần" } }) {
   const [dataSource, setDataSource] = useState(rows);
   console.log("🚀 ~ SalesReport ~ dataSource:", dataSource)
 
@@ -26,7 +27,7 @@ export default function SalesReport({ rows = [], reportTitle = "BÁO CÁO", head
     { title: headers.label || "Thời gian", dataIndex: "date", key: "date" },
     { title: headers.revenue || "Doanh thu bán hàng", dataIndex: "revenue", key: "revenue", align: "right", render: (v) => formatNumber(v) },
     { title: headers.refund || "Chi phí nhập hàng", dataIndex: "refund", key: "refund", align: "right", render: (v) => formatNumber(v) },
-    { title: headers.net || "Doanh thu thuần", dataIndex: "netRevenue", key: "netRevenue", align: "right", render: (v) => formatNumber(v) },
+    { title: headers.net || "Báo cáo thu chi", dataIndex: "netRevenue", key: "netRevenue", align: "right", render: (v) => formatNumber(v) },
   ];
 
   const exportPDF = () => {

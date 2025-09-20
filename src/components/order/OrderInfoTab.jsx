@@ -9,6 +9,7 @@ import {
   Input,
   Divider,
   Tooltip,
+  Spin,
 } from "antd";
 
 import {
@@ -20,17 +21,20 @@ import {
   EditOutlined,
   DeleteOutlined,
   RollbackOutlined,
+  CopyOutlined,
 } from "@ant-design/icons";
 
 import formatPrice from "../../utils/formatPrice";
 import { useLocation, useNavigate } from "react-router-dom";
 import PrintInvoice from "../PrintInvoice";
+import { convertInvoiceToImageAndCopy } from "../../utils/invoiceToImageUtils";
+import { message } from "antd";
+import { COMPANY } from "../../config/companyConfig";
 
 const { Text, Title } = Typography;
 const { TextArea } = Input;
 
 export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record }) {
-  console.log("🚀 ~ OrderInfoTab ~ orderData:", orderData)
   const location = useLocation();
   const navigate = useNavigate()
 
@@ -54,9 +58,6 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
     products,
     data,
   } = orderData;
-  console.log("🚀 ~ OrderInfoTab ~ amount_paid:", amount_paid)
-  console.log("🚀 ~ OrderInfoTab ~ total_refund:", total_refund)
-  console.log("🚀 ~ OrderInfoTab ~ final_amount:", final_amount)
   const columns = [
     {
       title: "Mã hàng",
@@ -124,9 +125,9 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
         address: shipping_address || '--'
       },
       company: {
-        name: 'BizTrack',
-        phone: '0367657890',
-        address: '--'
+        name: COMPANY.name,
+        phone: COMPANY.phone,
+        address: COMPANY.address
       },
       items: orderItems?.map(item => ({
         name: item.product_name,
@@ -144,9 +145,38 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
   };
 
   const [isPrintModalVisible, setIsPrintModalVisible] = useState(false);
+  const [isCopyingImage, setIsCopyingImage] = useState(false);
 
   const handlePrint = () => {
     setIsPrintModalVisible(true);
+  };
+
+  const handleCopyImage = async () => {
+    if (isCopyingImage) return; // Prevent multiple clicks
+
+    setIsCopyingImage(true);
+
+    try {
+      const invoiceData = convertOrderToInvoice();
+      const success = await convertInvoiceToImageAndCopy(
+        invoiceData,
+        location.pathname.includes('return-order') ? 'sale_return' : 'sale'
+      );
+
+      if (success) {
+        message.success({
+          content: '✅ Đã copy hình ảnh hóa đơn vào clipboard! Bạn có thể paste vào chat để gửi cho khách hàng.',
+          duration: 4,
+        });
+      } else {
+        message.error('❌ Không thể copy hình ảnh vào clipboard. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      console.error('Error copying invoice image:', error);
+      message.error('❌ Lỗi khi chuyển đổi hóa đơn: ' + error.message);
+    } finally {
+      setIsCopyingImage(false);
+    }
   };
 
   return (
@@ -293,7 +323,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
                     Hủy
                   </Button>
                 }
-                <Button>Xuất file</Button>
+                {/* <Button>Xuất file</Button> */}
               </Col>
 
             }
@@ -331,7 +361,25 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
                 </Tooltip>
               )}
 
-              <Button icon={<PrinterOutlined />} onClick={handlePrint}>In</Button>
+              <Button
+                icon={isCopyingImage ? <Spin size="small" /> : <CopyOutlined />}
+                onClick={handleCopyImage}
+                loading={isCopyingImage}
+                disabled={isCopyingImage}
+                style={{ marginRight: 8 }}
+                title={isCopyingImage ? "Đang chuyển đổi hóa đơn thành hình ảnh..." : "Copy hình ảnh hóa đơn để gửi cho khách hàng"}
+              >
+                {isCopyingImage ? 'Đang xử lý...' : 'Copy hình ảnh'}
+              </Button>
+              <Button
+                color="primary"
+                variant="outlined"
+                icon={<PrinterOutlined />}
+                onClick={handlePrint}
+                disabled={isCopyingImage}
+              >
+                In
+              </Button>
             </Col>
           </Row>
         </div> : <div></div>

@@ -1,8 +1,11 @@
-import { Card, Row, Col, Typography, Table, Divider, Button } from "antd";
+import { Card, Row, Col, Typography, Table, Divider, Button, Spin, message } from "antd";
+import { CopyOutlined, PrinterOutlined } from "@ant-design/icons";
 import formatPrice from "../../utils/formatPrice";
 import PrintInvoice from "../PrintInvoice";
+import { convertInvoiceToImageAndCopy } from "../../utils/invoiceToImageUtils";
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
+import { COMPANY } from "../../config/companyConfig";
 
 const { Title, Text } = Typography;
 
@@ -10,6 +13,7 @@ export default function PurchaseOrderDetail({ order }) {
   const location = useLocation();
   console.log("🚀 ~ PurchaseOrderDetail ~ order:", order)
   const [printInvoiceVisible, setPrintInvoiceVisible] = useState(false);
+  const [isCopyingImage, setIsCopyingImage] = useState(false);
 
   const totalAmount = order?.details?.reduce((sum, detail) => {
     const subtotal = detail.quantity * (detail.price ?? detail.item_return_price);
@@ -33,8 +37,9 @@ export default function PurchaseOrderDetail({ order }) {
       address: order.supplier_address || '',
     },
     company: {
-      phone: '',
-      address: order.warehouse_name ? `${order.warehouse_name}` : '',
+      name: COMPANY.name,
+      phone: COMPANY.phone,
+      address: order.warehouse_name ? `${order.warehouse_name}` : COMPANY.address,
     },
     items: (order.details || []).map(detail => {
       const subtotal = (detail.quantity || 0) * (detail.price ?? detail.refund_amount);
@@ -57,6 +62,33 @@ export default function PurchaseOrderDetail({ order }) {
     note: order.note,
     finalTotal: (totalAmount - (order.discount || 0) + (order.shipping_fee || 0)),
   } : null;
+
+  const handleCopyImage = async () => {
+    if (isCopyingImage) return; // Prevent multiple clicks
+
+    setIsCopyingImage(true);
+
+    try {
+      const success = await convertInvoiceToImageAndCopy(
+        purchaseInvoiceData,
+        location.pathname.includes('purchase-return') ? 'purchase_return' : 'purchase'
+      );
+
+      if (success) {
+        message.success({
+          content: '✅ Đã copy hình ảnh hóa đơn nhập hàng vào clipboard! Bạn có thể paste vào chat để gửi cho nhà cung cấp.',
+          duration: 4,
+        });
+      } else {
+        message.error('❌ Không thể copy hình ảnh vào clipboard. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      console.error('Error copying invoice image:', error);
+      message.error('❌ Lỗi khi chuyển đổi hóa đơn: ' + error.message);
+    } finally {
+      setIsCopyingImage(false);
+    }
+  };
 
   const columns = [
     {
@@ -121,15 +153,14 @@ export default function PurchaseOrderDetail({ order }) {
           <Text type="secondary">Trạng thái</Text>
           <div>
             <span
-              className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                order?.status === "draft" || order?.status === "pending"
-                  ? "bg-orange-100 text-orange-800"
-                  : "bg-green-100 text-green-800"
-              }`}
+              className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${order?.status === "draft" || order?.status === "pending"
+                ? "bg-orange-100 text-orange-800"
+                : "bg-green-100 text-green-800"
+                }`}
             >
               {order?.status === "draft" || order?.status === "pending" ? "Chờ duyệt" :
-               order?.status === "approved" ? "Đã trả" :
-               order?.status === "posted" ? "Đã nhập" : "Đã nhập"}
+                order?.status === "approved" ? "Đã trả" :
+                  order?.status === "posted" ? "Đã nhập" : "Đã nhập"}
             </span>
           </div>
         </Col>
@@ -191,9 +222,24 @@ export default function PurchaseOrderDetail({ order }) {
         )}
       />
 
-      <div className="mt-4">
-        <Button type="primary" onClick={() => setPrintInvoiceVisible(true)}>
+      <div className="mt-4 flex gap-3">
+        <Button
+          type="primary"
+          icon={<PrinterOutlined />}
+          onClick={() => setPrintInvoiceVisible(true)}
+          disabled={isCopyingImage}
+        >
           In hóa đơn
+        </Button>
+        <Button
+          icon={isCopyingImage ? <Spin size="small" /> : <CopyOutlined />}
+          onClick={handleCopyImage}
+          loading={isCopyingImage}
+          disabled={isCopyingImage}
+          style={{ marginRight: 8 }}
+          title={isCopyingImage ? "Đang chuyển đổi hóa đơn thành hình ảnh..." : "Copy hình ảnh hóa đơn để gửi cho nhà cung cấp"}
+        >
+          {isCopyingImage ? 'Đang xử lý...' : 'Copy hình ảnh'}
         </Button>
       </div>
 

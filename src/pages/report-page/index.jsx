@@ -52,7 +52,7 @@ const configMap = {
         color: { bg: "rgba(34, 197, 94, 0.8)", border: "rgba(34, 197, 94, 1)" }
     },
     revenue: {
-        title: "Doanh thu thuần",
+        title: "Báo cáo thu chi",
         api: analysisService.getFinancialStatistics, // API để lấy dữ liệu doanh thu theo ngày
         labelField: "day", // hoặc trường tương ứng trong API trả về
         valueField: "net_revenue",
@@ -532,7 +532,7 @@ const TopEntityReport = ({ type }) => {
                                     return (
                                         <SalesReport
                                             rows={rows}
-                                            reportTitle={"BÁO CÁO DOANH THU THUẦN"}
+                                            reportTitle={"BÁO CÁO THU CHI"}
                                             headers={{ label: "Thời gian", ...commonHeaders }}
                                         />
                                     );

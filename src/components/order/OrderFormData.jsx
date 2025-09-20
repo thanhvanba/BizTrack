@@ -96,7 +96,7 @@ const OrderFormData = ({
     type: "customer_return",
     shipping_fee: "",
     order_amount: "",
-    note: "Không có ghi chú",
+    note: "",
     return_details: [],
   });
 
@@ -509,7 +509,7 @@ const OrderFormData = ({
         localStorage.removeItem("orderTabs");
         localStorage.removeItem("activeOrderTab");
         localStorage.removeItem("orderTabCount");
-      } catch {}
+      } catch { }
       useToastNotify("Đơn hàng đã được tạo và hoàn tất!", "success");
       navigate("/orders");
     } catch (error) {
@@ -1560,26 +1560,17 @@ const OrderFormData = ({
         {mode !== "return" ? (
           <>
             {/* Right side - actions */}
-            <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-center">
-              <Tag color="cyan" className="text-xs sm:text-sm">
+            <div className="flex items-center gap-2 flex-wrap justify-center">
+              <Tag color="cyan" className="text-xs sm:text-sm !mr-0">
                 Trạng thái: <Text strong>Mới</Text>
               </Tag>
-              <Button size="small" onClick={() => navigate("/orders")}>
+              <Button danger size="small" onClick={() => navigate("/orders")}>
                 Hủy
               </Button>
               <div className="flex gap-2">
-                <Button
-                  type="default"
-                  size="small"
-                  onClick={handleSubmitOrder}
-                  disabled={selectedProducts.length === 0}
-                  loading={creatingLoading}
-                >
-                  {mode === "create" ? "Tạo đơn hàng" : "Cập nhật đơn hàng"}
-                </Button>
                 {mode === "create" && (
                   <Button
-                    type="primary"
+                    type="default"
                     icon={<SaveOutlined />}
                     size="small"
                     onClick={handleSubmitAndComplete}
@@ -1589,6 +1580,15 @@ const OrderFormData = ({
                     Tạo & Hoàn tất
                   </Button>
                 )}
+                <Button
+                  type="primary"
+                  size="small"
+                  onClick={handleSubmitOrder}
+                  disabled={selectedProducts.length === 0}
+                  loading={creatingLoading}
+                >
+                  {mode === "create" ? "Tạo đơn hàng" : "Cập nhật đơn hàng"}
+                </Button>
               </div>
             </div>
           </>
