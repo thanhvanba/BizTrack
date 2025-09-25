@@ -41,14 +41,14 @@ export default function CashBookDetail({ record, onEdit, onDelete, onRefresh }) 
             {record.type === 'payment' ? 'Chi' : record.type === 'receipt' ? 'Thu' : record.type}
           </div>
         </Col>
-        <Col xs={8} md={8}>
+        {/* <Col xs={8} md={8}>
           <Text type="secondary">Phương thức</Text>
           <div className="font-medium">{record.payment_method}</div>
         </Col>
         <Col xs={8} md={8}>
           <Text type="secondary">Danh mục</Text>
           <div className="font-medium">{record.category}</div>
-        </Col>
+        </Col> */}
         <Col xs={8} md={8}>
           <Text type="secondary">Số tiền</Text>
           <div className="font-medium" style={{ color: record.type === 'payment' ? 'red' : 'green' }}>{Number(record.amount).toLocaleString('vi-VN')}</div>

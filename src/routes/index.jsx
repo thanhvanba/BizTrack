@@ -6,10 +6,12 @@ import LoginPage from '../components/login';
 import RegisterPage from '../components/register';
 import { privateRoutes, homeRoute } from './routeConfig';
 import PrivateRoute from './PrivateRoute';
+import LandingPage from '../pages/landing-page';
 
 const MainRouter = () => (
   <Router>
     <Routes>
+      <Route path="/landing" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/" element={homeRoute.element} />

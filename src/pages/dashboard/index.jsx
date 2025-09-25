@@ -95,14 +95,14 @@ const Dashboard = () => {
                     });
                 };
 
-                const prevRevenue = resPreviousRevenue[0]?.actual_revenue ?? 0;
-                const currRevenue = resCurrentRevenue[0]?.actual_revenue ?? 0;
+                const prevRevenue = resPreviousRevenue.data[0]?.actual_revenue ?? 0;
+                const currRevenue = resCurrentRevenue.data[0]?.actual_revenue ?? 0;
                 const revenueMoM = prevRevenue !== 0
                     ? ((currRevenue - prevRevenue) / prevRevenue) * 100
                     : 0;
 
                 setAnalysisData({
-                    revenue: resRevenue?.data[0],
+                    revenue: resCurrentRevenue?.data[0],
                     totalCustomer: resTotalCustomer?.data?.total || 0,
                     totalProduct: resTotalProduct?.data?.total || 0,
                     orderData: {
@@ -123,7 +123,8 @@ const Dashboard = () => {
 
 
         const handelGetDataRevenue = async () => {
-            const res = await analysisService.getFinancialStatistics({ type: "month", year: 2025, month: 8 })
+            const now = dayjs();
+            const res = await analysisService.getFinancialStatistics({ type: "month", year: now.year(), month: now.month() + 1 })
 
             if (res && res?.data) {
                 setFinancialStatistics(res.data)
@@ -345,7 +346,7 @@ const Dashboard = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Doanh thu</p>
-                                    <p className="text-2xl font-bold text-gray-800">{formatPrice(revenue?.actual_revenue) || 0}</p>
+                                    <p className="text-xl font-bold text-gray-800">{formatPrice(revenue?.actual_revenue) || 0}</p>
                                     {/* <div className={`flex items-center text-xs ${revenueMoM > 0 ? 'text-green-600' : 'text-red-600'} mt-2`}>
                                         {revenueMoM > 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
                                         <span className="ml-1">{Math.round(revenueMoM * 10) / 10}% so với tháng trước</span>
@@ -366,7 +367,7 @@ const Dashboard = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Khách hàng</p>
-                                    <p className="text-2xl font-bold text-gray-800">{totalCustomer}</p>
+                                    <p className="text-xl font-bold text-gray-800">{totalCustomer}</p>
                                     <div className="flex items-center text-xs text-blue-600 mt-2">
                                         <span>+{totalCustomersThisMonth} khách hàng mới</span>
                                     </div>
@@ -385,7 +386,7 @@ const Dashboard = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Sản phẩm</p>
-                                    <p className="text-2xl font-bold text-gray-800">{totalProduct}</p>
+                                    <p className="text-xl font-bold text-gray-800">{totalProduct}</p>
                                     <div className="flex items-center text-xs text-purple-600 mt-2">
                                         <span>+{totalProductsThisMonth} sản phẩm mới</span>
                                     </div>
@@ -404,7 +405,7 @@ const Dashboard = () => {
                                 </div>
                                 <div>
                                     <p className="text-sm text-gray-500 mb-1">Đơn hàng</p>
-                                    <p className="text-2xl font-bold text-gray-800">{orderData?.pagination?.total || 0}</p>
+                                    <p className="text-xl font-bold text-gray-800">{orderData?.pagination?.total || 0}</p>
                                     <div className="flex items-center text-xs text-orange-600 mt-2">
                                         <span>+{totalOrdersThisMonth} đơn hàng mới</span>
                                     </div>
@@ -417,7 +418,7 @@ const Dashboard = () => {
                 <Row gutter={[16, 16]} className="mt-6">
                     <Col xs={24} lg={12}>
                         <Card
-                            title={<span className="text-gray-800 font-bold">Doanh thu theo tháng</span>}
+                            title={<span className="text-gray-800 font-bold">Doanh thu</span>}
                             className="rounded-xl overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300"
                             headStyle={{
                                 borderBottom: "1px solid #f0f0f0",

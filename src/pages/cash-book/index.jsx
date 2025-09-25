@@ -41,13 +41,13 @@ const columns = [
     width: 260,
     render: (text) => <span className="line-clamp-1" title={text}>{text}</span>,
   },
-  {
-    title: 'Phương thức',
-    dataIndex: 'payment_method',
-    key: 'payment_method',
-    width: 120,
-    responsive: ['sm'],
-  },
+  // {
+  //   title: 'Phương thức',
+  //   dataIndex: 'payment_method',
+  //   key: 'payment_method',
+  //   width: 120,
+  //   responsive: ['sm'],
+  // },
   {
     title: 'Số tiền',
     dataIndex: 'amount',
