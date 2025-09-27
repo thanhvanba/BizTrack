@@ -4,7 +4,7 @@ import './index.css'; // file này cần chứa tailwind directives
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons"
 import ExpandedOrderTabs from '../../components/order/ExpandedOrderTabs';
 import ReturnInvoiceModal from '../../components/modals/ReturnInvoiceModal';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';    
 import useToastNotify from '../../utils/useToastNotify';
 import orderService from '../../service/orderService';
 import formatPrice from '../../utils/formatPrice';
@@ -28,6 +28,7 @@ const ReturnOrderPage = () => {
     });
 
     const navigate = useNavigate()
+    const location = useLocation()
 
     const showActionColumn = ordersReturnData.some(order => order.status === 'pending');
 
@@ -35,7 +36,10 @@ const ReturnOrderPage = () => {
         const baseCols = [
             {
                 title: 'Mã trả hàng', dataIndex: 'return_id', key: 'return_id',
-                render: (val) => { return "TH-" + val.slice(0, 8); }
+                render: (val) => {
+                    const idStr = (val ?? '').toString();
+                    return `TH-${idStr.slice(0, 8)}`;
+                }
             },
             { title: 'Người bán', dataIndex: 'seller', key: 'seller' },
             {
@@ -171,8 +175,51 @@ const ReturnOrderPage = () => {
     };
 
     useEffect(() => {
-        fetchOrdersReturn();
+        const params = new URLSearchParams(location.search);
+        const expandId = params.get('expand');
+        if (!expandId) {
+            fetchOrdersReturn();
+        }
     }, []);
+
+    // Xử lý auto-expand khi có expand parameter trong URL
+    useEffect(() => {
+        const urlParams = new URLSearchParams(location.search);
+        const expandId = urlParams.get('expand');
+        
+        if (expandId) {
+            const normalizeReturn = (ret) => {
+                if (!ret) return ret;
+                const source = ret.data ? ret.data : ret;
+                console.log("🚀 ~ normalizeReturn ~ source:", source)
+                const normalized = {
+                    return_id: source.return_id || source.id || expandId,
+                    seller: source.seller || source.user_name || source.created_by || '',
+                    created_at: source.created_at || source.createdAt || source.created_time || source.date || null,
+                    customer_name: source.customer_name || (source.customer && source.customer.customer_name) || '',
+                    total_refund: source.details?.reduce((sum, item) => sum + item.refund_amount, 0) ?? 0,
+                    status: source.status || source.order_status || '',
+                };
+                return { ...source, ...normalized };
+            };
+
+            const fetchReturnOrderToExpand = async () => {
+                try {
+                    const ret = await orderService.getReturnById(expandId);
+                    console.log("🚀 ~ fetchReturnOrderToExpand ~ ret:", ret)
+                    if (ret) {
+                        const normalized = normalizeReturn(ret);
+                        setOrdersReturnData([normalized]);
+                        setExpandedRowKeys([normalized.return_id]);
+                    }
+                } catch (error) {
+                    useToastNotify("Không thể mở chi tiết đơn trả hàng.", "error");
+                }
+            };
+
+            fetchReturnOrderToExpand();
+        }
+    }, [location.search, navigate]);
 
     return (
         <div>

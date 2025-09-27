@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Card, Row, Col, Typography, Space, Divider, Collapse, Badge } from 'antd';
+import { Button, Card, Row, Col, Typography, Space, Divider, Collapse, Badge, Carousel } from 'antd';
 import {
   ShoppingCartOutlined,
   UserOutlined,
@@ -118,13 +118,6 @@ const LandingPage = () => {
       features: ['Lọc và tìm kiếm', 'Trạng thái đơn hàng', 'Thao tác nhanh']
     },
     {
-      title: 'Chi tiết đơn hàng',
-      description: 'Xem và chỉnh sửa thông tin đơn hàng',
-      imageUrl: orderDetailImg,
-      imagePlaceholder: 'Khu vực ảnh minh hoạ (16:9)',
-      features: ['Thông tin đơn hàng', 'Lịch sử thanh toán', 'Lịch sử trả hàng']
-    },
-    {
       title: 'Tồn kho theo kho',
       description: 'Kiểm soát tồn kho theo từng kho',
       imageUrl: inventoryImg,
@@ -228,9 +221,9 @@ const LandingPage = () => {
       <div className="bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 h-1"></div>
 
       {/* Features Section */}
-      <div style={{ background: 'white', padding: '80px 0' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+      <div className="bg-white py-10 md:py-20">
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="text-center mb-15">
             <Title level={2} style={{ fontSize: '2.5rem', marginBottom: '20px' }}>
               Tính năng nổi bật
             </Title>
@@ -241,7 +234,7 @@ const LandingPage = () => {
 
           <Row gutter={[32, 32]}>
             {features.map((feature, index) => (
-              <Col xs={24} sm={12} lg={6} key={index}>
+              <Col xs={12} sm={12} lg={6} key={index}>
                 <Card
                   hoverable
                   style={{
@@ -266,8 +259,8 @@ const LandingPage = () => {
       </div>
 
       {/* Stats Stripe */}
-      <div style={{ background: '#0f1f3a', padding: '24px 0' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+      <div className="bg-slate-900 py-6">
+        <div className="max-w-6xl mx-auto px-5">
           <Row gutter={[24, 24]}>
             {[{ label: 'Doanh nghiệp đang dùng', value: '200+' }, { label: 'Thời gian triển khai', value: '48 giờ' }, { label: 'Uptime', value: '99.9%' }, { label: 'Hài lòng', value: '4.9/5' }].map((s, i) => (
               <Col xs={12} lg={6} key={i}>
@@ -282,8 +275,8 @@ const LandingPage = () => {
       </div>
 
       {/* Benefits Section */}
-      <div style={{ background: 'white', padding: '80px 0' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+      <div className="bg-white py-10 md:py-20">
+        <div className="max-w-6xl mx-auto px-5">
           <Row gutter={[48, 48]} align="middle">
             <Col xs={24} lg={12}>
               <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -318,9 +311,9 @@ const LandingPage = () => {
       </div>
 
       {/* Use-cases grid */}
-      <div style={{ background: '#f8f9fa', padding: '80px 0' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+      <div className="bg-gray-50 py-10 md:py-20">
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="text-center mb-10">
             <Title level={2}>Các module/màn hình chính</Title>
             <Text type="secondary">Tổng hợp những gì BizTrack đang hỗ trợ vận hành</Text>
           </div>
@@ -385,15 +378,15 @@ const LandingPage = () => {
       </div> */}
 
       {/* Quick process */}
-      <div style={{ background: 'white', padding: '80px 0' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+      <div className="bg-white py-10 md:py-20">
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="text-center mb-10">
             <Title level={2}>Quy trình sử dụng nhanh</Title>
             <Text type="secondary">Bắt đầu trong vài bước đơn giản</Text>
           </div>
           <Row gutter={[24, 24]} align="middle">
             {steps.map((s, i) => (
-              <Col xs={24} lg={6} key={i}>
+              <Col xs={12} lg={6} key={i}>
                 <Card
                   style={{ textAlign: 'center', borderRadius: 16 }}
                   className="relative overflow-hidden border border-slate-200 rounded-2xl bg-white shadow-sm hover:shadow-lg transition"
@@ -414,67 +407,108 @@ const LandingPage = () => {
       </div>
 
       {/* Showcase placeholders for screenshots */}
-      <div style={{ background: '#f8f9fa', padding: '80px 0' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
-          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+      <div className="bg-gray-50 py-10 md:py-20">
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="text-center mb-10">
             <Title level={2}>Màn hình tiêu biểu</Title>
           </div>
-          <Row gutter={[24, 24]}>
-            {showcaseScreens.map((item, i) => (
-              <Col xs={24} lg={12} key={i}>
-                <Card style={{ borderRadius: 16 }} className="hover:shadow-md transition-shadow">
-                  <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                    <div>
-                      <Title level={4} style={{ marginBottom: 8 }}>{item.title}</Title>
-                      <Text type="secondary" style={{ fontSize: '14px' }}>{item.description}</Text>
-                    </div>
-                    <img
-                      src={item.imageUrl || '/placeholder-screenshot.png'}
-                      alt={item.title}
-                      style={{
-                        width: '100%',
-                        aspectRatio: '16 / 9',
-                        objectFit: 'cover',
-                        borderRadius: 12,
-                        border: '1px solid #e0e0e0'
-                      }}
-                      onError={(e) => {
-                        e.target.style.background = '#0f1f3a';
-                        e.target.style.border = '1px dashed #1d2b4a';
-                        e.target.style.display = 'flex';
-                        e.target.style.alignItems = 'center';
-                        e.target.style.justifyContent = 'center';
-                        e.target.style.color = '#9db3c7';
-                        e.target.textContent = item.imagePlaceholder;
-                      }}
-                    />
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                      {item.features.map((feature, idx) => (
-                        <span
-                          key={idx}
-                          style={{
-                            background: '#f0f0f0',
-                            padding: '4px 8px',
-                            borderRadius: '12px',
-                            fontSize: '12px',
-                            color: '#666'
-                          }}
-                        >
-                          {feature}
-                        </span>
-                      ))}
-                    </div>
-                  </Space>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+          
+          {/* Desktop/Tablet: Grid Layout */}
+          <div className="hidden md:block">
+            <Row gutter={[24, 24]}>
+              {showcaseScreens.map((item, i) => (
+                <Col xs={24} lg={8} key={i}>
+                  <Card className="rounded-2xl hover:shadow-lg transition-shadow">
+                    <Space direction="vertical" size="middle" className="w-full">
+                      <div>
+                        <Title level={4} className="mb-2">{item.title}</Title>
+                        <Text type="secondary" className="text-sm">{item.description}</Text>
+                      </div>
+                      <img
+                        src={item.imageUrl || '/placeholder-screenshot.png'}
+                        alt={item.title}
+                        className="w-full aspect-video object-cover rounded-xl border border-gray-200"
+                        onError={(e) => {
+                          e.target.style.background = '#0f1f3a';
+                          e.target.style.border = '1px dashed #1d2b4a';
+                          e.target.style.display = 'flex';
+                          e.target.style.alignItems = 'center';
+                          e.target.style.justifyContent = 'center';
+                          e.target.style.color = '#9db3c7';
+                          e.target.textContent = item.imagePlaceholder;
+                        }}
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        {item.features.map((feature, idx) => (
+                          <span
+                            key={idx}
+                            className="bg-gray-100 px-2 py-1 rounded-xl text-xs text-gray-600"
+                          >
+                            {feature}
+                          </span>
+                        ))}
+                      </div>
+                    </Space>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          </div>
+
+          {/* Mobile: Carousel Layout */}
+          <div className="block md:hidden">
+            <Carousel
+              autoplay
+              autoplaySpeed={4000}
+              dots={{ className: 'custom-dots' }}
+              infinite
+              slidesToShow={1}
+              slidesToScroll={1}
+            >
+              {showcaseScreens.map((item, i) => (
+                <div key={i}>
+                  <Card className="rounded-2xl hover:shadow-lg transition-shadow">
+                    <Space direction="vertical" size="middle" className="w-full">
+                      <div>
+                        <Title level={4} className="mb-2">{item.title}</Title>
+                        <Text type="secondary" className="text-sm">{item.description}</Text>
+                      </div>
+                      <img
+                        src={item.imageUrl || '/placeholder-screenshot.png'}
+                        alt={item.title}
+                        className="w-full aspect-video object-cover rounded-xl border border-gray-200"
+                        onError={(e) => {
+                          e.target.style.background = '#0f1f3a';
+                          e.target.style.border = '1px dashed #1d2b4a';
+                          e.target.style.display = 'flex';
+                          e.target.style.alignItems = 'center';
+                          e.target.style.justifyContent = 'center';
+                          e.target.style.color = '#9db3c7';
+                          e.target.textContent = item.imagePlaceholder;
+                        }}
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        {item.features.map((feature, idx) => (
+                          <span
+                            key={idx}
+                            className="bg-gray-100 px-2 py-1 rounded-xl text-xs text-gray-600"
+                          >
+                            {feature}
+                          </span>
+                        ))}
+                      </div>
+                    </Space>
+                  </Card>
+                </div>
+              ))}
+            </Carousel>
+          </div>
         </div>
       </div>
 
       {/* FAQ */}
-      <div style={{ background: 'white', padding: '80px 0' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+      <div className="bg-white py-10 md:py-20">
+        <div className="max-w-6xl mx-auto px-5">
           <Row gutter={[48, 48]}>
             <Col xs={24} lg={12}>
               <Title level={2}>Câu hỏi thường gặp</Title>
@@ -543,12 +577,10 @@ const LandingPage = () => {
       </div> */}
 
       {/* Contact Section */}
-      <div style={{
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        padding: '80px 0',
-        color: 'white'
+      <div className="py-10 md:py-20 text-white" style={{
+        background: 'linear-gradient(135deg, #437aff 30%, #4e95ff 100%)'
       }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+        <div className="max-w-6xl mx-auto px-5">
           <Row gutter={[48, 48]} align="middle">
             <Col xs={24} lg={12}>
               <Space direction="vertical" size="large" style={{ width: '100%' }}>
@@ -615,8 +647,8 @@ const LandingPage = () => {
       </div>
 
       {/* Footer */}
-      <div style={{ background: '#1f1f1f', padding: '20px 0', color: 'white' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+      <div className="bg-gray-900 py-5 text-white">
+        <div className="max-w-6xl mx-auto px-5">
           <Row className='justify-center'>
             <Col>
               <Text style={{ color: '#999' }}>

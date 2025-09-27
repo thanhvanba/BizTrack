@@ -1,7 +1,24 @@
 import { Table, Tag } from "antd";
 import LoadingLogo from "../LoadingLogo";
-const columns = [
-  { title: "Mã hóa đơn", dataIndex: "code", key: "code" },
+
+const CustomerSaleReturnTab = ({ dataSource, loading, page, pageSize, total, onChangePage, onOrderClick }) => {
+  const columns = [
+    { 
+      title: "Mã hóa đơn", 
+      dataIndex: "code", 
+      key: "code",
+      render: (text, record) => (
+        <span 
+          className="text-blue-600 hover:text-blue-800 cursor-pointer underline hover:no-underline transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOrderClick && onOrderClick(record);
+          }}
+        >
+          {text}
+        </span>
+      )
+    },
   { title: "Thời gian", dataIndex: "date", key: "date" },
   { title: "Người bán", dataIndex: "seller", key: "seller" },
   {
@@ -51,11 +68,6 @@ const columns = [
   },
 ];
 
-// const CustomerSaleReturnTab = () => {
-//   return <Table columns={columns} dataSource={data} pagination={false} size="middle" scroll={{ x: 800 }} />;
-// };
-
-const CustomerSaleReturnTab = ({ dataSource, loading, page, pageSize, total, onChangePage }) => {
   return (
     <Table
       loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}

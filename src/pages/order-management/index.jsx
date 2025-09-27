@@ -22,7 +22,7 @@ import {
   ClearOutlined,
 } from "@ant-design/icons";
 import OrderDetailDrawer from "../../components/drawers/OrderDetailDrawer";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import orderService from "../../service/orderService";
 import './index.css'
 import searchService from "../../service/searchService";
@@ -45,6 +45,7 @@ const OrderManagement = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([])
 
   const navigate = useNavigate();
+  const location = useLocation();
   const [ordersData, setOrdersData] = useState([]);
   const [pagination, setPagination] = useState({
     current: 1,
@@ -313,8 +314,52 @@ const OrderManagement = () => {
   };
 
   useEffect(() => {
-    fetchOrders({ page: 1, limit: pagination.pageSize, params: {} });
+    const params = new URLSearchParams(location.search);
+    const expandId = params.get('expand');
+    if (!expandId) {
+      fetchOrders({ page: 1, limit: pagination.pageSize, params: {} });
+    }
   }, []);
+
+  // Xử lý auto-expand khi có expand parameter trong URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const expandId = urlParams.get('expand');
+    
+    if (expandId) {
+      const normalizeOrder = (order) => {
+        if (!order) return order;
+        const normalized = {
+          order_id: order.order_id || order.id || expandId,
+          order_code: order.order_code || order.code || order.orderCode || "",
+          customer: order.customer || { customer_name: order.customer_name || order.customerName || order.customer_fullname || "" },
+          order_date: order.order_date || order.delivery_date || order.orderDate || order.deliveryDate || order.date || null,
+          total_amount: (order.total_amount ?? order.total ?? order.totalAmount ?? 0),
+          final_amount: (order.final_amount ?? order.final ?? order.finalAmount ?? order.total ?? 0),
+          created_at: order.created_at || order.createdAt || order.created_time || order.created || null,
+          order_status: order.order_status || order.status || "",
+        };
+        // Preserve any extra fields for downstream components
+        return { ...order, ...normalized };
+      };
+      const fetchOrderToExpand = async () => {
+        try {
+          const orderData = await orderService.getOrderById(expandId);
+          console.log("🚀 ~ fetchOrderToExpand ~ orderData:", orderData)
+          if (orderData) {
+            const normalized = normalizeOrder(orderData.data ? orderData.data : orderData);
+            setOrdersData([normalized]);
+            setExpandedRowKeys([normalized.order_id]);
+            // Không xóa expand parameter, giữ nguyên URL
+          }
+        } catch (error) {
+          useToastNotify("Không thể mở chi tiết đơn hàng.", "error");
+        }
+      };
+      
+      fetchOrderToExpand();
+    }
+  }, [location.search, navigate]);
 
   const toggleExpand = (key) => {
     if (expandedRowKeys.includes(key)) {
@@ -335,20 +380,20 @@ const OrderManagement = () => {
       title: "Khách hàng",
       dataIndex: "customer",
       key: "customer",
-      render: customer => customer.customer_name,
+      render: (_, record) => record?.customer?.customer_name || record?.customer_name || "N/A",
     },
     {
       title: "Ngày giao",
       dataIndex: "order_date",
       key: "order_date",
-      render: (date) => new Date(date).toLocaleDateString("vi-VN"),
+      render: (date) => date ? new Date(date).toLocaleDateString("vi-VN") : "N/A",
       responsive: ["md"],
     },
     {
       title: "Tổng tiền hàng",
       dataIndex: "total_amount",
       key: "total_amount",
-      render: (total) => formatPrice(total),
+      render: (total) => formatPrice(total || 0),
       align: "right",
       responsive: ["md"],
     },
@@ -365,14 +410,14 @@ const OrderManagement = () => {
       title: "Thành tiền",
       dataIndex: "final_amount",
       key: "final_amount",
-      render: (final) => formatPrice(final),
+      render: (final) => formatPrice(final || 0),
       align: "right",
     },
     {
       title: "Ngày tạo",
       dataIndex: "created_at",
       key: "created_at",
-      render: (date) => new Date(date).toLocaleString("vi-VN"),
+      render: (date) => date ? new Date(date).toLocaleString("vi-VN") : "N/A",
     },
     // {
     //   title: "Chỉnh sửa gần nhất",

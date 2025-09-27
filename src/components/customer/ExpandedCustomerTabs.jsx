@@ -5,8 +5,10 @@ import CustomerSaleReturnTab from "./CustomerSaleReturnTab";
 import CustomerReceivablesTab from "./CustomerReceivablesTab";
 import customerService from "../../service/customerService";
 import useToastNotify from "../../utils/useToastNotify";
+import { useNavigate } from "react-router-dom";
 
 const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setSelectedCustomer, record, fetchCustomers }) => {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [dataSource, setDataSource] = useState([]);
     const [pagination, setPagination] = useState({
@@ -46,6 +48,8 @@ const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setS
                                 : 'Không thành công'
                         : order.order_status,
                 type: order.type,
+                order_id: order.order_id,
+                return_id: order.return_id,
             }));
             console.log("🚀 ~ fetchData ~ orderData:", orderData)
             setDataSource(orderData);
@@ -59,6 +63,23 @@ const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setS
     const handleTableChange = (paginationInfo) => {
         const { current, pageSize } = paginationInfo;
         fetchData(current, pageSize);
+    };
+
+    const handleOrderClick = (orderRecord) => {
+        console.log("Clicked order:", orderRecord);
+        
+        // Kiểm tra loại đơn hàng để xử lý phù hợp
+        if (orderRecord.type === 'return') {
+            // Đây là đơn hàng trả, chuyển đến trang return-order với expand
+            navigate(`/return-order?expand=${orderRecord.order_id}`);
+            useToastNotify(`Đang mở chi tiết đơn trả hàng: ${orderRecord.code}`, "info");
+        } else if (orderRecord.order_id) {
+            // Đây là đơn hàng thường, chuyển đến trang orders với expand
+            navigate(`/orders?expand=${orderRecord.order_id}`);
+            useToastNotify(`Đang mở chi tiết đơn hàng: ${orderRecord.code}`, "info");
+        } else {
+            useToastNotify(`Không thể mở chi tiết đơn hàng: ${orderRecord.code}`, "error");
+        }
     };
     useEffect(() => {
 
@@ -82,6 +103,7 @@ const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setS
                 pageSize={pagination.pageSize}
                 total={pagination.total}
                 onChangePage={handleTableChange}
+                onOrderClick={handleOrderClick}
             />,
         },
         {
