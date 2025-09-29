@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Table, Tag, Input, Button } from "antd";
 import { SearchOutlined, PlusOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import ExpandedPurchaseOrderTabs from "./ExpandedPurchaseOrderTabs";
 import purchaseOrderService from "../../service/purchaseService";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import LoadingLogo from "../LoadingLogo";
 
 export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onApprove, onCreateNew, onDelete, pagination, onChange }) {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const isReturnPage = location.pathname.includes('purchase-return');
   const mockWarehouses = useSelector(state => state.warehouse.warehouses.data);
   const warehouseMap = new Map(
@@ -17,6 +18,28 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
 
   const [searchText, setSearchText] = useState("");
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
+
+  // Handle expand parameter from URL
+  useEffect(() => {
+    const expandId = searchParams.get('expand');
+    if (expandId && purchaseOrders.length > 0) {
+      // Find the order to expand by ID or order_code
+      const orderToExpand = purchaseOrders.find(order => {
+        if (isReturnPage) {
+          return order.return_id === expandId || order.id === expandId;
+        } else {
+          return order.order_code === expandId || order.po_id === expandId;
+        }
+      });
+      if (orderToExpand) {
+        const key = isReturnPage ? orderToExpand.return_id : orderToExpand.po_id;
+        setExpandedRowKeys([key]);
+      }
+    } else if (!expandId) {
+      // Clear expanded rows when no expand parameter
+      setExpandedRowKeys([]);
+    }
+  }, [searchParams, purchaseOrders, isReturnPage]);
 
   const handleApprove = (order) => {
     if (confirm(`Bạn có chắc chắn muốn phê duyệt đơn nhập hàng ${isReturnPage ? order.return_id : order.po_id}?`)) {

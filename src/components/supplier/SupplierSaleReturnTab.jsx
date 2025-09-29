@@ -3,8 +3,23 @@ import supplierService from "../../service/supplierService";
 import { useEffect, useState } from "react";
 import LoadingLogo from "../LoadingLogo";
 
-const columns = [
-  { title: "Mã hóa đơn", dataIndex: "order_code", key: "order_code" },
+const getColumns = (onPurchaseClick) => [
+  { 
+    title: "Mã hóa đơn", 
+    dataIndex: "order_code", 
+    key: "order_code",
+    render: (text, record) => (
+      <span
+        className="text-blue-600 hover:text-blue-800 cursor-pointer transition-colors"
+        onClick={(e) => {
+          e.stopPropagation();
+          onPurchaseClick && onPurchaseClick(record);
+        }}
+      >
+        {text}
+      </span>
+    )
+  },
   {
     title: "Thời gian",
     dataIndex: "order_date", key: "order_date",
@@ -42,11 +57,12 @@ const columns = [
   },
 ];
 
-const SupplierReceivablesTab = ({ supplierId }) => {
+const SupplierReceivablesTab = ({ supplierId, onPurchaseClick }) => {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dataSource, setDataSource] = useState([]);
+  console.log("🚀 ~ SupplierReceivablesTab ~ dataSource:", dataSource)
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 5,
@@ -90,7 +106,7 @@ const SupplierReceivablesTab = ({ supplierId }) => {
     fetchSupplierHistory();
   }, [supplierId]);
   return <Table
-    columns={columns}
+    columns={getColumns(onPurchaseClick)}
     loading={loading ? { indicator: <LoadingLogo size={40} className="mx-auto my-8" /> } : false}
     dataSource={dataSource}
     pagination={{

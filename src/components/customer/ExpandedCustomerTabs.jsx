@@ -11,6 +11,7 @@ const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setS
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [dataSource, setDataSource] = useState([]);
+    console.log("🚀 ~ ExpandedCustomerTabs ~ dataSource:", dataSource)
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 5,

@@ -40,6 +40,71 @@ export default function PurchaseManagement() {
         setSearchParams({ tab });
     };
 
+    // Handle expand parameter from URL
+    useEffect(() => {
+        const expandId = searchParams.get('expand');
+        if (expandId) {
+            const fetchOrderToExpand = async () => {
+                try {
+                    let orderData;
+                    if (isReturnPage) {
+                        orderData = await purchaseOrderService.getReturnById(expandId);
+                        console.log("🚀 ~ fetchReturnOrderToExpand ~ orderData:", orderData);
+                    } else {
+                        orderData = await purchaseOrderService.getPurchaseOrderDetail(expandId);
+                        console.log("🚀 ~ fetchPurchaseOrderToExpand ~ orderData:", orderData);
+                    }
+
+                    if (orderData) {
+                        const normalized = isReturnPage 
+                            ? normalizeReturnOrder(orderData.data ? orderData.data : orderData, expandId)
+                            : normalizePurchaseOrder(orderData.data ? orderData.data : orderData);
+                        console.log("🚀 ~ fetchOrderToExpand ~ normalized:", normalized)
+                        setPurchaseOrders([normalized]); // Only show the expanded order
+                        setActiveTab("list"); // Switch to list tab
+                    }
+                } catch (error) {
+                    console.error("Error fetching order:", error);
+                    useToastNotify("Không thể mở chi tiết đơn hàng.", "error");
+                }
+            };
+            fetchOrderToExpand();
+        } else {
+            if (isReturnPage) {
+                fetchPurchaseReturn();
+            } else {
+                fetchPurchaseOrder();
+            }
+        }
+    }, [searchParams, isReturnPage]);
+
+    const normalizePurchaseOrder = (order) => {
+        if (!order) return order;
+        return {
+            ...order,
+            po_id: order.po_id || order.id,
+            order_code: order.order_code,
+            supplier_name: order.supplier_name,
+            warehouse_id: order.warehouse_id,
+            status: order.status,
+            created_at: order.created_at,
+            posted_at: order.posted_at,
+        };
+    };
+
+    const normalizeReturnOrder = (ret, expandId) => {
+        if (!ret) return ret;
+        const source = ret.data ? ret.data : ret;
+        return {
+            ...source,
+            return_id: source.return_id || source.id || expandId,
+            supplier_name: source.supplier_name,
+            warehouse_id: source.warehouse_id,
+            status: source.status,
+            created_at: source.created_at,
+        };
+    };
+
     // Đơn nhập hàng
     const handleCreatePurchaseOrder = async (order) => {
         try {
@@ -199,10 +264,14 @@ export default function PurchaseManagement() {
     };
 
     useEffect(() => {
-        if (isReturnPage) {
-            fetchPurchaseReturn();
-        } else {
-            fetchPurchaseOrder();
+        const expandId = searchParams.get('expand');
+        // Only fetch all orders if there's no expand parameter
+        if (!expandId) {
+            if (isReturnPage) {
+                fetchPurchaseReturn();
+            } else {
+                fetchPurchaseOrder();
+            }
         }
         dispatch(fetchWarehouses());
     }, [isReturnPage]);

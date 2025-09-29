@@ -9,7 +9,7 @@ const CustomerSaleReturnTab = ({ dataSource, loading, page, pageSize, total, onC
       key: "code",
       render: (text, record) => (
         <span 
-          className="text-blue-600 hover:text-blue-800 cursor-pointer underline hover:no-underline transition-colors"
+          className="text-blue-600 hover:text-blue-800 cursor-pointer transition-colors"
           onClick={(e) => {
             e.stopPropagation();
             onOrderClick && onOrderClick(record);
