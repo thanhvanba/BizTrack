@@ -239,7 +239,13 @@ const OrderFormData = ({
         "success"
       );
     } catch (error) {
-      useToastNotify("Thêm khách hàng không thành công.", "error");
+      const apiMsg =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        (Array.isArray(error?.response?.data?.errors) && error.response.data.errors[0]) ||
+        error?.message ||
+        "Thêm khách hàng không thành công.";
+      useToastNotify(apiMsg, "error");
     }
   };
   /**
@@ -275,6 +281,7 @@ const OrderFormData = ({
           product_retail_price: Number(item.price),
           cost_price: Number(item?.cost_price),
           discount: item.discountAmount || item.discount || 0,
+          vat: item.vat_rate || 0, // Thêm trường VAT từ dữ liệu đơn hàng
         }));
 
         {
@@ -423,13 +430,22 @@ const OrderFormData = ({
   const buildOrderRequestPayload = (values) => {
     const formattedOrderDate = dayjs(values.order_date).format("YYYY-MM-DD");
 
-    const orderDetails = selectedProducts.map((item) => ({
-      product_id: item?.product_id,
-      quantity: item.quantity,
-      price: Number(item?.product_retail_price),
-      cost_price: Number(item?.cost_price),
-      discount: item?.discountAmount || item?.discount || 0,
-    }));
+    const orderDetails = selectedProducts.map((item) => {
+      const subtotal = item.quantity * Number(item?.product_retail_price);
+      const discount = item?.discountAmount || item?.discount || 0;
+      const afterDiscount = subtotal - discount;
+      const vatAmount = afterDiscount * (item.vat || 0) / 100;
+      
+      return {
+        product_id: item?.product_id,
+        quantity: item.quantity,
+        price: Number(item?.product_retail_price),
+        cost_price: Number(item?.cost_price),
+        discount: discount,
+        vat_rate: item.vat || 0,
+        vat_amount: vatAmount,
+      };
+    });
 
     return {
       order: {
@@ -453,6 +469,7 @@ const OrderFormData = ({
       setCreatingLoading(true);
       const values = await form.validateFields();
       const rqOrder = buildOrderRequestPayload(values);
+      console.log("🚀 ~ handleSubmitOrder ~ rqOrder:", rqOrder)
 
       let res;
       if (mode === "create") {
@@ -526,7 +543,7 @@ const OrderFormData = ({
       .includes(searchText.toLowerCase())
   );
   /**
-   * Tính tổng tiền đơn hàng
+   * Tính tổng tiền đơn hàng (chưa bao gồm VAT)
    * Sử dụng orderEligibility.products cho return mode, selectedProducts cho create/edit mode
    * @returns {number} Tổng tiền đơn hàng
    */
@@ -543,6 +560,24 @@ const OrderFormData = ({
           : item.product_retail_price) *
         quantity
       );
+    }, 0);
+  };
+
+  /**
+   * Tính tổng VAT của đơn hàng
+   * @returns {number} Tổng VAT
+   */
+  const calculateTotalVatAmount = () => {
+    if (mode === "return") return 0; // Return mode không tính VAT
+    
+    return selectedProducts.reduce((sum, item) => {
+      const quantity = item.quantity ?? 0;
+      const price = item.product_retail_price;
+      const discount = item?.discountAmount || item?.discount || 0;
+      const subtotal = price * quantity;
+      const afterDiscount = subtotal - discount;
+      const vatAmount = afterDiscount * (item.vat || 0) / 100;
+      return sum + vatAmount;
     }, 0);
   };
   /**
@@ -568,12 +603,13 @@ const OrderFormData = ({
 
   /**
    * Tính số tiền cuối cùng cần thanh toán
-   * Công thức: Tổng tiền - Tổng giảm giá + Phí vận chuyển
+   * Công thức: Tổng tiền - Tổng giảm giá + VAT + Phí vận chuyển
    */
   const finalAmount = useMemo(() => {
     return (
       Number(calculateTotalAmount()) -
       Number(calculateDiscountAmount()) +
+      Number(calculateTotalVatAmount()) +
       Number(
         mode === "return"
           ? returnOrderData.shipping_fee
@@ -648,6 +684,7 @@ const OrderFormData = ({
           quantity: 1,
           discount: 0,
           discountAmount: 0,
+          vat: 0, // Thêm trường VAT mặc định
         },
       ]);
     }
@@ -685,6 +722,18 @@ const OrderFormData = ({
         selectedProducts.map((item) =>
           item.product_id === productId
             ? { ...item, product_retail_price }
+            : item
+        )
+      );
+    }
+  };
+
+  const updateVat = (productId, vat) => {
+    if (vat >= 0 && vat <= 100) {
+      setSelectedProducts(
+        selectedProducts.map((item) =>
+          item.product_id === productId
+            ? { ...item, vat }
             : item
         )
       );
@@ -990,6 +1039,26 @@ const OrderFormData = ({
       },
     },
 
+    // Cột VAT chỉ hiển thị khi không phải mode return
+    ...(mode !== "return" ? [{
+      title: "VAT (%)",
+      dataIndex: "vat",
+      key: "vat",
+      align: "center",
+      width: 80,
+      render: (_, record) => (
+        <InputNumber
+          min={0}
+          max={100}
+          value={record.vat || 0}
+          onChange={(value) => updateVat(record.product_id, value)}
+          addonAfter="%"
+          style={{ width: '100%' }}
+          size="small"
+        />
+      ),
+    }] : []),
+
     {
       title: "Thành tiền",
       key: "subtotal",
@@ -1006,13 +1075,18 @@ const OrderFormData = ({
           mode === "return"
             ? record.quantity_return ?? 0
             : record.quantity ?? 0;
-        return formatCurrency(
-          (record.product_return_price !== undefined
-            ? record.product_return_price
-            : record.product_retail_price) *
-          (quantity || 0) -
-          (record.discountAmount || record.discount)
-        );
+        
+        // Tính toán thành tiền bao gồm VAT
+        const price = record.product_return_price !== undefined
+          ? record.product_return_price
+          : record.product_retail_price;
+        const subtotal = price * (quantity || 0);
+        const discount = record.discountAmount || record.discount || 0;
+        const afterDiscount = subtotal - discount;
+        const vatAmount = afterDiscount * (record.vat || 0) / 100;
+        const total = afterDiscount + vatAmount;
+        
+        return formatCurrency(total);
       },
     },
     mode !== "return" && {
@@ -1475,6 +1549,12 @@ const OrderFormData = ({
                       {formatCurrency(
                         calculateTotalAmount() - calculateDiscountAmount()
                       )}
+                    </div>
+                  </Descriptions.Item>
+
+                  <Descriptions.Item label="VAT" span={4}>
+                    <div style={{ textAlign: "right" }}>
+                      {formatCurrency(calculateTotalVatAmount())}
                     </div>
                   </Descriptions.Item>
 

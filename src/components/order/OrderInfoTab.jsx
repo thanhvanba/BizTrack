@@ -84,32 +84,90 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
       align: "right",
       render: (discount) => formatPrice(discount),
     },
-    location.pathname.includes('return-order') ?
-      {
+    // Cột VAT chỉ hiển thị khi không phải return order
+    ...(location.pathname.includes('return-order') ?
+      [{
         title: "Giá trả",
         dataIndex: "item_return_price",
         key: "item_return_price",
         align: "right",
         render: (price) => formatPrice(price),
-      }
-      : {
+      }] : [{
         title: "Giá bán",
         dataIndex: "price",
         key: "price_sale",
         align: "right",
         render: (price) => formatPrice(price),
-      }, ,
-    // {
-    //   title: "Thành tiền",
-    //   key: "total",
-    //   render: (_, record) => (record.price * record.quantity - record.discount).toLocaleString(),
-    // },
+      },
+      {
+        title: "VAT",
+        key: "vat",
+        align: "center",
+        render: (_, record) => {
+          const subtotal = (record.quantity || 0) * (record.price || 0);
+          const afterDiscount = subtotal - (record.discount || 0);
+          const vatAmount = afterDiscount * (record.vat_rate || 0) / 100;
+          return (
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '12px', color: '#666' }}>{record.vat_rate || 0}%</div>
+              <div style={{ fontSize: '13px', fontWeight: '500' }}>{formatPrice(vatAmount)}</div>
+            </div>
+          );
+        },
+      },
+      {
+        title: "Thành tiền",
+        key: "total",
+        align: "right",
+        render: (_, record) => {
+          const subtotal = (record.quantity || 0) * (record.price || 0);
+          const discount = record.discount || 0;
+          const afterDiscount = subtotal - discount;
+          const vatAmount = afterDiscount * (record.vat_rate || 0) / 100;
+          const total = afterDiscount + vatAmount;
+          return formatPrice(total);
+        },
+      }]),
+
   ];
 
   const totalQuantity = location.pathname.includes('return-order') ? data?.details?.reduce((sum, item) => sum + item.quantity, 0) : products?.reduce((sum, item) => sum + item.quantity, 0);
   const totalProductDiscount = products?.reduce(
     (sum, item) => sum + item.discount, 0
   );
+
+  // Tính tổng VAT
+  const totalVatAmount = products?.reduce((sum, item) => {
+    const subtotal = (item.quantity || 0) * (item.price || 0);
+    const discount = item.discount || 0;
+    const afterDiscount = subtotal - discount;
+    const vatAmount = afterDiscount * (item.vat_rate || 0) / 100;
+    return sum + vatAmount;
+  }, 0) || 0;
+
+  // Debug log để kiểm tra VAT
+  console.log("🚀 ~ OrderInfoTab ~ totalVatAmount:", totalVatAmount);
+  console.log("🚀 ~ OrderInfoTab ~ products:", products);
+
+  // Kiểm tra từng sản phẩm có VAT không
+  products?.forEach((item, index) => {
+    const subtotal = (item.quantity || 0) * (item.price || 0);
+    const discount = item.discount || 0;
+    const afterDiscount = subtotal - discount;
+    const vatAmount = afterDiscount * (item.vat_rate || 0) / 100;
+    console.log(`🚀 ~ Product ${index}:`, {
+      name: item.product_name,
+      vat_rate: item.vat_rate,
+      vatAmount: vatAmount,
+      subtotal,
+      discount,
+      afterDiscount
+    });
+  });
+
+  // Xác định colSpan dựa trên việc có cột VAT hay không
+  const hasVatColumn = !location.pathname.includes('return-order');
+  const summaryColSpan = hasVatColumn ? 6 : 4;
 
   // Convert order data to invoice data for printing
   const convertOrderToInvoice = () => {
@@ -129,14 +187,26 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
         phone: COMPANY.phone,
         address: COMPANY.address
       },
-      items: orderItems?.map(item => ({
-        name: item.product_name,
-        unitPrice: isReturnOrder ? item.refund_amount : item.price,
-        quantity: item.quantity,
-        amount: isReturnOrder ? item.refund_amount : (item.price * item.quantity)
-      })) || [],
+      items: orderItems?.map(item => {
+        const subtotal = (item.quantity || 0) * (isReturnOrder ? item.refund_amount : item.price);
+        const discount = item.discount || 0;
+        const afterDiscount = subtotal - discount;
+        const vatAmount = afterDiscount * (item.vat_rate || 0) / 100;
+        const total = afterDiscount + vatAmount;
+
+        return {
+          name: item.product_name,
+          unitPrice: isReturnOrder ? item.refund_amount : item.price,
+          quantity: item.quantity,
+          vatRate: item.vat_rate || 0,
+          vatAmount: vatAmount,
+          amount: isReturnOrder ? item.refund_amount : total
+        };
+      }) || [],
       total: total_amount || record?.total_refund,
+      subtotal: (total_amount || record?.total_refund) - totalVatAmount,
       discount: totalProductDiscount + order_amount || 0,
+      totalVat: totalVatAmount,
       shippingFee: shipping_fee || 0,
       amountPaid: amount_paid || 0,
       note: note || data?.note || '',
@@ -240,7 +310,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
             summary={() => (
               <>
                 <Table.Summary.Row>
-                  <Table.Summary.Cell index={0} colSpan={4} align="">
+                  <Table.Summary.Cell index={0} colSpan={summaryColSpan} align="">
                     <Text strong>{`Tổng tiền hàng (${totalQuantity})`}</Text>
                   </Table.Summary.Cell>
                   <Table.Summary.Cell index={6} align="right">
@@ -248,13 +318,21 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
                   </Table.Summary.Cell>
                 </Table.Summary.Row>
                 <Table.Summary.Row>
-                  <Table.Summary.Cell index={0} colSpan={4} align="">
+                  <Table.Summary.Cell index={0} colSpan={summaryColSpan} align="">
                     Giảm giá hóa đơn + Tổng giảm giá sản phẩm
                   </Table.Summary.Cell>
                   <Table.Summary.Cell index={6} className="text-green-600" align="right">{`${formatPrice(order_amount)} + ${formatPrice(totalProductDiscount)}`}</Table.Summary.Cell>
                 </Table.Summary.Row>
+                {!location.pathname.includes('return-order') && (
+                  <Table.Summary.Row>
+                    <Table.Summary.Cell index={0} colSpan={summaryColSpan} align="">
+                      VAT
+                    </Table.Summary.Cell>
+                    <Table.Summary.Cell index={6} className="text-blue-600" align="right">{formatPrice(totalVatAmount)}</Table.Summary.Cell>
+                  </Table.Summary.Row>
+                )}
                 <Table.Summary.Row>
-                  <Table.Summary.Cell index={0} colSpan={4} align="">
+                  <Table.Summary.Cell index={0} colSpan={summaryColSpan} align="">
                     Phí vận chuyển
                   </Table.Summary.Cell>
                   <Table.Summary.Cell index={6} className="text-red-600" align="right">{formatPrice(shipping_fee)}</Table.Summary.Cell>

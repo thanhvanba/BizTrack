@@ -520,7 +520,7 @@ const OrderManagement = () => {
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative w-full">
             <Input
-              placeholder="Tìm kiếm theo số điện thoại khách hàng / tên khách hàng"
+              placeholder="Tìm kiếm theo số điện thoại / tên khách hàng / mã đơn hàng"
               value={searchText}
               prefix={<SearchOutlined className="text-gray-400" />}
               onChange={handleChange}

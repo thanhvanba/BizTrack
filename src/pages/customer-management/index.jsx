@@ -93,8 +93,15 @@ const CustomerManagement = () => {
       setCreateModalVisible(false)
       fetchCustomers()
       useToastNotify(`Đã thêm khách hàng "${data.customer_name}" thành công!`, "success")
-    } catch {
-      useToastNotify("Thêm khách hàng không thành công.", "error")
+    } catch (error) {
+      const apiMsg =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        (Array.isArray(error?.response?.data?.errors) && error.response.data.errors[0]) ||
+        (typeof error?.response?.data === 'string' && error.response.data) ||
+        error?.message ||
+        "Thêm khách hàng không thành công.";
+      useToastNotify(apiMsg, "error")
     }
   }
 

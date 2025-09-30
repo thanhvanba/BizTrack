@@ -344,7 +344,7 @@ export const generateInvoiceHTML = (invoiceData, type, logoBase64, qrBase64) => 
             <th>Tên sản phẩm</th>
             <th class="text-right">Đơn giá</th>
             <th class="text-right">SL</th>
-            ${(type === 'purchase' || type === 'purchase_return') ? '<th class="text-right">VAT (%)</th><th class="text-right">Tiền VAT</th>' : ''}
+            ${(type === 'purchase' || type === 'purchase_return' || type === 'sale') ? '<th class="text-right">VAT (%)</th><th class="text-right">Tiền VAT</th>' : ''}
             <th class="text-right">Thành tiền</th>
           </tr>
         </thead>
@@ -354,7 +354,7 @@ export const generateInvoiceHTML = (invoiceData, type, logoBase64, qrBase64) => 
               <td>${item.name || ''}</td>
               <td class="text-right">${formatCurrency(item.unitPrice || 0)}</td>
               <td class="text-right">${item.quantity || 0}</td>
-              ${(type === 'purchase' || type === 'purchase_return') ? `
+              ${(type === 'purchase' || type === 'purchase_return' || type === 'sale') ? `
                 <td class="text-right">${item.vatRate || 0}%</td>
                 <td class="text-right">${formatCurrency(item.vatAmount || 0)}</td>
               ` : ''}
@@ -369,6 +369,15 @@ export const generateInvoiceHTML = (invoiceData, type, logoBase64, qrBase64) => 
         <div class="summary-row">
           <span>Tạm tính:</span>
           <span>${formatCurrency(invoiceData.subtotal || 0)}</span>
+        </div>
+        <div class="summary-row">
+          <span>VAT:</span>
+          <span>${formatCurrency(invoiceData.totalVat || 0)}</span>
+        </div>
+        ` : type === 'sale' ? `
+        <div class="summary-row">
+          <span>Tạm tính:</span>
+          <span>${formatCurrency(invoiceData.subtotal || total || 0)}</span>
         </div>
         <div class="summary-row">
           <span>VAT:</span>
