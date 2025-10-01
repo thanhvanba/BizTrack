@@ -126,7 +126,7 @@ const PrintInvoice = ({ visible, onClose, invoiceData, type = 'sale' }) => {
           reject(error);
         }
       };
-      
+
       img.onerror = (error) => {
         console.error('Error loading image:', imagePath, error);
         reject(new Error(`Failed to load image: ${imagePath}`));
