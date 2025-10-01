@@ -19,6 +19,10 @@ const CustomerInfoTab = ({ setEditModalVisible, setDeleteModalVisible, setSelect
           <p>{customerData.email || "Chưa có"}</p>
         </div>
         <div>
+          <p className="font-medium">Địa chỉ:</p>
+          <p>{customerData.address || "Chưa có"}</p>
+        </div>
+        <div>
           <p className="font-medium">Tổng số đơn hàng:</p>
           <p>{customerData.total_orders}</p>
         </div>
