@@ -1,8 +1,12 @@
 import { Card, Row, Col, Typography, Table, Divider, Button, Spin, message } from "antd";
-import { CopyOutlined, PrinterOutlined } from "@ant-design/icons";
+import { CopyOutlined, PrinterOutlined, SaveOutlined, ShareAltOutlined } from "@ant-design/icons";
 import formatPrice from "../../utils/formatPrice";
 import PrintInvoice from "../PrintInvoice";
-import { convertInvoiceToImageAndCopy } from "../../utils/invoiceToImageUtils";
+import {
+  convertInvoiceToImageAndCopy,
+  convertInvoiceToImageAndSave,
+  convertInvoiceToImageAndShare
+} from "../../utils/invoiceToImageUtils";
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import { COMPANY } from "../../config/companyConfig";
@@ -14,6 +18,8 @@ export default function PurchaseOrderDetail({ order }) {
   console.log("🚀 ~ PurchaseOrderDetail ~ order:", order)
   const [printInvoiceVisible, setPrintInvoiceVisible] = useState(false);
   const [isCopyingImage, setIsCopyingImage] = useState(false);
+  const [isSavingImage, setIsSavingImage] = useState(false);
+  const [isSharingImage, setIsSharingImage] = useState(false);
 
   const totalAmount = order?.details?.reduce((sum, detail) => {
     const subtotal = detail.quantity * (detail.price ?? detail.item_return_price);
@@ -87,6 +93,60 @@ export default function PurchaseOrderDetail({ order }) {
       message.error('❌ Lỗi khi chuyển đổi hóa đơn: ' + error.message);
     } finally {
       setIsCopyingImage(false);
+    }
+  };
+
+  const handleSaveImage = async () => {
+    if (isSavingImage) return; // Prevent multiple clicks
+
+    setIsSavingImage(true);
+
+    try {
+      const success = await convertInvoiceToImageAndSave(
+        purchaseInvoiceData,
+        location.pathname.includes('purchase-return') ? 'purchase_return' : 'purchase'
+      );
+
+      if (success) {
+        message.success({
+          content: '💾 Đã lưu hình ảnh hóa đơn nhập hàng vào thiết bị!',
+          duration: 4,
+        });
+      } else {
+        message.error('❌ Không thể lưu hình ảnh. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      console.error('Error saving invoice image:', error);
+      message.error('❌ Lỗi khi lưu hóa đơn: ' + error.message);
+    } finally {
+      setIsSavingImage(false);
+    }
+  };
+
+  const handleShareImage = async () => {
+    if (isSharingImage) return; // Prevent multiple clicks
+
+    setIsSharingImage(true);
+
+    try {
+      const success = await convertInvoiceToImageAndShare(
+        purchaseInvoiceData,
+        location.pathname.includes('purchase-return') ? 'purchase_return' : 'purchase'
+      );
+
+      if (success) {
+        message.success({
+          content: '📤 Đã share hóa đơn nhập hàng lên mạng xã hội!',
+          duration: 4,
+        });
+      } else {
+        message.error('❌ Không thể share hóa đơn. Vui lòng thử lại.');
+      }
+    } catch (error) {
+      console.error('Error sharing invoice image:', error);
+      message.error('❌ Lỗi khi share hóa đơn: ' + error.message);
+    } finally {
+      setIsSharingImage(false);
     }
   };
 
@@ -227,7 +287,7 @@ export default function PurchaseOrderDetail({ order }) {
           type="primary"
           icon={<PrinterOutlined />}
           onClick={() => setPrintInvoiceVisible(true)}
-          disabled={isCopyingImage}
+          disabled={isCopyingImage || isSavingImage || isSharingImage}
         >
           In hóa đơn
         </Button>
@@ -235,12 +295,33 @@ export default function PurchaseOrderDetail({ order }) {
           icon={isCopyingImage ? <Spin size="small" /> : <CopyOutlined />}
           onClick={handleCopyImage}
           loading={isCopyingImage}
-          disabled={isCopyingImage}
-          style={{ marginRight: 8 }}
+          disabled={isCopyingImage || isSavingImage || isSharingImage}
           title={isCopyingImage ? "Đang chuyển đổi hóa đơn thành hình ảnh..." : "Copy hình ảnh hóa đơn để gửi cho nhà cung cấp"}
         >
           {isCopyingImage ? 'Đang xử lý...' : 'Copy hình ảnh'}
         </Button>
+
+        <Button
+          icon={isSavingImage ? <Spin size="small" /> : <SaveOutlined />}
+          onClick={handleSaveImage}
+          loading={isSavingImage}
+          disabled={isCopyingImage || isSavingImage || isSharingImage}
+          title={isSavingImage ? "Đang lưu hình ảnh hóa đơn..." : "Lưu hình ảnh hóa đơn vào thiết bị"}
+        >
+          {isSavingImage ? 'Đang lưu...' : 'Lưu ảnh'}
+        </Button>
+
+        <span className="lg:hidden">
+          <Button
+            icon={isSharingImage ? <Spin size="small" /> : <ShareAltOutlined />}
+            onClick={handleShareImage}
+            loading={isSharingImage}
+            disabled={isCopyingImage || isSavingImage || isSharingImage}
+            title={isSharingImage ? "Đang share hóa đơn..." : "Share hóa đơn lên mạng xã hội"}
+          >
+            {isSharingImage ? 'Đang share...' : 'Share'}
+          </Button>
+        </span>
       </div>
 
       <PrintInvoice

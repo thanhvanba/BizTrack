@@ -1,6 +1,6 @@
 import React from 'react';
-import { 
-  validateInvoiceData, 
+import {
+  validateInvoiceData,
   generateInvoiceHTML,
 } from '../utils/invoiceUtils';
 import { ASSETS } from '../config/companyConfig';
@@ -32,76 +32,46 @@ const PrintInvoice = ({ visible, onClose, invoiceData, type = 'sale' }) => {
       console.log("🚀 ~ printInvoice ~ logoBase64:", logoBase64)
       const qrBase64 = await convertImageToBase64(ASSETS.qr);
       console.log("🚀 ~ printInvoice ~ qrBase64:", qrBase64)
-      
+
       // Generate HTML using common utility
       const invoiceHTML = generateInvoiceHTML(invoiceData, type, logoBase64, qrBase64);
-      
-      // Detect iOS and use appropriate method
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      
-      if (isIOS) {
-        // For iOS, use window.open directly as iframe printing doesn't work well
-        console.log('📱 iOS detected, using window.open method');
-        const printWindow = window.open('', '_blank', 'width=800,height=600');
-        
-        if (printWindow) {
+
+      // Create hidden iframe for printing
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'absolute';
+      iframe.style.left = '-9999px';
+      iframe.style.top = '-9999px';
+      iframe.style.width = '210mm';
+      iframe.style.height = '297mm';
+      document.body.appendChild(iframe);
+
+      // Write HTML to iframe
+      iframe.contentDocument.write(invoiceHTML);
+      iframe.contentDocument.close();
+
+      // Wait for iframe to load then print
+      iframe.onload = () => {
+        try {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+
+          // Remove iframe after printing
+          setTimeout(() => {
+            document.body.removeChild(iframe);
+          }, 1000);
+        } catch (error) {
+          console.error('Print error:', error);
+          // Fallback: open new window if iframe doesn't work
+          const printWindow = window.open('', '_blank');
           printWindow.document.write(invoiceHTML);
           printWindow.document.close();
-          
-          // Wait for content to load then print
           printWindow.onload = () => {
-            setTimeout(() => {
-              printWindow.focus();
-              printWindow.print();
-              
-              // Close window after printing
-              setTimeout(() => {
-                printWindow.close();
-              }, 1000);
-            }, 500);
+            printWindow.print();
+            printWindow.close();
           };
-        } else {
-          throw new Error('Popup blocked. Please allow popups for this site.');
+          document.body.removeChild(iframe);
         }
-      } else {
-        // For desktop and Android, use iframe method
-        console.log('🖥️ Desktop/Android detected, using iframe method');
-        const iframe = document.createElement('iframe');
-        iframe.style.position = 'absolute';
-        iframe.style.left = '-9999px';
-        iframe.style.top = '-9999px';
-        iframe.style.width = '210mm';
-        iframe.style.height = '297mm';
-        document.body.appendChild(iframe);
-
-        // Write HTML to iframe
-        iframe.contentDocument.write(invoiceHTML);
-        iframe.contentDocument.close();
-
-        // Wait for iframe to load then print
-        iframe.onload = () => {
-          try {
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-
-            // Remove iframe after printing
-            setTimeout(() => {
-              document.body.removeChild(iframe);
-            }, 1000);
-          } catch (error) {
-            console.error('Print error:', error);
-            // Fallback: open new window if iframe doesn't work
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(invoiceHTML);
-            printWindow.document.close();
-            printWindow.onload = () => {
-              printWindow.print();
-              printWindow.close();
-            };
-            document.body.removeChild(iframe);
-          }
-        };
-      }
+      };
     } catch (error) {
       console.error('Error preparing print:', error);
       throw error;
