@@ -17,6 +17,8 @@ import AdjustInventory from '../pages/warehouse-management/AdjustInventory';
 import CustomerImport from '../pages/CustomerImport';
 import ProductReport from '../pages/report-page';
 import TopEntityReport from '../pages/report-page';
+import UserAccountPage from '../pages/user-account';
+import ProfilePage from '../pages/profile';
 
 export const homeRoute = { path: '', element: <HomePage /> };
 
@@ -45,5 +47,7 @@ export const privateRoutes = [
   { path: 'supplier-report', element: <TopEntityReport type="supplier" /> },
   { path: 'revenue-report', element: <TopEntityReport type="revenue" /> },
   { path: 'finance-report', element: <TopEntityReport type="finance" /> },
+  { path: 'profile', element: <ProfilePage /> },
+  { path: 'user-accounts', element: <UserAccountPage /> },
 
 ];

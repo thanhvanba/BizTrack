@@ -5,6 +5,7 @@ import importService from '../service/importService';
 import useToastNotify from '../utils/useToastNotify';
 import categoryService from '../service/categoryService';
 import searchService from '../service/searchService';
+import permisstionService from '../service/permissionService';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -109,7 +110,7 @@ export default function CustomerImport() {
       const response = await searchService.searchCategoryByName(searchText, page, limit);
       const searchResults = Array.isArray(response?.data) ? response.data : [];
       setFilteredCategories(searchResults);
-      
+
       // Cập nhật pagination từ response
       if (response?.pagination) {
         setCategoryPagination(prev => ({
@@ -121,7 +122,7 @@ export default function CustomerImport() {
     } catch (err) {
       useToastNotify('Không thể tìm kiếm danh mục.', 'error');
       // Fallback: filter từ danh sách hiện có
-      const filtered = categories.filter(cat => 
+      const filtered = categories.filter(cat =>
         cat.category_name?.toLowerCase().includes(searchText.toLowerCase()) ||
         cat.category_id?.toString().includes(searchText)
       );
@@ -134,17 +135,17 @@ export default function CustomerImport() {
   // Debounced search để tránh gọi API quá nhiều
   const handleSearchChange = (value) => {
     setCategorySearchText(value);
-    
+
     // Clear timeout cũ
     if (searchTimeout) {
       clearTimeout(searchTimeout);
     }
-    
+
     // Set timeout mới để debounce search
     const newTimeout = setTimeout(() => {
       searchCategories(value, 1, categoryPagination.pageSize); // Reset về page 1 khi search
     }, 500); // Delay 500ms
-    
+
     setSearchTimeout(newTimeout);
   };
 
@@ -155,7 +156,7 @@ export default function CustomerImport() {
       current: page,
       pageSize
     }));
-    
+
     if (categorySearchText.trim()) {
       // Nếu đang search, gọi search với page mới
       searchCategories(categorySearchText, page, pageSize);
@@ -302,7 +303,7 @@ export default function CustomerImport() {
               {selectedType && (selectedType === 'products' || selectedType === 'product') && (
                 <div className="mt-6 mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
                   <div className="mb-3 text-lg font-semibold text-green-800">Danh mục hiện có (tham chiếu trường category_id):</div>
-                  
+
                   {/* Thanh search cho categories */}
                   <div className="mb-4">
                     <Input.Search
@@ -324,7 +325,7 @@ export default function CustomerImport() {
                       </div>
                     )}
                   </div>
-                  
+
                   <Table
                     loading={categoriesLoading}
                     dataSource={filteredCategories}

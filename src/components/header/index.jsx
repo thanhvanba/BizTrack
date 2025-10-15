@@ -19,78 +19,14 @@ import { fetchProfile } from '../../redux/user/user.slice';
 import authService from '../../service/authService';
 import useToastNotify from '../../utils/useToastNotify';
 import logo from '../../assets/logo-biztrack.png';
-
-// --- Thêm menuItems từ sidebar ---
-const menuItems = [
-  { key: 'dashboard', icon: <AppstoreOutlined />, label: 'Tổng quan' },
-  {
-    key: 'orders',
-    icon: <ShoppingCartOutlined />,
-    label: 'Đơn hàng',
-    children: [
-      { label: 'Danh sách đơn hàng', key: 'orders' },
-      { label: 'Tạo đơn hàng', key: 'create-order' },
-      { label: 'Trả hàng', key: 'return-order' },
-    ],
-  },
-  {
-    key: 'customers',
-    label: 'Khách hàng',
-    icon: <UserOutlined />,
-  },
-  {
-    key: 'inventory',
-    icon: <ContainerOutlined />,
-    label: 'Quản lý kho',
-    children: [
-      {
-        type: 'group',
-        label: 'Kho hàng',
-        children: [
-          { key: 'warehouses', label: 'Danh sách kho' },
-          { key: 'inventory', label: 'Kiểm kho' },
-        ],
-      },
-      {
-        type: 'group',
-        label: 'Nhập hàng',
-        children: [
-          { key: 'suppliers', label: 'Nhà cung cấp' },
-          { key: 'purchase', label: 'Nhập hàng' },
-          { key: 'purchase-return', label: 'Trả hàng nhập' },
-        ],
-      },
-    ],
-  },
-  {
-    key: 'products',
-    icon: <ShoppingOutlined />,
-    label: 'Sản phẩm',
-    children: [
-      { label: 'Danh sách sản phẩm', key: 'products' },
-      { label: 'Danh mục', key: 'product-category' },
-    ],
-  },
-  {
-    key: 'cash-book',
-    label: 'Sổ quỹ',
-    icon: <DollarOutlined />,
-  },
-  {
-    key: 'statictis',
-    icon: <BookOutlined />,
-    label: 'Báo cáo',
-    children: [
-      { label: 'Doanh thu', key: 'revenue-report' },
-      { label: 'Sản phẩm', key: 'product-report' },
-      { label: 'Khách hàng', key: 'customer-report' },
-      { label: 'Nhà cung cấp', key: 'supplier-report' },
-      { label: 'Tài chính', key: 'finance-report' },
-    ],
-  },
-];
+import { fetchPermissionByRole } from '../../redux/permission/permission.slice';
+import { hasGroup, hasPermission } from '../../utils/permissionHelper';
 
 export default function Header({ onToggleMobileDrawer, isMobile, setActiveTab, activeTab }) {
+  const profileInfo = useSelector(state => state.user.userInfo)
+  const permissions = useSelector(state => state.permission.permissions.permissions)
+  console.log("🚀 ~ Header ~ permissions:", permissions)
+
   const dispatch = useDispatch()
   // --- State cho openKeys nếu có submenu ---
   const [openKeys, setOpenKeys] = useState([]);
@@ -116,7 +52,81 @@ export default function Header({ onToggleMobileDrawer, isMobile, setActiveTab, a
     }
   }
 
-  const profileInfo = useSelector(state => state.user.userInfo)
+  // --- Thêm menuItems từ sidebar ---
+  const menuItems = [
+    { key: 'dashboard', icon: <AppstoreOutlined />, label: 'Tổng quan' },
+    hasGroup(permissions, 'order') && {
+      key: 'orders',
+      icon: <ShoppingCartOutlined />,
+      label: 'Đơn hàng',
+      children: [
+        hasPermission(permissions, 'order.read') && { label: 'Danh sách đơn hàng', key: 'orders' },
+        hasPermission(permissions, 'order.create') && { label: 'Tạo đơn hàng', key: 'create-order' },
+        hasPermission(permissions, 'order.readReturn') && { label: 'Trả hàng', key: 'return-order' },
+      ],
+    },
+    hasGroup(permissions, 'customer') && {
+      key: 'customers',
+      label: 'Khách hàng',
+      icon: <UserOutlined />,
+    },
+    (hasGroup(permissions, 'inventory') || hasGroup(permissions, 'warehouse')
+      || hasGroup(permissions, 'supplier') || hasGroup(permissions, 'purchase_order')
+    ) && {
+      key: 'inventory',
+      icon: <ContainerOutlined />,
+      label: 'Quản lý kho',
+      children: [
+        (hasPermission(permissions, 'warehouse.read') || hasPermission(permissions, 'inventory.read')) && {
+          type: 'group',
+          label: 'Kho hàng',
+          children: [
+            hasPermission(permissions, 'warehouse.read') && { key: 'warehouses', label: 'Danh sách kho' },
+            hasPermission(permissions, 'inventory.read') && { key: 'inventory', label: 'Kiểm kho' },
+          ],
+        },
+        (hasPermission(permissions, 'supplier.read') || hasPermission(permissions, 'purchase.read')
+          || hasPermission(permissions, 'purchase.readReturn')
+        ) &&
+        {
+          type: 'group',
+          label: 'Nhập hàng',
+          children: [
+            hasPermission(permissions, 'supplier.read') && { key: 'suppliers', label: 'Nhà cung cấp' },
+            hasPermission(permissions, 'purchase.read') && { key: 'purchase', label: 'Nhập hàng' },
+            hasPermission(permissions, 'purchase.readReturn') && { key: 'purchase-return', label: 'Trả hàng nhập' },
+          ],
+        },
+      ],
+    },
+    (hasGroup(permissions, 'product') || hasGroup(permissions, 'category'))
+    && {
+      key: 'products',
+      icon: <ShoppingOutlined />,
+      label: 'Sản phẩm',
+      children: [
+        hasPermission(permissions, 'product.read') && { label: 'Danh sách sản phẩm', key: 'products' },
+        hasPermission(permissions, 'category.read') && { label: 'Danh mục', key: 'product-category' },
+      ],
+    },
+    hasGroup(permissions, 'cashbook') && {
+      key: 'cash-book',
+      label: 'Sổ quỹ',
+      icon: <DollarOutlined />,
+    },
+    hasGroup(permissions, 'statictis') && {
+      key: 'statictis',
+      icon: <BookOutlined />,
+      label: 'Báo cáo',
+      children: [
+        hasPermission(permissions, 'statictis.revenue-report') && { label: 'Doanh thu', key: 'revenue-report' },
+        hasPermission(permissions, 'statictis.product-report') && { label: 'Sản phẩm', key: 'product-report' },
+        hasPermission(permissions, 'statictis.customer-report') && { label: 'Khách hàng', key: 'customer-report' },
+        hasPermission(permissions, 'statictis.supplier-report') && { label: 'Nhà cung cấp', key: 'supplier-report' },
+        hasPermission(permissions, 'statictis.finance-report') && { label: 'Tài chính', key: 'finance-report' },
+      ],
+    },
+  ];
   const menu = (
     <Menu
       className="rounded-lg shadow-lg"
@@ -124,7 +134,10 @@ export default function Header({ onToggleMobileDrawer, isMobile, setActiveTab, a
         {
           key: '1',
           label: (
-            <div className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-md">
+            <div
+              className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-md"
+              onClick={() => navigate('/profile')}
+            >
               <UserOutlined className='text-3xl' />
               <div>
                 <div className="text-base">Tên: <span className='text-cyan-600 font-bold'>{profileInfo?.data?.username}</span></div>
@@ -159,6 +172,17 @@ export default function Header({ onToggleMobileDrawer, isMobile, setActiveTab, a
         {
           key: '4',
           label: (
+            <div className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-md">
+              <UserOutlined />
+              <span>Quản lý người dùng</span>
+            </div>
+          ),
+          onClick: () => navigate('/user-accounts'),
+        },
+        { type: 'divider' },
+        {
+          key: '5',
+          label: (
             <div onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 hover:bg-slate-100 rounded-md">
               <LogoutOutlined />
               <span>Đăng xuất</span>
@@ -185,12 +209,26 @@ export default function Header({ onToggleMobileDrawer, isMobile, setActiveTab, a
       ]}
     />
   );
+
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
     if (token) {
-      dispatch(fetchProfile());
+      dispatch(fetchProfile())
+        .unwrap()
+        .then((profile) => {
+          console.log("🚀 ~ profile:", profile)
+          // profile là giá trị return từ fetchProfile (thường là user info)
+          const roleId = profile?.data?.role_id;
+          if (roleId) {
+            dispatch(fetchPermissionByRole(roleId));
+          }
+        })
+        .catch((err) => {
+          console.error("Fetch profile failed:", err);
+        });
     }
   }, [dispatch]);
+
 
 
   const navigate = useNavigate()

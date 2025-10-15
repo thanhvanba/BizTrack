@@ -1,5 +1,5 @@
 // BASE URL
-const BASE_URL = import.meta.env.VITE_API_BASE_URL
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // API URL
 const API_URL = `${BASE_URL}/api/v1`;
@@ -74,3 +74,9 @@ export const SUPPLIER_RETURN_URL = `${API_URL}/supplier-returns`;
 
 // CASHBOOK_URL
 export const CASHBOOK_URL = `${API_URL}/cashbook`;
+
+// PERMISSION_URL
+export const PERMISSIONS_URL = `${API_URL}/permissions`;
+
+// ROLES_URL
+export const ROLES_URL = `${API_URL}/roles`;

@@ -4,11 +4,13 @@ import './index.css'; // file này cần chứa tailwind directives
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons"
 import ExpandedOrderTabs from '../../components/order/ExpandedOrderTabs';
 import ReturnInvoiceModal from '../../components/modals/ReturnInvoiceModal';
-import { useNavigate, useLocation } from 'react-router-dom';    
+import { useNavigate, useLocation } from 'react-router-dom';
 import useToastNotify from '../../utils/useToastNotify';
 import orderService from '../../service/orderService';
 import formatPrice from '../../utils/formatPrice';
 import LoadingLogo from '../../components/LoadingLogo';
+import { useSelector } from 'react-redux';
+import { hasPermission } from '../../utils/permissionHelper';
 
 const { Search } = Input;
 const { Title } = Typography;
@@ -29,6 +31,7 @@ const ReturnOrderPage = () => {
 
     const navigate = useNavigate()
     const location = useLocation()
+    const permissions = useSelector(state => state.permission.permissions.permissions)
 
     const showActionColumn = ordersReturnData.some(order => order.status === 'pending');
 
@@ -186,7 +189,7 @@ const ReturnOrderPage = () => {
     useEffect(() => {
         const urlParams = new URLSearchParams(location.search);
         const expandId = urlParams.get('expand');
-        
+
         if (expandId) {
             const normalizeReturn = (ret) => {
                 if (!ret) return ret;
@@ -231,8 +234,7 @@ const ReturnOrderPage = () => {
                     Quản lý đơn trả hàng
                 </Title>
                 <div className="flex gap-3">
-                    <Button type="primary" onClick={() => setOpen(true)} >Trả hàng</Button>
-                    <Button>Xuất file</Button>
+                    {hasPermission(permissions, 'order.return') && <Button type="primary" onClick={() => setOpen(true)} >Trả hàng</Button>}
                 </div>
             </div>
             <div className="flex flex-col md:flex-row gap-4 mb-6">

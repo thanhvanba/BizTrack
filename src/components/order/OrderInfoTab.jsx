@@ -36,6 +36,8 @@ import {
 } from "../../utils/invoiceToImageUtils";
 import { message } from "antd";
 import { COMPANY } from "../../config/companyConfig";
+import { hasPermission } from "../../utils/permissionHelper";
+import { useSelector } from "react-redux";
 
 const { Text, Title } = Typography;
 const { TextArea } = Input;
@@ -43,6 +45,8 @@ const { TextArea } = Input;
 export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record }) {
   const location = useLocation();
   const navigate = useNavigate()
+
+  const permissions = useSelector(state => state.permission.permissions.permissions)
 
   const {
     order_id,
@@ -454,7 +458,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
                     Xác nhận
                   </Button>
                 }
-                {(order_status !== "Hoàn tất" && order_status !== "Huỷ đơn") &&
+                {(order_status !== "Hoàn tất" && order_status !== "Huỷ đơn") && hasPermission(permissions, 'order.delete') &&
                   <Button
                     icon={<DeleteOutlined />}
                     color="danger"
@@ -470,7 +474,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
 
             }
             <Col>
-              {order_status === "Mới" &&
+              {order_status === "Mới" && hasPermission(permissions, 'order.update') &&
                 <Button
                   icon={<EditOutlined />}
                   type="primary"
@@ -480,7 +484,7 @@ export default function OrderInfoTab({ orderData, onUpdateOrderStatus, record })
                   Chỉnh sửa
                 </Button>
               }
-              {order_status === "Hoàn tất" && (
+              {order_status === "Hoàn tất" && hasPermission(permissions, 'order.return') && (
                 <Tooltip
                   title={
                     (final_amount - total_refund) <= 0

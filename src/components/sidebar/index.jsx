@@ -15,86 +15,89 @@ import {
 import { Button, Image, Layout, Menu } from 'antd';
 import logo from '../../assets/logo-biztrack.png';
 import authService from '../../service/authService';
+import { hasGroup, hasPermission } from '../../utils/permissionHelper';
+import { useSelector } from 'react-redux';
 
-const menuItems = [
-  { key: 'dashboard', icon: <AppstoreOutlined />, label: 'Tổng quan' },
-  {
-    key: 'orders',
-    icon: <ShoppingCartOutlined />,
-    label: 'Đơn hàng',
-    children: [
-      {
-        label: "Danh sách đơn hàng",
-        key: "orders",
-      },
-      {
-        label: "Tạo đơn hàng",
-        key: "create-order",
-      },
-      {
-        label: "Trả hàng",
-        key: "return-order",
-      },
-    ],
-  },
-  {
-    key: 'customers',
-    label: 'Khách hàng',
-    icon: <UserOutlined />,
-    // children: [
-    //   { key: 'customer-list', label: 'Danh sách KH' },
-    //   { key: 'customer-feedback', label: 'Phản hồi' },
-    // ],
-  },
-  {
-    key: 'inventory',
-    icon: <ContainerOutlined />,
-    label: 'Quản lý kho',
-    children: [
-      { key: 'warehouses', label: 'Danh sách kho' },
-      { key: 'inventory', label: 'Kiểm kho' },
-      { key: 'suppliers', label: 'Nhà cung cấp' },
-      { key: 'purchase', label: 'Nhập hàng' },
-      { key: 'purchase-return', label: 'Trả hàng nhập' },
-    ],
-  },
-  {
-    key: 'products',
-    icon: <ShoppingOutlined />,
-    label: 'Sản phẩm',
-    children: [
-      {
-        label: "Danh sách sản phẩm",
-        key: "products",
-      },
-      {
-        label: "Danh mục",
-        key: "product-category",
-      },
-    ],
-  },
-  {
-    key: 'cash-book',
-    label: 'Sổ quỹ',
-    icon: <DollarOutlined />,
-  },
-  {
-    key: 'statictis',
-    icon: <BookOutlined />,
-    label: 'Báo cáo',
-    children: [
-      { label: 'Doanh thu', key: 'revenue-report' },
-      { label: 'Sản phẩm', key: 'product-report' },
-      { label: 'Khách hàng', key: 'customer-report' },
-      { label: 'Nhà cung cấp', key: 'supplier-report' },
-      { label: 'Tài chính', key: 'finance-report' },
-    ],
-  },
-];
 const { Sider } = Layout
 const Sidebar = ({ collapsed, setCollapsed, setActiveTab, activeTab }) => {
   const [openKeys, setOpenKeys] = useState([]);
+  const permissions = useSelector(state => state.permission.permissions.permissions)
+  console.log("🚀 ~ Header ~ permissions:", permissions)
 
+  const menuItems = [
+    { key: 'dashboard', icon: <AppstoreOutlined />, label: 'Tổng quan' },
+    hasGroup(permissions, 'order') && {
+      key: 'orders',
+      icon: <ShoppingCartOutlined />,
+      label: 'Đơn hàng',
+      children: [
+        hasPermission(permissions, 'order.read') && { label: 'Danh sách đơn hàng', key: 'orders' },
+        hasPermission(permissions, 'order.create') && { label: 'Tạo đơn hàng', key: 'create-order' },
+        hasPermission(permissions, 'order.readReturn') && { label: 'Trả hàng', key: 'return-order' },
+      ],
+    },
+    hasGroup(permissions, 'customer') && {
+      key: 'customers',
+      label: 'Khách hàng',
+      icon: <UserOutlined />,
+    },
+    (hasGroup(permissions, 'inventory') || hasGroup(permissions, 'warehouse')
+      || hasGroup(permissions, 'supplier') || hasGroup(permissions, 'purchase_order')
+    ) && {
+      key: 'inventory',
+      icon: <ContainerOutlined />,
+      label: 'Quản lý kho',
+      children: [
+        (hasPermission(permissions, 'warehouse.read') || hasPermission(permissions, 'inventory.read')) && {
+          type: 'group',
+          label: 'Kho hàng',
+          children: [
+            hasPermission(permissions, 'warehouse.read') && { key: 'warehouses', label: 'Danh sách kho' },
+            hasPermission(permissions, 'inventory.read') && { key: 'inventory', label: 'Kiểm kho' },
+          ],
+        },
+        (hasPermission(permissions, 'supplier.read') || hasPermission(permissions, 'purchase.read')
+          || hasPermission(permissions, 'purchase.readReturn')
+        ) &&
+        {
+          type: 'group',
+          label: 'Nhập hàng',
+          children: [
+            hasPermission(permissions, 'supplier.read') && { key: 'suppliers', label: 'Nhà cung cấp' },
+            hasPermission(permissions, 'purchase.read') && { key: 'purchase', label: 'Nhập hàng' },
+            hasPermission(permissions, 'purchase.readReturn') && { key: 'purchase-return', label: 'Trả hàng nhập' },
+          ],
+        },
+      ],
+    },
+    (hasGroup(permissions, 'product') || hasGroup(permissions, 'category'))
+    && {
+      key: 'products',
+      icon: <ShoppingOutlined />,
+      label: 'Sản phẩm',
+      children: [
+        hasPermission(permissions, 'product.read') && { label: 'Danh sách sản phẩm', key: 'products' },
+        hasPermission(permissions, 'category.read') && { label: 'Danh mục', key: 'product-category' },
+      ],
+    },
+    hasGroup(permissions, 'cashbook') && {
+      key: 'cash-book',
+      label: 'Sổ quỹ',
+      icon: <DollarOutlined />,
+    },
+    hasGroup(permissions, 'statictis') && {
+      key: 'statictis',
+      icon: <BookOutlined />,
+      label: 'Báo cáo',
+      children: [
+        hasPermission(permissions, 'statictis.revenue-report') && { label: 'Doanh thu', key: 'revenue-report' },
+        hasPermission(permissions, 'statictis.product-report') && { label: 'Sản phẩm', key: 'product-report' },
+        hasPermission(permissions, 'statictis.customer-report') && { label: 'Khách hàng', key: 'customer-report' },
+        hasPermission(permissions, 'statictis.supplier-report') && { label: 'Nhà cung cấp', key: 'supplier-report' },
+        hasPermission(permissions, 'statictis.finance-report') && { label: 'Tài chính', key: 'finance-report' },
+      ],
+    },
+  ];
   const toggleCollapsed = () => {
     setCollapsed(!collapsed);
   };
