@@ -7,6 +7,8 @@ import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal"
 import categoryService from "../../service/categoryService"
 import useToastNotify from "../../utils/useToastNotify"
 import LoadingLogo from "../../components/LoadingLogo"
+import { useSelector } from "react-redux"
+import { hasPermission } from "../../utils/permissionHelper"
 
 const { Title } = Typography
 
@@ -23,7 +25,7 @@ const ProductCategory = () => {
     pageSize: 5,
     total: 0,
   });
-
+  const permissions = useSelector(state => state.permission.permissions.permissions)
   const fetchCategories = async (page = pagination.current, limit = pagination.pageSize) => {
     setLoading(true)
     try {
@@ -119,27 +121,31 @@ const ProductCategory = () => {
       key: "actions",
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title="Chỉnh sửa">
-            <Button
-              icon={<EditOutlined />}
-              size="small"
-              onClick={() => {
-                setSelectedCategory(record)
-                setIsEditModalOpen(true)
-              }}
-            />
-          </Tooltip>
-          <Tooltip title="Xóa">
-            <Button
-              icon={<DeleteOutlined />}
-              size="small"
-              danger
-              onClick={() => {
-                setSelectedCategory(record)
-                setIsDeleteModalOpen(true)
-              }}
-            />
-          </Tooltip>
+          {hasPermission(permissions, 'category.update') &&
+            <Tooltip title="Chỉnh sửa">
+              <Button
+                icon={<EditOutlined />}
+                size="small"
+                onClick={() => {
+                  setSelectedCategory(record)
+                  setIsEditModalOpen(true)
+                }}
+              />
+            </Tooltip>
+          }
+          {hasPermission(permissions, 'category.delete') &&
+            <Tooltip title="Xóa">
+              <Button
+                icon={<DeleteOutlined />}
+                size="small"
+                danger
+                onClick={() => {
+                  setSelectedCategory(record)
+                  setIsDeleteModalOpen(true)
+                }}
+              />
+            </Tooltip>
+          }
         </Space>
       ),
     },
@@ -149,9 +155,11 @@ const ProductCategory = () => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <Title level={3} className="!mb-0">Danh mục sản phẩm</Title>
-        <Button icon={<PlusOutlined />} type="primary" onClick={() => setIsCreateModalOpen(true)}>
-          Thêm danh mục
-        </Button>
+        {hasPermission(permissions, 'category.create') &&
+          <Button icon={<PlusOutlined />} type="primary" onClick={() => setIsCreateModalOpen(true)}>
+            Thêm danh mục
+          </Button>
+        }
       </div>
 
       <Card>

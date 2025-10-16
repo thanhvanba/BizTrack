@@ -7,6 +7,8 @@ import supplierService from "../../service/supplierService";
 import formatPrice from "../../utils/formatPrice";
 import LoadingLogo from '../LoadingLogo';
 import useToastNotify from "../../utils/useToastNotify";
+import { hasPermission } from "../../utils/permissionHelper";
+import { useSelector } from "react-redux";
 
 const statusMap = {
     pending: 'Tạo đơn hàng',
@@ -56,6 +58,7 @@ const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
         total: 0,
     })
 
+    const permissions = useSelector(state => state.permission.permissions.permissions)
     const handleRecordBulkPayment = async (invoiceData) => {
         try {
             await customerService.recordBulkPayment(invoiceData);
@@ -174,7 +177,7 @@ const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
                         Xuất file
                     </Button>
                 </div>
-                <div className="flex gap-2">
+                {hasPermission(permissions, 'supplier.recordBulkPayment') && <div className="flex gap-2">
                     {supplierData?.payable < 0 &&
                         <Button type="primary" icon={<span>✏️</span>} onClick={() => setIsModalOpen(true)}>
                             Thu tiền
@@ -184,6 +187,7 @@ const SupplierPayablesTab = ({ supplierData, fetchSuppliers }) => {
                         Thanh toán
                     </Button>
                 </div>
+                }
             </div>
             <DebtAdjustmentModal
                 open={isModalOpen}

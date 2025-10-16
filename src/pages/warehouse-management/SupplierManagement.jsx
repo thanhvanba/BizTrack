@@ -9,6 +9,8 @@ import searchService from "../../service/searchService"
 import SupplierModal from "../../components/modals/SupplierModal"
 import ExpandedSupplierTabs from "../../components/supplier/ExpandedSupplierTabs"
 import LoadingLogo from "../../components/LoadingLogo"
+import { useSelector } from "react-redux"
+import { hasPermission } from "../../utils/permissionHelper"
 
 const { Title } = Typography
 
@@ -25,6 +27,7 @@ const SupplierManagement = () => {
     total: 0,
   })
 
+  const permissions = useSelector(state => state.permission.permissions.permissions)
   const fetchSuppliers = async (page = pagination.current, limit = pagination.pageSize) => {
     setLoading(true);
     try {
@@ -175,14 +178,16 @@ const SupplierManagement = () => {
         <Title level={2} className="text-xl md:text-2xl font-bold m-0 text-gray-800">
           Quản lý nhà cung cấp
         </Title>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setCreateModalVisible(true)}
-          className="bg-blue-500 hover:bg-blue-600 border-0 shadow-md hover:shadow-lg transition-all"
-        >
-          Thêm nhà cung cấp
-        </Button>
+        {hasPermission(permissions, 'supplier.create') &&
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setCreateModalVisible(true)}
+            className="bg-blue-500 hover:bg-blue-600 border-0 shadow-md hover:shadow-lg transition-all"
+          >
+            Thêm nhà cung cấp
+          </Button>
+        }
       </div>
 
       <Card>

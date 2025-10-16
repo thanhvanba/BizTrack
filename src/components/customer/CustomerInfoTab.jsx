@@ -1,8 +1,10 @@
 import { Button } from "antd";
 import formatPrice from "../../utils/formatPrice";
+import { useSelector } from "react-redux";
+import { hasPermission } from "../../utils/permissionHelper";
 
 const CustomerInfoTab = ({ setEditModalVisible, setDeleteModalVisible, setSelectedCustomer, customerData }) => {
-  console.log("🚀 ~ CustomerInfoTab ~ customerData:", customerData)
+  const permissions = useSelector(state => state.permission.permissions.permissions)
   return (
     <div>
       <div className="grid grid-cols-2 gap-4 text-sm">
@@ -32,28 +34,32 @@ const CustomerInfoTab = ({ setEditModalVisible, setDeleteModalVisible, setSelect
         </div>
       </div>
       <div className="flex justify-between mt-4">
-        <div className="flex gap-2">
-          <Button
-            onClick={() => {
-              setSelectedCustomer(customerData)
-              setDeleteModalVisible(true)
-            }}
-            danger icon={<span>🗑️</span>}
-          >
-            Xóa
-          </Button>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            onClick={() => {
-              setSelectedCustomer(customerData)
-              setEditModalVisible(true)
-            }}
-            type="primary" icon={<span>✏️</span>}
-          >
-            Chỉnh sửa
-          </Button>
-        </div>
+        {hasPermission(permissions, 'customer.delete') &&
+          <div className="flex gap-2">
+            <Button
+              onClick={() => {
+                setSelectedCustomer(customerData)
+                setDeleteModalVisible(true)
+              }}
+              danger icon={<span>🗑️</span>}
+            >
+              Xóa
+            </Button>
+          </div>
+        }
+        {hasPermission(permissions, 'customer.update') &&
+          <div className="flex gap-2">
+            <Button
+              onClick={() => {
+                setSelectedCustomer(customerData)
+                setEditModalVisible(true)
+              }}
+              type="primary" icon={<span>✏️</span>}
+            >
+              Chỉnh sửa
+            </Button>
+          </div>
+        }
       </div>
     </div>
   );

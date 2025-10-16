@@ -5,6 +5,8 @@ import CashBookExpandedTabs from './CashBookExpandedTabs';
 import cashbookService from '../../service/cashbookService';
 import LoadingLogo from '../../components/LoadingLogo';
 import DebtAdjustmentModal from '../../components/modals/DebtAdjustment';
+import { hasPermission } from '../../utils/permissionHelper';
+import { useSelector } from 'react-redux';
 
 const { Search } = Input;
 
@@ -78,6 +80,7 @@ export default function CashBookPage() {
     pageSize: 5,
     total: 0,
   });
+  const permissions = useSelector(state => state.permission.permissions.permissions)
 
   const fetchData = (page = pagination.current, pageSize = pagination.pageSize) => {
     setLoading(true);
@@ -199,31 +202,35 @@ export default function CashBookPage() {
       {/* Thanh công cụ */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-4">
         <div className="w-full lg:w-auto">
-          <Search 
-            placeholder="Theo mã phiếu" 
-            className="w-full lg:w-80" 
+          <Search
+            placeholder="Theo mã phiếu"
+            className="w-full lg:w-80"
           />
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
-            onClick={openReceiptModal}
-            className="flex-1 sm:flex-none"
-          >
-            <span className="hidden sm:inline">Phiếu thu</span>
-            <span className="sm:hidden">Thu</span>
-          </Button>
-          <Button 
-            type="primary" 
-            icon={<PlusOutlined />} 
-            onClick={openPaymentModal}
-            className="flex-1 sm:flex-none"
-          >
-            <span className="hidden sm:inline">Phiếu chi</span>
-            <span className="sm:hidden">Chi</span>
-          </Button>
-          <Button 
+          {hasPermission(permissions, 'cashbook.createReceipt') &&
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={openReceiptModal}
+              className="flex-1 sm:flex-none"
+            >
+              <span className="hidden sm:inline">Phiếu thu</span>
+              <span className="sm:hidden">Thu</span>
+            </Button>
+          }
+          {hasPermission(permissions, 'cashbook.createPayment') &&
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={openPaymentModal}
+              className="flex-1 sm:flex-none"
+            >
+              <span className="hidden sm:inline">Phiếu chi</span>
+              <span className="sm:hidden">Chi</span>
+            </Button>
+          }
+          <Button
             icon={<FileExcelOutlined />}
             className="hidden sm:inline-flex"
           >
@@ -272,8 +279,8 @@ export default function CashBookPage() {
           scroll={{ x: 800 }}
           expandable={{
             expandedRowRender: (record) => (
-              <CashBookExpandedTabs 
-                record={record} 
+              <CashBookExpandedTabs
+                record={record}
                 onEdit={handleEditTransaction}
                 onDelete={handleDeleteTransaction}
                 onRefresh={() => fetchData(pagination.current, pagination.pageSize)}

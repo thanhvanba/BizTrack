@@ -6,12 +6,14 @@ import ExpandedPurchaseOrderTabs from "./ExpandedPurchaseOrderTabs";
 import purchaseOrderService from "../../service/purchaseService";
 import { useLocation, useSearchParams } from "react-router-dom";
 import LoadingLogo from "../LoadingLogo";
+import { hasPermission } from "../../utils/permissionHelper";
 
 export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onApprove, onCreateNew, onDelete, pagination, onChange }) {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const isReturnPage = location.pathname.includes('purchase-return');
   const mockWarehouses = useSelector(state => state.warehouse.warehouses.data);
+  const permissions = useSelector(state => state.permission.permissions.permissions)
   const warehouseMap = new Map(
     mockWarehouses?.map(wh => [wh.warehouse_id, wh.warehouse_name])
   );
@@ -104,9 +106,11 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
           </Button> */}
           {(record.status === "draft" || record.status === "pending") && (
             <>
-              <Button type="link" onClick={() => onEdit(record)}>
-                Sửa
-              </Button>
+              {hasPermission(permissions, 'purchase.update') &&
+                <Button type="link" onClick={() => onEdit(record)}>
+                  Sửa
+                </Button>
+              }
               <Button
                 type="link"
                 style={{ color: '#52c41a' }}
@@ -134,14 +138,27 @@ export default function PurchaseOrderList({ loading, purchaseOrders, onEdit, onA
           onChange={(e) => setSearchText(e.target.value)}
           className="md:w-full w-3/4"
         />
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={onCreateNew}
-          className="md:w-1/4 w-full"
-        >
-          {isReturnPage ? 'Tạo đơn trả hàng nhập' : 'Tạo đơn nhập hàng'}
-        </Button>
+        {(hasPermission(permissions, 'purchase.return') && isReturnPage) &&
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={onCreateNew}
+            className="md:w-1/4 w-full"
+          >
+            Tạo đơn trả hàng nhập
+          </Button>
+        }
+
+        {(hasPermission(permissions, 'purchase.create') && !isReturnPage) &&
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={onCreateNew}
+            className="md:w-1/4 w-full"
+          >
+            Tạo đơn nhập hàng
+          </Button>
+        }
       </div>
 
       <Table

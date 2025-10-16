@@ -6,18 +6,19 @@ import CustomerReceivablesTab from "./CustomerReceivablesTab";
 import customerService from "../../service/customerService";
 import useToastNotify from "../../utils/useToastNotify";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { hasPermission } from "../../utils/permissionHelper";
 
 const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setSelectedCustomer, record, fetchCustomers }) => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [dataSource, setDataSource] = useState([]);
-    console.log("🚀 ~ ExpandedCustomerTabs ~ dataSource:", dataSource)
     const [pagination, setPagination] = useState({
         current: 1,
         pageSize: 5,
         total: 0,
     })
-
+    const permissions = useSelector(state => state.permission.permissions.permissions)
     const fetchData = async (page = pagination.current, limit = pagination.pageSize) => {
         try {
             setLoading(true);
@@ -68,7 +69,7 @@ const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setS
 
     const handleOrderClick = (orderRecord) => {
         console.log("Clicked order:", orderRecord);
-        
+
         // Kiểm tra loại đơn hàng để xử lý phù hợp
         if (orderRecord.type === 'return') {
             // Đây là đơn hàng trả, chuyển đến trang return-order với expand
@@ -88,13 +89,13 @@ const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setS
         fetchData();
     }, []);
 
-    const tabItems = [
-        {
+    const tabItems = ([
+        hasPermission(permissions, 'customer.readById') && {
             key: "info",
             label: "Thông tin",
             children: <CustomerInfoTab setEditModalVisible={setEditModalVisible} setDeleteModalVisible={setDeleteModalVisible} setSelectedCustomer={setSelectedCustomer} customerData={record} />,
         },
-        {
+        hasPermission(permissions, 'customer.getCustomerOrderHistory') && {
             key: "sale_return",
             label: "Lịch sử bán/trả hàng",
             children: <CustomerSaleReturnTab
@@ -107,12 +108,12 @@ const ExpandedCustomerTabs = ({ setEditModalVisible, setDeleteModalVisible, setS
                 onOrderClick={handleOrderClick}
             />,
         },
-        {
+        hasPermission(permissions, 'customer.getCustomerTransactionLedger') && {
             key: "debt",
             label: "Nợ cần thu từ khách",
             children: <CustomerReceivablesTab customerData={record} fetchCustomers={fetchCustomers} />,
         },
-    ];
+    ]).filter(Boolean);
 
     return (
         <div className="bg-white p-6 rounded-md shadow-sm">

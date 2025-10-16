@@ -3,10 +3,15 @@ import { Tabs } from "antd";
 import PurchaseOrderDetail from "./PurchaseOrderDetail";
 import purchaseOrderService from "../../service/purchaseService";
 import { useSelector } from "react-redux";
+import { hasPermission } from "../../utils/permissionHelper";
+import { useLocation } from "react-router-dom";
 
 const ExpandedPurchaseOrderTabs = ({ record }) => {
     const [selectedOrder, setSelectedOrder] = useState();
     const mockWarehouses = useSelector(state => state.warehouse.warehouses.data);
+    const permissions = useSelector(state => state.permission.permissions.permissions)
+    const location = useLocation();
+    const isReturnPage = location.pathname.includes('purchase-return');
 
     useEffect(() => {
         const handleViewDetail = async () => {
@@ -36,14 +41,18 @@ const ExpandedPurchaseOrderTabs = ({ record }) => {
         handleViewDetail();
     }, [record, mockWarehouses]);
 
-    const tabItems = [
-        {
+    const tabItems = ([
+        (hasPermission(permissions, 'purchase.readById') && !isReturnPage) && {
             key: "info",
             label: "Thông tin",
             children: <PurchaseOrderDetail order={selectedOrder} />,
         },
-        // Có thể thêm các tab khác ở đây nếu muốn
-    ];
+
+        (hasPermission(permissions, 'purchase.readReturnById') && isReturnPage) && {
+            key: "info",
+            label: "Thông tin",
+            children: <PurchaseOrderDetail order={selectedOrder} />,
+        },]).filter(Boolean);
     return (
         <div className="bg-white p-6 py-4 rounded-md shadow-sm">
             <Tabs items={tabItems} className="mb-6" />

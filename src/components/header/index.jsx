@@ -65,7 +65,7 @@ export default function Header({ onToggleMobileDrawer, isMobile, setActiveTab, a
         hasPermission(permissions, 'order.readReturn') && { label: 'Trả hàng', key: 'return-order' },
       ],
     },
-    hasGroup(permissions, 'customer') && {
+    hasGroup(permissions, 'customer') && hasPermission(permissions, 'customer.read') && {
       key: 'customers',
       label: 'Khách hàng',
       icon: <UserOutlined />,
@@ -109,7 +109,7 @@ export default function Header({ onToggleMobileDrawer, isMobile, setActiveTab, a
         hasPermission(permissions, 'category.read') && { label: 'Danh mục', key: 'product-category' },
       ],
     },
-    hasGroup(permissions, 'cashbook') && {
+    (hasGroup(permissions, 'cashbook') && hasPermission(permissions, 'cashbook.read')) && {
       key: 'cash-book',
       label: 'Sổ quỹ',
       icon: <DollarOutlined />,

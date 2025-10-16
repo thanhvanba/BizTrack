@@ -1,5 +1,7 @@
 import { Card, Row, Col, Typography, Divider, Table, Button, Popconfirm } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { hasPermission } from '../../utils/permissionHelper';
+import { useSelector } from 'react-redux';
 
 const { Title, Text } = Typography;
 
@@ -24,6 +26,7 @@ export default function CashBookDetail({ record, onEdit, onDelete, onRefresh }) 
     { title: 'Số tiền', dataIndex: 'amount', key: 'amount', align: 'right', render: (v, r) => <span style={{ color: record.type === 'payment' ? 'red' : 'green', fontWeight: 500 }}>{v.toLocaleString('vi-VN')}</span> },
   ];
 
+  const permissions = useSelector(state => state.permission.permissions.permissions)
   return (
     <Card bordered className="mb-2">
       <Row gutter={[16, 8]}>
@@ -62,29 +65,33 @@ export default function CashBookDetail({ record, onEdit, onDelete, onRefresh }) 
         <>
           <Divider />
           <div className="flex justify-end gap-2">
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              size="small"
-              onClick={() => onEdit && onEdit(record)}
-            >
-              Sửa
-            </Button>
-            <Popconfirm
-              title="Xóa giao dịch"
-              description="Bạn có chắc chắn muốn xóa giao dịch này?"
-              onConfirm={() => onDelete(record.transaction_id)}
-              okText="Xóa"
-              cancelText="Hủy"
-            >
+            {hasPermission(permissions, 'cashbook.update') &&
               <Button
-                danger
-                icon={<DeleteOutlined />}
+                type="primary"
+                icon={<EditOutlined />}
                 size="small"
+                onClick={() => onEdit && onEdit(record)}
               >
-                Xóa
+                Sửa
               </Button>
-            </Popconfirm>
+            }
+            {hasPermission(permissions, 'cashbook.delete') &&
+              <Popconfirm
+                title="Xóa giao dịch"
+                description="Bạn có chắc chắn muốn xóa giao dịch này?"
+                onConfirm={() => onDelete(record.transaction_id)}
+                okText="Xóa"
+                cancelText="Hủy"
+              >
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  size="small"
+                >
+                  Xóa
+                </Button>
+              </Popconfirm>
+            }
           </div>
         </>
       )}

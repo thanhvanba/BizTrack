@@ -7,6 +7,7 @@ import purchaseOrderService from "../../service/purchaseService"
 import { useLocation, useSearchParams } from "react-router-dom"
 import useToastNotify from "../../utils/useToastNotify"
 import { Tabs, Typography } from "antd"
+import { hasPermission } from "../../utils/permissionHelper"
 const { TabPane } = Tabs;
 const { Title } = Typography
 export default function PurchaseManagement() {
@@ -33,6 +34,8 @@ export default function PurchaseManagement() {
     const dispatch = useDispatch()
     const mockWarehouses = useSelector(state => state.warehouse.warehouses.data)
 
+    const permissions = useSelector(state => state.permission.permissions.permissions)
+
     const isReturnPage = location.pathname.includes('purchase-return');
 
     const handleTabChange = (tab) => {
@@ -56,7 +59,7 @@ export default function PurchaseManagement() {
                     }
 
                     if (orderData) {
-                        const normalized = isReturnPage 
+                        const normalized = isReturnPage
                             ? normalizeReturnOrder(orderData.data ? orderData.data : orderData, expandId)
                             : normalizePurchaseOrder(orderData.data ? orderData.data : orderData);
                         console.log("🚀 ~ fetchOrderToExpand ~ normalized:", normalized)
@@ -303,7 +306,18 @@ export default function PurchaseManagement() {
                             />
                         )}
                     </TabPane>
-                    <TabPane tab={`${isReturnPage ? "Tạo đơn trả hàng nhập" : "Tạo đơn nhập hàng"}`} key="form">
+                    {(hasPermission(permissions, 'purchase.return') && isReturnPage) &&
+                        <TabPane tab="Tạo đơn trả hàng nhập" key="form">
+                            {activeTab === "form" && (
+                                <PurchaseOrderForm
+                                    onSubmit={isReturnPage ? handleCreatePurchaseReturn : handleCreatePurchaseOrder}
+                                    initialValues={selectedOrder}
+                                    onCancel={handleCancelEdit}
+                                />
+                            )}
+                        </TabPane>
+                    }
+                    {(hasPermission(permissions, 'purchase.create') && !isReturnPage) && <TabPane tab={"Tạo đơn nhập hàng"} key="form">
                         {activeTab === "form" && (
                             <PurchaseOrderForm
                                 onSubmit={isReturnPage ? handleCreatePurchaseReturn : handleCreatePurchaseOrder}
@@ -312,6 +326,7 @@ export default function PurchaseManagement() {
                             />
                         )}
                     </TabPane>
+                    }
                 </Tabs>
             </div>
         </div>

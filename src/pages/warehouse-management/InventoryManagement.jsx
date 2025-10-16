@@ -26,6 +26,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import ExpandedRowContent from "../../components/warehouse/ExpandedRowContent";
 import LoadingLogo from "../../components/LoadingLogo";
+import { hasPermission } from "../../utils/permissionHelper";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -46,13 +47,12 @@ const InventoryManagement = () => {
     pageSize: 5,
     total: 0,
   });
-  console.log("🚀 ~ InventoryManagement ~ inventories:", inventories)
 
   const navigate = useNavigate()
 
   const dispatch = useDispatch();
   const warehouses = useSelector((state) => state.warehouse.warehouses);
-  console.log("🚀 ~ InventoryManagement ~ warehouses:", warehouses)
+  const permissions = useSelector(state => state.permission.permissions.permissions)
 
   const fetchInventories = async (warehouseId, page = pagination.current, pageSize = pagination.pageSize) => {
     setLoading(true)
@@ -312,14 +312,16 @@ const InventoryManagement = () => {
         >
           Quản lý tồn kho
         </Title>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => navigate('/purchase?tab=form')}
-          className="bg-blue-500 hover:bg-blue-600 border-0 shadow-md hover:shadow-lg transition-all"
-        >
-          Nhập thêm sản phẩm
-        </Button>
+        {hasPermission(permissions, 'purchase.create') &&
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => navigate('/purchase?tab=form')}
+            className="bg-blue-500 hover:bg-blue-600 border-0 shadow-md hover:shadow-lg transition-all"
+          >
+            Nhập thêm sản phẩm
+          </Button>
+        }
       </div>
 
       <Card>

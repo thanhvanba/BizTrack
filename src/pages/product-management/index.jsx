@@ -11,6 +11,8 @@ import searchService from "../../service/searchService"
 import { debounce } from "lodash"
 import formatPrice from '../../utils/formatPrice'
 import LoadingLogo from "../../components/LoadingLogo"
+import { useSelector } from "react-redux"
+import { hasPermission } from "../../utils/permissionHelper"
 
 const { Title } = Typography
 const { Option } = Select
@@ -37,6 +39,8 @@ const ProductManagement = () => {
   const [searchValue, setSearchValue] = useState("");
 
   const [categories, setCategories] = useState([])
+
+  const permissions = useSelector(state => state.permission.permissions.permissions)
 
   const fetchProducts = async (page = pagination.current, limit = pagination.pageSize) => {
     setLoading(true);
@@ -272,25 +276,29 @@ const ProductManagement = () => {
               className="text-blue-500 hover:text-blue-600 hover:bg-blue-50"
             />
           </Tooltip> */}
-          <Tooltip title="Chỉnh sửa">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              size="small"
-              onClick={() => editProduct(record)}
-              className="text-green-500 hover:text-green-600 hover:bg-green-50"
-            />
-          </Tooltip>
-          <Tooltip title="Xóa">
-            <Button
-              type="text"
-              danger
-              icon={<DeleteOutlined />}
-              size="small"
-              onClick={() => confirmDelete(record)}
-              className="hover:bg-red-50"
-            />
-          </Tooltip>
+          {hasPermission(permissions, 'product.update') &&
+            <Tooltip title="Chỉnh sửa">
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                size="small"
+                onClick={() => editProduct(record)}
+                className="text-green-500 hover:text-green-600 hover:bg-green-50"
+              />
+            </Tooltip>
+          }
+          {hasPermission(permissions, 'product.delete') &&
+            <Tooltip title="Xóa">
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                size="small"
+                onClick={() => confirmDelete(record)}
+                className="hover:bg-red-50"
+              />
+            </Tooltip>
+          }
         </Space>
       ),
     },
@@ -302,14 +310,16 @@ const ProductManagement = () => {
         <Title level={2} className="text-xl md:text-2xl font-bold m-0 text-gray-800">
           Quản lý sản phẩm
         </Title>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setCreateModalVisible(true)}
-          className="md:w-1/6 w-full bg-blue-500 hover:bg-blue-600 border-0 shadow-md hover:shadow-lg transition-all flex items-center self-start md:self-auto"
-        >
-          Thêm sản phẩm
-        </Button>
+        {hasPermission(permissions, 'product.create') &&
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setCreateModalVisible(true)}
+            className="md:w-1/6 w-full bg-blue-500 hover:bg-blue-600 border-0 shadow-md hover:shadow-lg transition-all flex items-center self-start md:self-auto"
+          >
+            Thêm sản phẩm
+          </Button>
+        }
       </div>
 
       <Card>

@@ -19,6 +19,8 @@ import DeleteConfirmModal from "../../components/modals/DeleteConfirmModal"
 import useToastNotify from "../../utils/useToastNotify"
 import WarehouseModal from "../../components/modals/WarehouseModal"
 import LoadingLogo from "../../components/LoadingLogo"
+import { hasPermission } from "../../utils/permissionHelper"
+import { useSelector } from "react-redux"
 
 const { Title } = Typography
 
@@ -35,6 +37,7 @@ const WarehouseManagement = () => {
   const [createModalVisible, setCreateModalVisible] = useState(false)
   const [editModalVisible, setEditModalVisible] = useState(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
+  const permissions = useSelector(state => state.permission.permissions.permissions)
 
   const fetchWarehouses = async (page = pagination.current, limit = pagination.pageSize) => {
     setLoading(true)
@@ -131,29 +134,33 @@ const WarehouseManagement = () => {
       align: "center",
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title="Chỉnh sửa">
-            <Button
-              icon={<EditOutlined />}
-              size="small"
-              onClick={() => {
-                setSelectedWarehouse(record)
-                setEditModalVisible(true)
-              }}
-              className="text-green-600 hover:text-green-700 hover:bg-green-50"
-            />
-          </Tooltip>
-          <Tooltip title="Xóa">
-            <Button
-              icon={<DeleteOutlined />}
-              danger
-              size="small"
-              onClick={() => {
-                setSelectedWarehouse(record)
-                setDeleteModalVisible(true)
-              }}
-              className="hover:bg-red-50"
-            />
-          </Tooltip>
+          {hasPermission(permissions, 'warehouse.update') &&
+            <Tooltip title="Chỉnh sửa">
+              <Button
+                icon={<EditOutlined />}
+                size="small"
+                onClick={() => {
+                  setSelectedWarehouse(record)
+                  setEditModalVisible(true)
+                }}
+                className="text-green-600 hover:text-green-700 hover:bg-green-50"
+              />
+            </Tooltip>
+          }
+          {hasPermission(permissions, 'warehouse.delete') &&
+            <Tooltip title="Xóa">
+              <Button
+                icon={<DeleteOutlined />}
+                danger
+                size="small"
+                onClick={() => {
+                  setSelectedWarehouse(record)
+                  setDeleteModalVisible(true)
+                }}
+                className="hover:bg-red-50"
+              />
+            </Tooltip>
+          }
         </Space>
       ),
     },
@@ -165,14 +172,16 @@ const WarehouseManagement = () => {
         <Title level={2} className="text-xl md:text-2xl font-bold m-0">
           Quản lý kho
         </Title>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setCreateModalVisible(true)}
-          className="bg-blue-500 border-0 hover:bg-blue-600"
-        >
-          Thêm kho
-        </Button>
+        {hasPermission(permissions, 'warehouse.create') &&
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => setCreateModalVisible(true)}
+            className="bg-blue-500 border-0 hover:bg-blue-600"
+          >
+            Thêm kho
+          </Button>
+        }
       </div>
 
       <Card>

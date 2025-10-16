@@ -9,6 +9,8 @@ import { debounce } from "lodash"
 import searchService from "../../service/searchService"
 import ExpandedCustomerTabs from "../../components/customer/ExpandedCustomerTabs"
 import LoadingLogo from "../../components/LoadingLogo"
+import { useSelector } from "react-redux"
+import { hasPermission } from "../../utils/permissionHelper"
 
 const { Title } = Typography
 
@@ -31,6 +33,8 @@ const CustomerManagement = () => {
   });
   const [isSearching, setIsSearching] = useState(false);
   const [searchText, setSearchText] = useState("");
+
+  const permissions = useSelector(state => state.permission.permissions.permissions)
 
   const fetchCustomers = async (page = pagination.current, limit = pagination.pageSize) => {
     setLoading(true);
@@ -192,7 +196,7 @@ const CustomerManagement = () => {
         <Title level={2} className="text-xl md:text-2xl font-bold m-0 text-gray-800">
           Quản lý khách hàng
         </Title>
-        <Button
+        {hasPermission(permissions, 'customer.create') && <Button
           type="primary"
           icon={<PlusOutlined />}
           onClick={() => setCreateModalVisible(true)}
@@ -200,6 +204,7 @@ const CustomerManagement = () => {
         >
           Thêm khách hàng
         </Button>
+        }
       </div>
 
       <Card>

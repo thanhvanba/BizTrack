@@ -6,6 +6,8 @@ import formatPrice from "../../utils/formatPrice";
 import DebtAdjustmentModal from "../modals/DebtAdjustment";
 import LoadingLogo from '../LoadingLogo';
 import cashbookService from '../../service/cashbookService';
+import { useSelector } from "react-redux";
+import { hasPermission } from "../../utils/permissionHelper";
 
 const statusMap = {
     pending: 'Tạo đơn hàng',
@@ -55,6 +57,8 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
         pageSize: 5,
         total: 0,
     })
+
+    const permissions = useSelector(state => state.permission.permissions.permissions)
     const handleRecordBulkPayment = async (invoiceData) => {
         await customerService.recordBulkPayment(invoiceData);
         fetchCustomerReceivables()
@@ -140,7 +144,7 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
                         Xuất file
                     </Button> */}
                 </div>
-                <div className="flex gap-2">
+                {hasPermission(permissions, 'customer.recordBulkPayment') && <div className="flex gap-2">
                     <Button type="primary" icon={<span>✏️</span>} onClick={() => setIsModalOpen(true)}>
                         Hoàn tiền
                     </Button>
@@ -148,6 +152,7 @@ const CustomerReceivablesTab = ({ customerData, fetchCustomers }) => {
                         Thanh toán
                     </Button>
                 </div>
+                }
             </div>
             <DebtAdjustmentModal
                 open={isModalOpen}
