@@ -173,6 +173,7 @@ export default function RoleCreateModal({ visible, onClose, onSave, roleId, sele
                           !allChecked &&
                           value.permissions.some(p => selected[group]?.[p.permission_id])
                         }
+                        onClick={(e) => e.stopPropagation()}
                         onChange={e => handleCheckAllModule(group, e.target.checked)}
                       >
                         <span className="font-semibold text-lg">{value.group_name}</span>
