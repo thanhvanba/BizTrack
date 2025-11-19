@@ -7,6 +7,7 @@ import {
   DatePicker,
   Select,
   InputNumber,
+  Checkbox,
 } from "antd";
 import dayjs from "dayjs";
 import customerService from "../../service/customerService";
@@ -22,6 +23,7 @@ const DebtAdjustmentModal = ({
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [isInvestment, setIsInvestment] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -30,7 +32,7 @@ const DebtAdjustmentModal = ({
         // Prefill fields when editing
         form.setFieldsValue({
           adjustmentValue: initialValues.adjustmentValue,
-          paymentMethod: initialValues.paymentMethod || 'cash',
+          paymentMethod: initialValues.paymentMethod || "cash",
           category: initialValues.category,
           type: initialValues.type,
           description: initialValues.description,
@@ -67,10 +69,11 @@ const DebtAdjustmentModal = ({
   ];
 
   const getCategories = () => {
-    if (modalType === 'receipt') {
+    if (modalType === "receipt") {
       return [
         // { label: "Thu tiền khách hàng", value: "customer_payment" },
         { label: "Thu tiền khác", value: "other_receipt" },
+        ...(isInvestment ? [{ label: "Đầu tư", value: "invest" }] : []),
       ];
     } else {
       return [
@@ -112,7 +115,7 @@ const DebtAdjustmentModal = ({
           onClick={handleSubmit}
           loading={loading}
         >
-          {initialValues ? 'Cập nhật' : 'Tạo giao dịch'}
+          {initialValues ? "Cập nhật" : "Tạo giao dịch"}
         </Button>,
       ]}
     >
@@ -152,13 +155,13 @@ const DebtAdjustmentModal = ({
           >
             <Select options={paymentMethods} />
           </Form.Item>
-          {context === 'cash-book' ? (
+          {context === "cash-book" ? (
             <Form.Item
               label="Danh mục"
               name="category"
               rules={[{ required: true, message: "Chọn danh mục!" }]}
             >
-              <Select options={getCategories()} />
+              <Select options={getCategories()} disabled={isInvestment} />
             </Form.Item>
           ) : (
             <Form.Item
@@ -175,6 +178,21 @@ const DebtAdjustmentModal = ({
             rules={[{ required: true, message: "Nhập mô tả!" }]}
           >
             <Input.TextArea rows={3} placeholder="Nhập mô tả" />
+          </Form.Item>
+
+          <Form.Item wrapperCol={{ offset: 6 }}>
+            <Checkbox
+              onChange={(e) => {
+                setIsInvestment(e.target.checked);
+                if (e.target.checked) {
+                  form.setFieldsValue({ category: "invest" });
+                } else {
+                  form.setFieldsValue({ category: undefined }); // ← reset khi uncheck
+                }
+              }}
+            >
+              Chọn sẽ không hạch toán kinh doanh (đầu tư, cổ phần)
+            </Checkbox>
           </Form.Item>
         </Form>
       </div>

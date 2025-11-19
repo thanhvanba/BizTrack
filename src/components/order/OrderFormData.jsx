@@ -1376,7 +1376,7 @@ const OrderFormData = ({
                 <DatePicker
                   placeholder="Chọn ngày"
                   disabledDate={(current) =>
-                    current && current < dayjs().startOf("day")
+                    current && current < dayjs().subtract(1, 'month').startOf("day")
                   }
                   variant="filled"
                   className="w-full"
