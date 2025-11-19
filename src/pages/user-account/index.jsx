@@ -7,6 +7,7 @@ import roleService from '../../service/roleService';
 import permisstionService from '../../service/permissionService';
 import ExpandedUserTabs from './ExpandedUserTabs';
 import useToastNotify from '../../utils/useToastNotify';
+import { useSelector } from 'react-redux';
 
 export default function UserAccountPage() {
   const [activeTab, setActiveTab] = useState('user');
@@ -18,6 +19,8 @@ export default function UserAccountPage() {
   const [rolePermissions, setRolePermissions] = useState([]);
 
   const [expandedRowKeys, setExpandedRowKeys] = useState([])
+
+  const profileInfo = useSelector(state => state.user.userInfo)
 
   const handleEditRole = async (role) => {
     try {
@@ -84,7 +87,7 @@ export default function UserAccountPage() {
       title: 'Tên hiển thị',
       dataIndex: 'fullname',
       render: (text, record) =>
-        record.role_name === 'Tôi' ? (
+        record.user_id === profileInfo.data.user_id ? (
           <>
             {record.fullname} <Tag color="blue">Tôi</Tag>
           </>
