@@ -1,40 +1,30 @@
-import { useEffect, useMemo, useState } from "react";
 import {
+  ClearOutlined,
+  PlusOutlined,
+  SearchOutlined
+} from "@ant-design/icons";
+import {
+  Button,
   Card,
   Input,
-  Button,
-  Table,
-  Tag,
-  Space,
-  Tooltip,
   Select,
-  Typography,
-  DatePicker,
-  message,
+  Space,
+  Table,
+  Typography
 } from "antd";
-import {
-  SearchOutlined,
-  PlusOutlined,
-  EyeOutlined,
-  PrinterOutlined,
-  DownloadOutlined,
-  EditOutlined,
-  ClearOutlined,
-} from "@ant-design/icons";
-import OrderDetailDrawer from "../../components/drawers/OrderDetailDrawer";
-import { useNavigate, useLocation } from "react-router-dom";
-import orderService from "../../service/orderService";
-import './index.css'
-import searchService from "../../service/searchService";
-import { debounce } from "lodash";
-import useToastNotify from "../../utils/useToastNotify";
-import formatPrice from '../../utils/formatPrice'
-import OptionsStatistics from "../../components/OptionsStatistics";
 import dayjs from "dayjs";
-import OrderStatusTabs from "../../components/order/OrderStatusTabs";
-import orderDetailService from "../../service/orderDetailService";
-import ExpandedOrderTabs from "../../components/order/ExpandedOrderTabs";
+import { debounce } from "lodash";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import LoadingLogo from "../../components/LoadingLogo";
+import OptionsStatistics from "../../components/OptionsStatistics";
+import ExpandedOrderTabs from "../../components/order/ExpandedOrderTabs";
+import OrderStatusTabs from "../../components/order/OrderStatusTabs";
+import orderService from "../../service/orderService";
+import searchService from "../../service/searchService";
+import formatPrice from '../../utils/formatPrice';
+import useToastNotify from "../../utils/useToastNotify";
+import './index.css';
 
 const { Title } = Typography;
 
