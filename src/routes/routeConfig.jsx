@@ -1,27 +1,22 @@
 // src/routes/routeConfig.js
-import Dashboard from "../pages/dashboard";
-import OrderManagement from "../pages/order-management";
-import ProductManagement from "../pages/product-management";
-import RevenueTracking from "../pages/revenue-tracking";
-import CustomerManagement from "../pages/customer-management";
-import ProductCategory from "../pages/product-management/ProductCategory";
-import PurchaseManagement from "../pages/warehouse-management/PurchaseManagement";
-import InventoryManagement from "../pages/warehouse-management/InventoryManagement";
-import WarehouseManagement from "../pages/warehouse-management";
-import OrderFormPage from "../pages/order-management/OrderFormPage";
-import SupplierManagement from "../pages/warehouse-management/SupplierManagement";
-import ReturnOrderPage from "../pages/order-management/ReturnOrderPage";
-import HomePage from "../pages/home-page";
+import ProtectedRoute from "../components/ProtectedRoute";
 import CashBookPage from "../pages/cash-book";
-import AdjustInventory from "../pages/warehouse-management/AdjustInventory";
+import CustomerManagement from "../pages/customer-management";
 import CustomerImport from "../pages/CustomerImport";
-import ProductReport from "../pages/report-page";
+import Dashboard from "../pages/dashboard";
+import HomePage from "../pages/home-page";
+import OrderManagement from "../pages/order-management";
+import OrderFormPage from "../pages/order-management/OrderFormPage";
+import ReturnOrderPage from "../pages/order-management/ReturnOrderPage";
+import ProductManagement from "../pages/product-management";
+import ProductCategory from "../pages/product-management/ProductCategory";
+import ProfilePage from "../pages/profile";
 import TopEntityReport from "../pages/report-page";
 import UserAccountPage from "../pages/user-account";
-import ProfilePage from "../pages/profile";
-import ProtectedRoute from "../components/ProtectedRoute";
-import PwaDashboard from "../pages/dashboard/pwa";
-import PwaOrderManagement from "../pages/order-management/pwa/pwa";
+import WarehouseManagement from "../pages/warehouse-management";
+import InventoryManagement from "../pages/warehouse-management/InventoryManagement";
+import PurchaseManagement from "../pages/warehouse-management/PurchaseManagement";
+import SupplierManagement from "../pages/warehouse-management/SupplierManagement";
 
 export const homeRoute = { path: "", element: <HomePage /> };
 
@@ -187,9 +182,4 @@ export const privateRoutes = [
   },
   { path: "profile", element: <ProfilePage /> },
   { path: "user-accounts", element: <UserAccountPage /> },
-];
-
-export const privatePwaRoutes = [
-  { path: "dashboard", element: <PwaDashboard /> },
-  { path: "orders", element: <PwaOrderManagement /> },
 ];
